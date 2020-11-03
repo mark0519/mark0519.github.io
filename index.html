@@ -249,7 +249,7 @@
       <span class="post-meta-item-text">发表于</span>
       
 
-      <time title="创建时间：2020-11-03 14:51:53 / 修改时间：18:41:27" itemprop="dateCreated datePublished" datetime="2020-11-03T14:51:53+08:00">2020-11-03</time>
+      <time title="创建时间：2020-11-03 14:51:53 / 修改时间：22:10:59" itemprop="dateCreated datePublished" datetime="2020-11-03T14:51:53+08:00">2020-11-03</time>
     </span>
 
   
@@ -263,14 +263,14 @@
     
     <div class="post-body" itemprop="articleBody">
           <h1 id="C语言学习笔记——c位域"><a href="#C语言学习笔记——c位域" class="headerlink" title="C语言学习笔记——c位域"></a>C语言学习笔记——c位域</h1><h2 id="C语言学习笔记1-4"><a href="#C语言学习笔记1-4" class="headerlink" title="C语言学习笔记1.4"></a>C语言学习笔记1.4</h2><h3 id="C语言基本知识"><a href="#C语言基本知识" class="headerlink" title="C语言基本知识"></a>C语言基本知识</h3><p>在编写一段C语言代码结构体的过程中，可能会存在某些变量只需要表示开关量，即0或1两个量之一，而C语言中即使是int整形也会占用4个字节，因此，在定义这些变量的时候会使该结构体占用过多的内存空间，导致内存的浪费，而C语言的位域可以很好的处理这个问题。</p>
-<p>简单的例子：</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//不控制位域；</span></span><br><span class="line"><span class="class"><span class="keyword">struct</span> </span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line">    <span class="keyword">int</span> flag1;</span><br><span class="line">    <span class="keyword">int</span> flag2;</span><br><span class="line">&#125;f1=&#123;<span class="number">1</span>,<span class="number">0</span>&#125;;</span><br><span class="line"><span class="built_in">printf</span>(<span class="string">&quot;The flag1 = %d ,and the size of f1 is %d\n&quot;</span>,f1.flag1,<span class="keyword">sizeof</span>(f1));</span><br><span class="line"><span class="comment">//控制位域为1；</span></span><br><span class="line"><span class="class"><span class="keyword">struct</span> </span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line">    <span class="keyword">int</span> flag1 : <span class="number">1</span>;</span><br><span class="line">    <span class="keyword">int</span> flag2 : <span class="number">1</span>;</span><br><span class="line">&#125;f2=&#123;<span class="number">1</span>,<span class="number">0</span>&#125;;</span><br><span class="line"><span class="built_in">printf</span>(<span class="string">&quot;The flag2 = %d ,and the size of f2 is %d\n&quot;</span>,f2.flag2,<span class="keyword">sizeof</span>(f2));</span><br></pre></td></tr></table></figure>
-
-<p>上述例子的运行结果为：</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">The flag1 = <span class="number">1</span> ,<span class="keyword">and</span> the size of f1 is <span class="number">8</span></span><br><span class="line">The flag2 = <span class="number">0</span> ,<span class="keyword">and</span> the size of f2 is <span class="number">4</span></span><br></pre></td></tr></table></figure>
-
-<p>这里注意，sizeof(f2)并不等于2，而是一个int的长度 4 byte。但若上述程序中将f2.flag1赋值为2，将会造成溢出，</p>
-
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2020/11/03/C%E8%AF%AD%E8%A8%80%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%E2%80%94%E2%80%94c%E4%BD%8D%E5%9F%9F/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
       
     </div>
 
@@ -322,7 +322,7 @@
       <span class="post-meta-item-text">发表于</span>
       
 
-      <time title="创建时间：2020-11-03 10:01:47 / 修改时间：10:32:58" itemprop="dateCreated datePublished" datetime="2020-11-03T10:01:47+08:00">2020-11-03</time>
+      <time title="创建时间：2020-11-03 10:01:47 / 修改时间：22:11:06" itemprop="dateCreated datePublished" datetime="2020-11-03T10:01:47+08:00">2020-11-03</time>
     </span>
 
   
@@ -337,32 +337,14 @@
     <div class="post-body" itemprop="articleBody">
           <h1 id="C语言学习笔记1-3"><a href="#C语言学习笔记1-3" class="headerlink" title="C语言学习笔记1.3"></a>C语言学习笔记1.3</h1><h2 id="c共同体"><a href="#c共同体" class="headerlink" title="c共同体"></a>c共同体</h2><h3 id="C语言共同体基本知识"><a href="#C语言共同体基本知识" class="headerlink" title="C语言共同体基本知识"></a>C语言共同体基本知识</h3><p><strong>共用体</strong>是一种特殊的数据类型，允许在相同的内存位置存储不同的数据类型。</p>
 <p>可以定义一个带有多成员的共用体，但是任何时候只能有一个成员带有值。共用体提供了一种使用相同的内存位置的有效方式。</p>
-<h3 id="定义共用体"><a href="#定义共用体" class="headerlink" title="定义共用体"></a>定义共用体</h3><p>为了定义共用体，使用 <strong>union</strong> 语句，方式与定义结构类似：</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">union</span> [<span class="title">union</span> <span class="title">tag</span>]</span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line">    member definition;</span><br><span class="line">    member definition;</span><br><span class="line">    ...</span><br><span class="line">    member definition;</span><br><span class="line">&#125;[one <span class="keyword">or</span> more <span class="class"><span class="keyword">union</span> <span class="title">variables</span>];</span></span><br></pre></td></tr></table></figure>
-
-<p>[<strong>union tag</strong>] 是可选的，每个 member definition; 是标准的变量定义，比如 int i; 或者 float f; 或者其他有效的变量定义。在共用体定义的末尾，最后一个分号之前，可以指定一个或多个共用体变量，这是可选的。</p>
-<p>例如定义一个Data共同体：</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">union</span> <span class="title">data</span></span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line">    <span class="keyword">int</span> i;</span><br><span class="line">    <span class="keyword">float</span> f;</span><br><span class="line">    <span class="keyword">char</span> c[<span class="number">20</span>];</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
-
-<p>现在，<strong>Data</strong> 类型的变量可以存储一个整数、一个浮点数，或者一个字符串。这意味着一个变量（相同的内存位置）可以存储多个多种类型的数据。您可以根据需要在一个共用体内使用任何内置的或者用户自定义的数据类型。</p>
-<p>共用体占用的内存应足够存储共用体中最大的成员。例如，在上面的实例中，Data 将占用 20 个字节的内存空间，因为在各个成员中，字符串所占用的空间是最大的。</p>
-<p>例如：</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;string.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">union</span> <span class="title">data</span></span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line">    <span class="keyword">int</span> i;</span><br><span class="line">    <span class="keyword">float</span> f;</span><br><span class="line">    <span class="keyword">char</span> c[<span class="number">20</span>];</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">void</span>)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="class"><span class="keyword">union</span> <span class="title">data</span> <span class="title">m</span>;</span></span><br><span class="line">    <span class="built_in">strcpy</span>(m.c,<span class="string">&quot;mark0519&quot;</span>);</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;%s\n&quot;</span>,m);</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;The size of union data m is %d&quot;</span>,<span class="keyword">sizeof</span>(m));</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>运行结果为：</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">mark0519</span><br><span class="line">The size of <span class="class"><span class="keyword">union</span> <span class="title">data</span> <span class="title">m</span> <span class="title">is</span> 20</span></span><br></pre></td></tr></table></figure>
-
-<p>因为共同体m中字符串c所占的内存空间最大，为20，所以共同体m的内存大小为20。</p>
-<h3 id="访问共用体成员"><a href="#访问共用体成员" class="headerlink" title="访问共用体成员"></a>访问共用体成员</h3><p>和结构体一样，共同体也采用<strong>成员访问运算符（.）</strong>来访问每个成员。简单的例子：</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">union</span> <span class="title">data</span></span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line">    <span class="keyword">int</span> i;</span><br><span class="line">    <span class="keyword">float</span> f;</span><br><span class="line">    <span class="keyword">char</span> c[<span class="number">20</span>];</span><br><span class="line">&#125;m;</span><br><span class="line"></span><br><span class="line">m.i=<span class="number">1</span>;</span><br><span class="line">m.f=<span class="number">3.14</span>;</span><br><span class="line"><span class="built_in">strcpy</span>(m.c,<span class="string">&quot;mark0519&quot;</span>);</span><br></pre></td></tr></table></figure>
-
-<p>但上述赋值操作后，再次调用时却会出现问题，原因是共同体公用内存空间，先把1赋给了m.i，随后又赋值了m.f和m.c，后来的赋值会将原来的值覆盖，使调用m.i和m.f时出现错误，而m.c却没有问题，具体如下：</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;string.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">union</span> <span class="title">data</span></span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line">    <span class="keyword">int</span> i;</span><br><span class="line">    <span class="keyword">float</span> f;</span><br><span class="line">    <span class="keyword">char</span> c[<span class="number">20</span>];</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">void</span>)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="class"><span class="keyword">union</span> <span class="title">data</span> <span class="title">m</span>;</span></span><br><span class="line">    m.i=<span class="number">1</span>;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;%d\n&quot;</span>,m.i);</span><br><span class="line">    m.f=<span class="number">3.14</span>;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;%f\n&quot;</span>,m.f);</span><br><span class="line">    <span class="built_in">strcpy</span>(m.c,<span class="string">&quot;mark0519&quot;</span>);</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;%s\n\n&quot;</span>,m.c);</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;union m is \nint i = %d,\nfloat f = %f \n, char c[20] = %s.&quot;</span>,m.i,m.f,m.c);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>上面的程序运行后输出</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">1</span>           <span class="comment">//正常输出，因为在同一时间只使用一个变量</span></span><br><span class="line"><span class="number">3.140000</span>    <span class="comment">//同上</span></span><br><span class="line">mark0519</span><br><span class="line">    </span><br><span class="line"><span class="class"><span class="keyword">union</span> <span class="title">m</span> <span class="title">is</span> </span></span><br><span class="line"><span class="class"><span class="title">int</span> <span class="title">i</span> =</span> <span class="number">1802658157</span>,</span><br><span class="line"><span class="keyword">float</span> f = <span class="number">293020128590682650000000000.000000</span>,</span><br><span class="line"><span class="keyword">char</span> c[<span class="number">20</span>] = mark0519.</span><br></pre></td></tr></table></figure>
-
-
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2020/11/03/C%E8%AF%AD%E8%A8%80%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%E2%80%94%E2%80%94C%E5%85%B1%E5%90%8C%E4%BD%93/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
       
     </div>
 
@@ -412,10 +394,16 @@
         <i class="far fa-calendar"></i>
       </span>
       <span class="post-meta-item-text">发表于</span>
-      
 
-      <time title="创建时间：2020-10-30 19:28:21 / 修改时间：22:53:04" itemprop="dateCreated datePublished" datetime="2020-10-30T19:28:21+08:00">2020-10-30</time>
+      <time title="创建时间：2020-10-30 19:28:21" itemprop="dateCreated datePublished" datetime="2020-10-30T19:28:21+08:00">2020-10-30</time>
     </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">更新于</span>
+        <time title="修改时间：2020-11-03 22:10:31" itemprop="dateModified" datetime="2020-11-03T22:10:31+08:00">2020-11-03</time>
+      </span>
 
   
 </div>
@@ -428,45 +416,14 @@
     
     <div class="post-body" itemprop="articleBody">
           <h1 id="C语言学习笔记1-2"><a href="#C语言学习笔记1-2" class="headerlink" title="C语言学习笔记1.2"></a>C语言学习笔记1.2</h1><h2 id="C结构体"><a href="#C结构体" class="headerlink" title="C结构体"></a>C结构体</h2><h3 id="C语言结构体基本知识"><a href="#C语言结构体基本知识" class="headerlink" title="C语言结构体基本知识"></a>C语言结构体基本知识</h3><p>C 数组允许定义可存储相同类型数据项的变量，<strong>结构</strong>是 C 编程中另一种用户自定义的可用的数据类型，它允许存储不同类型的数据项。</p>
-<h3 id="结构体定义"><a href="#结构体定义" class="headerlink" title="结构体定义"></a>结构体定义</h3><p>为了定义结构，必须使用 <strong>struct</strong> 语句。struct语句结构如下：</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">tag</span></span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line">    member-<span class="built_in">list</span>;</span><br><span class="line">    member-<span class="built_in">list</span>;</span><br><span class="line">    member-<span class="built_in">list</span>;</span><br><span class="line">    member-<span class="built_in">list</span>;</span><br><span class="line">    ...</span><br><span class="line">&#125; variable-<span class="built_in">list</span> ;</span><br></pre></td></tr></table></figure>
-
-<p><strong>tag</strong> 是结构体标签。</p>
-<p><strong>member-list</strong> 是标准的变量定义，比如 int i; 或者 float f，或者其他有效的变量定义。</p>
-<p><strong>variable-list</strong> 结构变量，定义在结构的末尾，最后一个分号之前，可以指定一个或多个结构变量。</p>
-<p>例如下面的定义:</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">books</span></span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line">    <span class="keyword">char</span> title[<span class="number">100</span>];</span><br><span class="line">    <span class="keyword">char</span> author[<span class="number">100</span>];</span><br><span class="line">    <span class="keyword">char</span> subject[<span class="number">100</span>];</span><br><span class="line">    <span class="keyword">int</span> book_id;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">books</span> <span class="title">book1</span>;</span></span><br></pre></td></tr></table></figure>
-
-<p>等价于：</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">books</span></span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line">    <span class="keyword">char</span> title[<span class="number">100</span>];</span><br><span class="line">    <span class="keyword">char</span> author[<span class="number">100</span>];</span><br><span class="line">    <span class="keyword">char</span> subject[<span class="number">100</span>];</span><br><span class="line">    <span class="keyword">int</span> book_id;</span><br><span class="line">&#125; book1;</span><br></pre></td></tr></table></figure>
-
-<p>在一般情况下，<strong>tag、member-list、variable-list</strong> 这 3 部分至少要出现 2 个。</p>
-<h3 id="结构体变量的初始化"><a href="#结构体变量的初始化" class="headerlink" title="结构体变量的初始化"></a>结构体变量的初始化</h3><p>和其它类型变量一样，对结构体变量可以在定义时指定初始值。</p>
-<p>例如：</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">books</span></span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line">    <span class="keyword">char</span> title[<span class="number">100</span>];</span><br><span class="line">    <span class="keyword">char</span> author[<span class="number">100</span>];</span><br><span class="line">    <span class="keyword">char</span> subject[<span class="number">100</span>];</span><br><span class="line">    <span class="keyword">int</span> book_id;</span><br><span class="line">&#125; book1=&#123;<span class="string">&quot;a book on c&quot;</span>,<span class="string">&quot;mark0519&quot;</span>,<span class="string">&quot;programming&quot;</span>,<span class="number">13456</span>&#125;;</span><br></pre></td></tr></table></figure>
-
-<p>或者</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">books</span></span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line">    <span class="keyword">char</span> title[<span class="number">100</span>];</span><br><span class="line">    <span class="keyword">char</span> author[<span class="number">100</span>];</span><br><span class="line">    <span class="keyword">char</span> subject[<span class="number">100</span>];</span><br><span class="line">    <span class="keyword">int</span> book_id;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">books</span> <span class="title">book1</span>=</span>&#123;<span class="string">&quot;a book on c&quot;</span>,<span class="string">&quot;mark0519&quot;</span>,<span class="string">&quot;programming&quot;</span>,<span class="number">13456</span>&#125;;</span><br></pre></td></tr></table></figure>
-
-<p>再或者</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">books</span></span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line">    <span class="keyword">char</span> title[<span class="number">100</span>];</span><br><span class="line">    <span class="keyword">char</span> author[<span class="number">100</span>];</span><br><span class="line">    <span class="keyword">char</span> subject[<span class="number">100</span>];</span><br><span class="line">    <span class="keyword">int</span> book_id;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">books</span> <span class="title">book1</span>;</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">strcpy</span>(book1.title,<span class="string">&quot;a book on c&quot;</span>);         <span class="comment">//book1.title中的“.”为“成员访问运算符”，用于访问结构的成员</span></span><br><span class="line"><span class="built_in">strcpy</span>(book1.author,<span class="string">&quot;mark0519&quot;</span>);</span><br><span class="line"><span class="built_in">strcpy</span>(book1.subject,<span class="string">&quot;programming&quot;</span>);</span><br><span class="line">book1.book_id=<span class="number">123456</span>;</span><br></pre></td></tr></table></figure>
-
-<h3 id="访问结构成员"><a href="#访问结构成员" class="headerlink" title="访问结构成员"></a>访问结构成员</h3><p>上面的最后一个例子中的 book1.title 中的 “.” 为 “成员访问运算符” ，用于访问结构的成员。</p>
-<p>下面的例子用于理解该运算符：</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;string.h&gt;</span></span></span><br><span class="line"> </span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">Books</span></span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line">   <span class="keyword">char</span>  title[<span class="number">50</span>];</span><br><span class="line">   <span class="keyword">char</span>  author[<span class="number">50</span>];</span><br><span class="line">   <span class="keyword">char</span>  subject[<span class="number">100</span>];</span><br><span class="line">   <span class="keyword">int</span>   book_id;</span><br><span class="line">&#125;;</span><br><span class="line"> </span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">   <span class="class"><span class="keyword">struct</span> <span class="title">Books</span> <span class="title">Book1</span>;</span>        <span class="comment">/* 声明 Book1，类型为 Books */</span></span><br><span class="line">   <span class="class"><span class="keyword">struct</span> <span class="title">Books</span> <span class="title">Book2</span>;</span>        <span class="comment">/* 声明 Book2，类型为 Books */</span></span><br><span class="line"> </span><br><span class="line">   <span class="comment">/* Book1 详述 */</span></span><br><span class="line">   <span class="built_in">strcpy</span>( Book1.title, <span class="string">&quot;C Programming&quot;</span>);</span><br><span class="line">   <span class="built_in">strcpy</span>( Book1.author, <span class="string">&quot;Nuha Ali&quot;</span>); </span><br><span class="line">   <span class="built_in">strcpy</span>( Book1.subject, <span class="string">&quot;C Programming Tutorial&quot;</span>);</span><br><span class="line">   Book1.book_id = <span class="number">6495407</span>;</span><br><span class="line"> </span><br><span class="line">   <span class="comment">/* Book2 详述 */</span></span><br><span class="line">   <span class="built_in">strcpy</span>( Book2.title, <span class="string">&quot;Telecom Billing&quot;</span>);</span><br><span class="line">   <span class="built_in">strcpy</span>( Book2.author, <span class="string">&quot;Zara Ali&quot;</span>);</span><br><span class="line">   <span class="built_in">strcpy</span>( Book2.subject, <span class="string">&quot;Telecom Billing Tutorial&quot;</span>);</span><br><span class="line">   Book2.book_id = <span class="number">6495700</span>;</span><br><span class="line"> </span><br><span class="line">   <span class="comment">/* 输出 Book1 信息 */</span></span><br><span class="line">   <span class="built_in">printf</span>( <span class="string">&quot;Book 1 title : %s\n&quot;</span>, Book1.title);</span><br><span class="line">   <span class="built_in">printf</span>( <span class="string">&quot;Book 1 author : %s\n&quot;</span>, Book1.author);</span><br><span class="line">   <span class="built_in">printf</span>( <span class="string">&quot;Book 1 subject : %s\n&quot;</span>, Book1.subject);</span><br><span class="line">   <span class="built_in">printf</span>( <span class="string">&quot;Book 1 book_id : %d\n&quot;</span>, Book1.book_id);</span><br><span class="line"> </span><br><span class="line">   <span class="comment">/* 输出 Book2 信息 */</span></span><br><span class="line">   <span class="built_in">printf</span>( <span class="string">&quot;Book 2 title : %s\n&quot;</span>, Book2.title);</span><br><span class="line">   <span class="built_in">printf</span>( <span class="string">&quot;Book 2 author : %s\n&quot;</span>, Book2.author);</span><br><span class="line">   <span class="built_in">printf</span>( <span class="string">&quot;Book 2 subject : %s\n&quot;</span>, Book2.subject);</span><br><span class="line">   <span class="built_in">printf</span>( <span class="string">&quot;Book 2 book_id : %d\n&quot;</span>, Book2.book_id);</span><br><span class="line"> </span><br><span class="line">   <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>输出结果为：</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">Book <span class="number">1</span> title : C Programming</span><br><span class="line">Book <span class="number">1</span> author : Nuha Ali</span><br><span class="line">Book <span class="number">1</span> subject : C Programming Tutorial</span><br><span class="line">Book <span class="number">1</span> book_id : <span class="number">6495407</span></span><br><span class="line">Book <span class="number">2</span> title : Telecom Billing</span><br><span class="line">Book <span class="number">2</span> author : Zara Ali</span><br><span class="line">Book <span class="number">2</span> subject : Telecom Billing Tutorial</span><br><span class="line">Book <span class="number">2</span> book_id : <span class="number">6495700</span></span><br></pre></td></tr></table></figure>
-
-<h3 id="结构作为函数参数"><a href="#结构作为函数参数" class="headerlink" title="结构作为函数参数"></a>结构作为函数参数</h3><p>可以把结构作为函数参数，传参方式与其他类型的变量或指针类似。可以使用上面实例中的方式来访问结构变量：</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;string.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">printfbook</span><span class="params">(struct books book)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">books</span></span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line">    <span class="keyword">char</span> title[<span class="number">100</span>];</span><br><span class="line">    <span class="keyword">char</span> author[<span class="number">100</span>];</span><br><span class="line">    <span class="keyword">char</span> subject[<span class="number">100</span>];</span><br><span class="line">    <span class="keyword">int</span> book_id;</span><br><span class="line">&#125; book1=&#123;<span class="string">&quot;learn c&quot;</span>,<span class="string">&quot;mark_&quot;</span>,<span class="string">&quot;programming&quot;</span>,<span class="number">654321</span>&#125;;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">books</span> <span class="title">book2</span>;</span>  </span><br><span class="line">    <span class="built_in">strcpy</span>(book2.title,<span class="string">&quot;a book on c&quot;</span>);         </span><br><span class="line">	<span class="built_in">strcpy</span>(book2.author,<span class="string">&quot;mark0519&quot;</span>);</span><br><span class="line">	<span class="built_in">strcpy</span>(book2.subject,<span class="string">&quot;programming&quot;</span>);</span><br><span class="line">	book2.book_id=<span class="number">123456</span>;</span><br><span class="line">    </span><br><span class="line">    printfbook(book1);</span><br><span class="line">    printfbook(book2);</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">printfbook</span><span class="params">(struct books book)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;\ntitle=%s\n&quot;</span>,book.title);</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;author=%s\n&quot;</span>,book.author);</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;subject=%s\n&quot;</span>,book.subject);</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;book_id=%d\n&quot;</span>,book.book_id);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>运行结果为</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">title=learn c</span><br><span class="line">author=mark_</span><br><span class="line">subject=programming</span><br><span class="line">book_id=<span class="number">654321</span></span><br><span class="line"></span><br><span class="line">title=a book on c</span><br><span class="line">author=mark0519</span><br><span class="line">subject=programming</span><br><span class="line">book_id=<span class="number">123456</span></span><br><span class="line">    </span><br></pre></td></tr></table></figure>
-
-<h3 id="指针和位域"><a href="#指针和位域" class="headerlink" title="指针和位域"></a>指针和位域</h3><p>我还没整明白。。。</p>
-<p>先空着。。。</p>
-
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2020/10/30/c-learn-struct/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
       
     </div>
 
@@ -592,7 +549,7 @@
           <i class="far fa-calendar-check"></i>
         </span>
         <span class="post-meta-item-text">更新于</span>
-        <time title="修改时间：2020-10-31 20:55:44" itemprop="dateModified" datetime="2020-10-31T20:55:44+08:00">2020-10-31</time>
+        <time title="修改时间：2020-11-03 22:10:53" itemprop="dateModified" datetime="2020-11-03T22:10:53+08:00">2020-11-03</time>
       </span>
 
   
@@ -606,175 +563,14 @@
     
     <div class="post-body" itemprop="articleBody">
           <h1 id="C语言学习笔记1-1"><a href="#C语言学习笔记1-1" class="headerlink" title="C语言学习笔记1.1"></a>C语言学习笔记1.1</h1><h2 id="C字符串"><a href="#C字符串" class="headerlink" title="C字符串"></a>C字符串</h2><h3 id="c字符串基本知识"><a href="#c字符串基本知识" class="headerlink" title="c字符串基本知识"></a>c字符串基本知识</h3><p>在C语言中，没有字符串变量，C语言保存字符串采用的是字符数组的形式。</p>
-<p>C语言的字符串以null字符’\0’结束，例如字符串“HELLO”的定义：</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">char</span> hello[<span class="number">6</span>]=&#123;<span class="string">&#x27;H&#x27;</span>,<span class="string">&#x27;E&#x27;</span>,<span class="string">&#x27;L&#x27;</span>,<span class="string">&#x27;L&#x27;</span>,<span class="string">&#x27;O&#x27;</span>,<span class="string">&#x27;\0&#x27;</span>&#125;;</span><br></pre></td></tr></table></figure>
-
-<p>实际上，根据字符初始化规则，字符串hello只需要写出这样：</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">char</span> hello[]=&#123;<span class="string">&quot;HELLO&quot;</span>&#125;;</span><br></pre></td></tr></table></figure>
-
-<p>以下是定义的字符串内存表示:</p>
-<table>
-<thead>
-<tr>
-<th align="center">Index</th>
-<th>0</th>
-<th>1</th>
-<th>2</th>
-<th>3</th>
-<th>4</th>
-<th align="left">5</th>
-</tr>
-</thead>
-<tbody><tr>
-<td align="center"><strong>Variable</strong></td>
-<td>H</td>
-<td>E</td>
-<td>L</td>
-<td>L</td>
-<td>O</td>
-<td align="left">\0</td>
-</tr>
-<tr>
-<td align="center"><strong>Address</strong></td>
-<td>0x23451</td>
-<td>0x23452</td>
-<td>0x23453</td>
-<td>0x23454</td>
-<td>0x23455</td>
-<td align="left">0x23456</td>
-</tr>
-</tbody></table>
-<p>其实，不需要把 <em>null</em> 字符放在字符串常量的末尾。C 编译器会在初始化数组时，自动把 ‘\0’ 放在字符串的末尾，且在输出时null字符不可见。例如运行代码：</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">char</span> m[<span class="number">6</span>]=&#123;<span class="string">&#x27;H&#x27;</span>,<span class="string">&#x27;E&#x27;</span>,<span class="string">&#x27;L&#x27;</span>,<span class="string">&#x27;L&#x27;</span>,<span class="string">&#x27;O&#x27;</span>,<span class="string">&#x27;\0&#x27;</span>&#125;;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;%s\n&quot;</span>,m);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>编译之后，输出结果为：</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">HELLO</span><br></pre></td></tr></table></figure>
-
-<p>这里特别提到，当想完整输出某个字符数组m[8]时，可直接写为：</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">printf</span>(<span class="string">&quot;%s&quot;</span>,m); <span class="comment">//省略m[8]中的[8]</span></span><br></pre></td></tr></table></figure>
-
-<p>其中%s代表以字符串形式输出，而C语言中也有%c表示单个字符的输出。 </p>
-<h3 id="C语言中操作字符串的部分函数（需要使用-lt-string-h-gt-头文件）"><a href="#C语言中操作字符串的部分函数（需要使用-lt-string-h-gt-头文件）" class="headerlink" title="C语言中操作字符串的部分函数（需要使用&lt;string.h&gt;头文件）"></a>C语言中操作字符串的部分函数（需要使用&lt;string.h&gt;头文件）</h3><table>
-<thead>
-<tr>
-<th align="left">序号</th>
-<th>函数</th>
-<th>目的</th>
-</tr>
-</thead>
-<tbody><tr>
-<td align="left">1</td>
-<td><code>strcpy(s1,s2);</code></td>
-<td>复制字符串s2的内容到s1</td>
-</tr>
-<tr>
-<td align="left">2</td>
-<td><code>strcat(s1,s2);</code></td>
-<td>连接字符串s2到s1的结尾处</td>
-</tr>
-<tr>
-<td align="left">3</td>
-<td><code>strlen(s1);</code></td>
-<td>返回字符串s1的长度,不含null符</td>
-</tr>
-<tr>
-<td align="left">4</td>
-<td><code>strcmp(s1,s2);</code></td>
-<td>比较字符串s1和s2的大小</td>
-</tr>
-<tr>
-<td align="left">5</td>
-<td><code>strchr(s1,ch);</code></td>
-<td>返回一个指向s1中字符ch<strong>第一次</strong>出现的位置的指针,找不到返回NULL</td>
-</tr>
-<tr>
-<td align="left">6</td>
-<td><code>strrchr(s1,ch);</code></td>
-<td>返回一个指向s1中字符ch<strong>最后一次</strong>出现的位置的指针,找不到返回NULL</td>
-</tr>
-<tr>
-<td align="left">7</td>
-<td><code>strstr(s1,s2);</code></td>
-<td>返回一个指向s1中字符串s2<strong>第一次</strong>出现的位置的指针,找不到返回NULL</td>
-</tr>
-</tbody></table>
-<blockquote>
-<p>注意：strcmp(s1,s2)函数有两个参数，即要比较的两个字符串。strcmp()函数对两个字符串进行大小写敏感的(case-sensitiVe)和字典式的(lexicographic)比较，并返回下列值之一：</p>
-<table>
-<thead>
-<tr>
-<th>返回值</th>
-<th>意义</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>&lt;0</td>
-<td>字符串s1小于字符串s2</td>
-</tr>
-<tr>
-<td>0</td>
-<td>字符串s1等于字符串s2</td>
-</tr>
-<tr>
-<td>&gt;0</td>
-<td>字符串s1大于字符串s2</td>
-</tr>
-</tbody></table>
-<p>具体用法作用见实例2</p>
-</blockquote>
-<p>下面是一些运用实例：</p>
-<h4 id="实例1（-strcpy-，strcat-，strlen-）"><a href="#实例1（-strcpy-，strcat-，strlen-）" class="headerlink" title="实例1（ strcpy()，strcat()，strlen() ）"></a>实例1（ strcpy()，strcat()，strlen() ）</h4><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;string.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="keyword">int</span> i=<span class="number">0</span>;</span><br><span class="line">	<span class="keyword">char</span> s1[]=&#123;<span class="string">&quot;hello_&quot;</span>&#125;;</span><br><span class="line">	<span class="keyword">char</span> s2[]=&#123;<span class="string">&quot;world&quot;</span>&#125;;</span><br><span class="line">	<span class="keyword">char</span> s3[]=&#123;<span class="string">&quot;empty&quot;</span>&#125;;</span><br><span class="line">	</span><br><span class="line">	<span class="built_in">strcpy</span>(s3,s2);           <span class="comment">//strcpy()，复制字符串s2的内容到s1</span></span><br><span class="line">	<span class="built_in">strcat</span>(s1,s3);           <span class="comment">//strcat()，连接字符串s3到s1的结尾处</span></span><br><span class="line">	i=<span class="built_in">strlen</span>(s1);            <span class="comment">//strlen()，返回字符串s1的长度,不含null符</span></span><br><span class="line">	<span class="built_in">printf</span>(<span class="string">&quot;%d\n&quot;</span>,i);</span><br><span class="line">	<span class="built_in">printf</span>(<span class="string">&quot;%s&quot;</span>,s1);</span><br><span class="line">	</span><br><span class="line">	<span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line"> &#125; </span><br></pre></td></tr></table></figure>
-
-<p>运行结果如下：</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">11</span></span><br><span class="line">hello_world</span><br></pre></td></tr></table></figure>
-
-<h4 id="实例2（-strcmp-）"><a href="#实例2（-strcmp-）" class="headerlink" title="实例2（ strcmp() ）"></a>实例2（ strcmp() ）</h4><h5 id="strcmp"><a href="#strcmp" class="headerlink" title="strcmp()"></a>strcmp()</h5><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;string.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="keyword">int</span> j=<span class="number">0</span>;</span><br><span class="line">	<span class="keyword">char</span> s1[]=&#123;<span class="string">&quot;ABC&quot;</span>&#125;;   </span><br><span class="line">	<span class="keyword">char</span> s2[]=&#123;<span class="string">&quot;AbC&quot;</span>&#125;;</span><br><span class="line">	</span><br><span class="line">	<span class="built_in">printf</span>(<span class="string">&quot;B = %d and b = %d\n&quot;</span>,<span class="string">&#x27;B&#x27;</span>,<span class="string">&#x27;b&#x27;</span>);    <span class="comment">//输出B和b的ASCII值</span></span><br><span class="line">	j = <span class="built_in">strcmp</span>(s1,s2);</span><br><span class="line">	<span class="built_in">printf</span>(<span class="string">&quot;strcmp(ABC,AbC) = %d\n&quot;</span>,j);       <span class="comment">//比较</span></span><br><span class="line">	</span><br><span class="line">	<span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>运行结果为：</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">B = <span class="number">66</span> <span class="keyword">and</span> b = <span class="number">98</span></span><br><span class="line"><span class="built_in">strcmp</span>(ABC,AbC) = <span class="number">-1</span></span><br></pre></td></tr></table></figure>
-
-<h5 id="strcmp-的一些变体"><a href="#strcmp-的一些变体" class="headerlink" title="strcmp()的一些变体"></a>strcmp()的一些变体</h5><table>
-<thead>
-<tr>
-<th>函数名</th>
-<th>作用</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>strcmp()</td>
-<td>对两个字符串进行大小写敏感的比较</td>
-</tr>
-<tr>
-<td>strcmpi()</td>
-<td>对两个字符串进行大小写不敏感的比较</td>
-</tr>
-<tr>
-<td>stricmp()</td>
-<td>同strcmpi()</td>
-</tr>
-<tr>
-<td>strncmp(s1,s2,n)</td>
-<td>把s1和s2进行比较，最多比较前 <strong>n</strong> 个字节(大小写敏感)</td>
-</tr>
-<tr>
-<td>strnicmp(s1,s2,n)</td>
-<td>把s1和s2进行比较，最多比较前 <strong>n</strong> 个字节(大小写<strong>不</strong>敏感)</td>
-</tr>
-</tbody></table>
-<p>如，如果将实例2中的strcmp(s1,s2)改成strmpi(s1,s2),则会返回 <strong>0</strong></p>
-<p>其他同理</p>
-<h4 id="实例3（-strchr-，strstr-）"><a href="#实例3（-strchr-，strstr-）" class="headerlink" title="实例3（ strchr() ，strstr() ）"></a>实例3（ strchr() ，strstr() ）</h4><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;string.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span> <span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">   <span class="keyword">char</span> m[]=&#123;<span class="string">&quot;https://mark0519.github.io/&quot;</span>&#125;;</span><br><span class="line">   <span class="keyword">char</span> s1=<span class="string">&#x27;.&#x27;</span>;</span><br><span class="line">   <span class="keyword">char</span> s2[]=&#123;<span class="string">&quot;mark&quot;</span>&#125;;</span><br><span class="line">   <span class="keyword">char</span> *p1=<span class="literal">NULL</span>;</span><br><span class="line">   <span class="keyword">char</span> *p2=<span class="literal">NULL</span>;</span><br><span class="line">   </span><br><span class="line">   p1=<span class="built_in">strchr</span>(m,s1);</span><br><span class="line">   p2=<span class="built_in">strstr</span>(m,s2);</span><br><span class="line">   <span class="built_in">printf</span>(<span class="string">&quot;The bytes after the &#x27;.&#x27; is %s\n&quot;</span>,p1);     <span class="comment">//输出结果会包含“.”</span></span><br><span class="line">   <span class="built_in">printf</span>(<span class="string">&quot;The bytes after the &#x27;mark&#x27; is %s&quot;</span>,p2);     </span><br><span class="line">   </span><br><span class="line">   <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>运行结果为：</p>
-<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">The bytes after the <span class="string">&#x27;.&#x27;</span> is .github.io/</span><br><span class="line">The bytes after the &#x27;mark&#x27; is mark0519.github.io/</span><br></pre></td></tr></table></figure>
-
-
-
-
-
-
-
-
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2020/10/29/c-learn/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
       
     </div>
 
