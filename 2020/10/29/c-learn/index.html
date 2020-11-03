@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+
+  
+  <title>C语言学习笔记——C字符串 | mark0519的博客</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="C语言学习笔记1.1C字符串c字符串基本知识在C语言中，没有字符串变量，C语言保存字符串采用的是字符数组的形式。 C语言的字符串以null字符’\0’结束，例如字符串“HELLO”的定义： 1char hello[6]&#x3D;&amp;#123;&amp;#x27;H&amp;#x27;,&amp;#x27;E&amp;#x27;,&amp;#x27;L&amp;#x27;,&amp;#x27;L&amp;#x27;,&amp;#x27;O&amp;#x27;,&amp;#x27;\0&amp;#x27;">
+<meta property="og:type" content="article">
+<meta property="og:title" content="C语言学习笔记——C字符串">
+<meta property="og:url" content="https://mark0519.github.io/2020/10/29/c-learn/index.html">
+<meta property="og:site_name" content="mark0519的博客">
+<meta property="og:description" content="C语言学习笔记1.1C字符串c字符串基本知识在C语言中，没有字符串变量，C语言保存字符串采用的是字符数组的形式。 C语言的字符串以null字符’\0’结束，例如字符串“HELLO”的定义： 1char hello[6]&#x3D;&amp;#123;&amp;#x27;H&amp;#x27;,&amp;#x27;E&amp;#x27;,&amp;#x27;L&amp;#x27;,&amp;#x27;L&amp;#x27;,&amp;#x27;O&amp;#x27;,&amp;#x27;\0&amp;#x27;">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2020-10-29T15:26:03.000Z">
+<meta property="article:modified_time" content="2020-10-31T12:55:44.321Z">
+<meta property="article:author" content="mark0519">
+<meta property="article:tag" content="c">
+<meta name="twitter:card" content="summary">
+  
+    <link rel="alternate" href="/atom.xml" title="mark0519的博客" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+<meta name="generator" content="Hexo 5.2.0"></head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">mark0519的博客</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="搜索"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="https://mark0519.github.io"></form>
+      </div>
+    </div>
+  </div>
+</header>
+      <div class="outer">
+        <section id="main"><article id="post-c-learn" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2020/10/29/c-learn/" class="article-date">
+  <time datetime="2020-10-29T15:26:03.000Z" itemprop="datePublished">2020-10-29</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      C语言学习笔记——C字符串
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h1 id="C语言学习笔记1-1"><a href="#C语言学习笔记1-1" class="headerlink" title="C语言学习笔记1.1"></a>C语言学习笔记1.1</h1><h2 id="C字符串"><a href="#C字符串" class="headerlink" title="C字符串"></a>C字符串</h2><h3 id="c字符串基本知识"><a href="#c字符串基本知识" class="headerlink" title="c字符串基本知识"></a>c字符串基本知识</h3><p>在C语言中，没有字符串变量，C语言保存字符串采用的是字符数组的形式。</p>
+<p>C语言的字符串以null字符’\0’结束，例如字符串“HELLO”的定义：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">char</span> hello[<span class="number">6</span>]=&#123;<span class="string">&#x27;H&#x27;</span>,<span class="string">&#x27;E&#x27;</span>,<span class="string">&#x27;L&#x27;</span>,<span class="string">&#x27;L&#x27;</span>,<span class="string">&#x27;O&#x27;</span>,<span class="string">&#x27;\0&#x27;</span>&#125;;</span><br></pre></td></tr></table></figure>
+
+<p>实际上，根据字符初始化规则，字符串hello只需要写出这样：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">char</span> hello[]=&#123;<span class="string">&quot;HELLO&quot;</span>&#125;;</span><br></pre></td></tr></table></figure>
+
+<p>以下是定义的字符串内存表示:</p>
+<table>
+<thead>
+<tr>
+<th align="center">Index</th>
+<th>0</th>
+<th>1</th>
+<th>2</th>
+<th>3</th>
+<th>4</th>
+<th align="left">5</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center"><strong>Variable</strong></td>
+<td>H</td>
+<td>E</td>
+<td>L</td>
+<td>L</td>
+<td>O</td>
+<td align="left">\0</td>
+</tr>
+<tr>
+<td align="center"><strong>Address</strong></td>
+<td>0x23451</td>
+<td>0x23452</td>
+<td>0x23453</td>
+<td>0x23454</td>
+<td>0x23455</td>
+<td align="left">0x23456</td>
+</tr>
+</tbody></table>
+<p>其实，不需要把 <em>null</em> 字符放在字符串常量的末尾。C 编译器会在初始化数组时，自动把 ‘\0’ 放在字符串的末尾，且在输出时null字符不可见。例如运行代码：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">char</span> m[<span class="number">6</span>]=&#123;<span class="string">&#x27;H&#x27;</span>,<span class="string">&#x27;E&#x27;</span>,<span class="string">&#x27;L&#x27;</span>,<span class="string">&#x27;L&#x27;</span>,<span class="string">&#x27;O&#x27;</span>,<span class="string">&#x27;\0&#x27;</span>&#125;;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;%s\n&quot;</span>,m);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>编译之后，输出结果为：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">HELLO</span><br></pre></td></tr></table></figure>
+
+<p>这里特别提到，当想完整输出某个字符数组m[8]时，可直接写为：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">printf</span>(<span class="string">&quot;%s&quot;</span>,m); <span class="comment">//省略m[8]中的[8]</span></span><br></pre></td></tr></table></figure>
+
+<p>其中%s代表以字符串形式输出，而C语言中也有%c表示单个字符的输出。 </p>
+<h3 id="C语言中操作字符串的部分函数（需要使用-lt-string-h-gt-头文件）"><a href="#C语言中操作字符串的部分函数（需要使用-lt-string-h-gt-头文件）" class="headerlink" title="C语言中操作字符串的部分函数（需要使用&lt;string.h&gt;头文件）"></a>C语言中操作字符串的部分函数（需要使用&lt;string.h&gt;头文件）</h3><table>
+<thead>
+<tr>
+<th align="left">序号</th>
+<th>函数</th>
+<th>目的</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">1</td>
+<td><code>strcpy(s1,s2);</code></td>
+<td>复制字符串s2的内容到s1</td>
+</tr>
+<tr>
+<td align="left">2</td>
+<td><code>strcat(s1,s2);</code></td>
+<td>连接字符串s2到s1的结尾处</td>
+</tr>
+<tr>
+<td align="left">3</td>
+<td><code>strlen(s1);</code></td>
+<td>返回字符串s1的长度,不含null符</td>
+</tr>
+<tr>
+<td align="left">4</td>
+<td><code>strcmp(s1,s2);</code></td>
+<td>比较字符串s1和s2的大小</td>
+</tr>
+<tr>
+<td align="left">5</td>
+<td><code>strchr(s1,ch);</code></td>
+<td>返回一个指向s1中字符ch<strong>第一次</strong>出现的位置的指针,找不到返回NULL</td>
+</tr>
+<tr>
+<td align="left">6</td>
+<td><code>strrchr(s1,ch);</code></td>
+<td>返回一个指向s1中字符ch<strong>最后一次</strong>出现的位置的指针,找不到返回NULL</td>
+</tr>
+<tr>
+<td align="left">7</td>
+<td><code>strstr(s1,s2);</code></td>
+<td>返回一个指向s1中字符串s2<strong>第一次</strong>出现的位置的指针,找不到返回NULL</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>注意：strcmp(s1,s2)函数有两个参数，即要比较的两个字符串。strcmp()函数对两个字符串进行大小写敏感的(case-sensitiVe)和字典式的(lexicographic)比较，并返回下列值之一：</p>
+<table>
+<thead>
+<tr>
+<th>返回值</th>
+<th>意义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>&lt;0</td>
+<td>字符串s1小于字符串s2</td>
+</tr>
+<tr>
+<td>0</td>
+<td>字符串s1等于字符串s2</td>
+</tr>
+<tr>
+<td>&gt;0</td>
+<td>字符串s1大于字符串s2</td>
+</tr>
+</tbody></table>
+<p>具体用法作用见实例2</p>
+</blockquote>
+<p>下面是一些运用实例：</p>
+<h4 id="实例1（-strcpy-，strcat-，strlen-）"><a href="#实例1（-strcpy-，strcat-，strlen-）" class="headerlink" title="实例1（ strcpy()，strcat()，strlen() ）"></a>实例1（ strcpy()，strcat()，strlen() ）</h4><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;string.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="keyword">int</span> i=<span class="number">0</span>;</span><br><span class="line">	<span class="keyword">char</span> s1[]=&#123;<span class="string">&quot;hello_&quot;</span>&#125;;</span><br><span class="line">	<span class="keyword">char</span> s2[]=&#123;<span class="string">&quot;world&quot;</span>&#125;;</span><br><span class="line">	<span class="keyword">char</span> s3[]=&#123;<span class="string">&quot;empty&quot;</span>&#125;;</span><br><span class="line">	</span><br><span class="line">	<span class="built_in">strcpy</span>(s3,s2);           <span class="comment">//strcpy()，复制字符串s2的内容到s1</span></span><br><span class="line">	<span class="built_in">strcat</span>(s1,s3);           <span class="comment">//strcat()，连接字符串s3到s1的结尾处</span></span><br><span class="line">	i=<span class="built_in">strlen</span>(s1);            <span class="comment">//strlen()，返回字符串s1的长度,不含null符</span></span><br><span class="line">	<span class="built_in">printf</span>(<span class="string">&quot;%d\n&quot;</span>,i);</span><br><span class="line">	<span class="built_in">printf</span>(<span class="string">&quot;%s&quot;</span>,s1);</span><br><span class="line">	</span><br><span class="line">	<span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line"> &#125; </span><br></pre></td></tr></table></figure>
+
+<p>运行结果如下：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">11</span></span><br><span class="line">hello_world</span><br></pre></td></tr></table></figure>
+
+<h4 id="实例2（-strcmp-）"><a href="#实例2（-strcmp-）" class="headerlink" title="实例2（ strcmp() ）"></a>实例2（ strcmp() ）</h4><h5 id="strcmp"><a href="#strcmp" class="headerlink" title="strcmp()"></a>strcmp()</h5><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;string.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="keyword">int</span> j=<span class="number">0</span>;</span><br><span class="line">	<span class="keyword">char</span> s1[]=&#123;<span class="string">&quot;ABC&quot;</span>&#125;;   </span><br><span class="line">	<span class="keyword">char</span> s2[]=&#123;<span class="string">&quot;AbC&quot;</span>&#125;;</span><br><span class="line">	</span><br><span class="line">	<span class="built_in">printf</span>(<span class="string">&quot;B = %d and b = %d\n&quot;</span>,<span class="string">&#x27;B&#x27;</span>,<span class="string">&#x27;b&#x27;</span>);    <span class="comment">//输出B和b的ASCII值</span></span><br><span class="line">	j = <span class="built_in">strcmp</span>(s1,s2);</span><br><span class="line">	<span class="built_in">printf</span>(<span class="string">&quot;strcmp(ABC,AbC) = %d\n&quot;</span>,j);       <span class="comment">//比较</span></span><br><span class="line">	</span><br><span class="line">	<span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>运行结果为：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">B = <span class="number">66</span> <span class="keyword">and</span> b = <span class="number">98</span></span><br><span class="line"><span class="built_in">strcmp</span>(ABC,AbC) = <span class="number">-1</span></span><br></pre></td></tr></table></figure>
+
+<h5 id="strcmp-的一些变体"><a href="#strcmp-的一些变体" class="headerlink" title="strcmp()的一些变体"></a>strcmp()的一些变体</h5><table>
+<thead>
+<tr>
+<th>函数名</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>strcmp()</td>
+<td>对两个字符串进行大小写敏感的比较</td>
+</tr>
+<tr>
+<td>strcmpi()</td>
+<td>对两个字符串进行大小写不敏感的比较</td>
+</tr>
+<tr>
+<td>stricmp()</td>
+<td>同strcmpi()</td>
+</tr>
+<tr>
+<td>strncmp(s1,s2,n)</td>
+<td>把s1和s2进行比较，最多比较前 <strong>n</strong> 个字节(大小写敏感)</td>
+</tr>
+<tr>
+<td>strnicmp(s1,s2,n)</td>
+<td>把s1和s2进行比较，最多比较前 <strong>n</strong> 个字节(大小写<strong>不</strong>敏感)</td>
+</tr>
+</tbody></table>
+<p>如，如果将实例2中的strcmp(s1,s2)改成strmpi(s1,s2),则会返回 <strong>0</strong></p>
+<p>其他同理</p>
+<h4 id="实例3（-strchr-，strstr-）"><a href="#实例3（-strchr-，strstr-）" class="headerlink" title="实例3（ strchr() ，strstr() ）"></a>实例3（ strchr() ，strstr() ）</h4><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;string.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span> <span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">   <span class="keyword">char</span> m[]=&#123;<span class="string">&quot;https://mark0519.github.io/&quot;</span>&#125;;</span><br><span class="line">   <span class="keyword">char</span> s1=<span class="string">&#x27;.&#x27;</span>;</span><br><span class="line">   <span class="keyword">char</span> s2[]=&#123;<span class="string">&quot;mark&quot;</span>&#125;;</span><br><span class="line">   <span class="keyword">char</span> *p1=<span class="literal">NULL</span>;</span><br><span class="line">   <span class="keyword">char</span> *p2=<span class="literal">NULL</span>;</span><br><span class="line">   </span><br><span class="line">   p1=<span class="built_in">strchr</span>(m,s1);</span><br><span class="line">   p2=<span class="built_in">strstr</span>(m,s2);</span><br><span class="line">   <span class="built_in">printf</span>(<span class="string">&quot;The bytes after the &#x27;.&#x27; is %s\n&quot;</span>,p1);     <span class="comment">//输出结果会包含“.”</span></span><br><span class="line">   <span class="built_in">printf</span>(<span class="string">&quot;The bytes after the &#x27;mark&#x27; is %s&quot;</span>,p2);     </span><br><span class="line">   </span><br><span class="line">   <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>运行结果为：</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">The bytes after the <span class="string">&#x27;.&#x27;</span> is .github.io/</span><br><span class="line">The bytes after the &#x27;mark&#x27; is mark0519.github.io/</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+
+
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://mark0519.github.io/2020/10/29/c-learn/" data-id="ckh1y7nc30004vgkkedzp3ke5" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/c/" rel="tag">c</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2020/10/30/find-share-folder-in-kali/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          find_share_folder_in_kali
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2020/10/25/look_here/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">look_here</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">标签</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/c/" rel="tag">c</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kali/" rel="tag">kali</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/other/" rel="tag">other</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">标签云</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/c/" style="font-size: 20px;">c</a> <a href="/tags/kali/" style="font-size: 10px;">kali</a> <a href="/tags/other/" style="font-size: 10px;">other</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">归档</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/11/">十一月 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/10/">十月 2020</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">最新文章</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2020/11/03/hello-world/">Hello World</a>
+          </li>
+        
+          <li>
+            <a href="/2020/11/03/C%E8%AF%AD%E8%A8%80%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%E2%80%94%E2%80%94c%E4%BD%8D%E5%9F%9F/">C语言学习笔记——c位域</a>
+          </li>
+        
+          <li>
+            <a href="/2020/11/03/C%E8%AF%AD%E8%A8%80%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%E2%80%94%E2%80%94C%E5%85%B1%E5%90%8C%E4%BD%93/">C语言学习笔记——C共同体</a>
+          </li>
+        
+          <li>
+            <a href="/2020/10/30/c-learn-struct/">C语言学习笔记——C结构体</a>
+          </li>
+        
+          <li>
+            <a href="/2020/10/30/find-share-folder-in-kali/">find_share_folder_in_kali</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy; 2020 mark0519<br>
+      Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+
+
+  
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+
+  
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+  </div>
+</body>
+</html>

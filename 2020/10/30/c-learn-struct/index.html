@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+
+  
+  <title>C语言学习笔记——C结构体 | mark0519的博客</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="C语言学习笔记1.2C结构体C语言结构体基本知识C 数组允许定义可存储相同类型数据项的变量，结构是 C 编程中另一种用户自定义的可用的数据类型，它允许存储不同类型的数据项。 结构体定义为了定义结构，必须使用 struct 语句。struct语句结构如下： 12345678struct tag&amp;#123;    member-list;    member-list;    member-list;">
+<meta property="og:type" content="article">
+<meta property="og:title" content="C语言学习笔记——C结构体">
+<meta property="og:url" content="https://mark0519.github.io/2020/10/30/c-learn-struct/index.html">
+<meta property="og:site_name" content="mark0519的博客">
+<meta property="og:description" content="C语言学习笔记1.2C结构体C语言结构体基本知识C 数组允许定义可存储相同类型数据项的变量，结构是 C 编程中另一种用户自定义的可用的数据类型，它允许存储不同类型的数据项。 结构体定义为了定义结构，必须使用 struct 语句。struct语句结构如下： 12345678struct tag&amp;#123;    member-list;    member-list;    member-list;">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2020-10-30T11:28:21.000Z">
+<meta property="article:modified_time" content="2020-10-30T14:53:04.732Z">
+<meta property="article:author" content="mark0519">
+<meta property="article:tag" content="c">
+<meta name="twitter:card" content="summary">
+  
+    <link rel="alternate" href="/atom.xml" title="mark0519的博客" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+<meta name="generator" content="Hexo 5.2.0"></head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">mark0519的博客</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="搜索"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="https://mark0519.github.io"></form>
+      </div>
+    </div>
+  </div>
+</header>
+      <div class="outer">
+        <section id="main"><article id="post-c-learn-struct" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2020/10/30/c-learn-struct/" class="article-date">
+  <time datetime="2020-10-30T11:28:21.000Z" itemprop="datePublished">2020-10-30</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      C语言学习笔记——C结构体
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h1 id="C语言学习笔记1-2"><a href="#C语言学习笔记1-2" class="headerlink" title="C语言学习笔记1.2"></a>C语言学习笔记1.2</h1><h2 id="C结构体"><a href="#C结构体" class="headerlink" title="C结构体"></a>C结构体</h2><h3 id="C语言结构体基本知识"><a href="#C语言结构体基本知识" class="headerlink" title="C语言结构体基本知识"></a>C语言结构体基本知识</h3><p>C 数组允许定义可存储相同类型数据项的变量，<strong>结构</strong>是 C 编程中另一种用户自定义的可用的数据类型，它允许存储不同类型的数据项。</p>
+<h3 id="结构体定义"><a href="#结构体定义" class="headerlink" title="结构体定义"></a>结构体定义</h3><p>为了定义结构，必须使用 <strong>struct</strong> 语句。struct语句结构如下：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">tag</span></span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line">    member-<span class="built_in">list</span>;</span><br><span class="line">    member-<span class="built_in">list</span>;</span><br><span class="line">    member-<span class="built_in">list</span>;</span><br><span class="line">    member-<span class="built_in">list</span>;</span><br><span class="line">    ...</span><br><span class="line">&#125; variable-<span class="built_in">list</span> ;</span><br></pre></td></tr></table></figure>
+
+<p><strong>tag</strong> 是结构体标签。</p>
+<p><strong>member-list</strong> 是标准的变量定义，比如 int i; 或者 float f，或者其他有效的变量定义。</p>
+<p><strong>variable-list</strong> 结构变量，定义在结构的末尾，最后一个分号之前，可以指定一个或多个结构变量。</p>
+<p>例如下面的定义:</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">books</span></span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line">    <span class="keyword">char</span> title[<span class="number">100</span>];</span><br><span class="line">    <span class="keyword">char</span> author[<span class="number">100</span>];</span><br><span class="line">    <span class="keyword">char</span> subject[<span class="number">100</span>];</span><br><span class="line">    <span class="keyword">int</span> book_id;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">books</span> <span class="title">book1</span>;</span></span><br></pre></td></tr></table></figure>
+
+<p>等价于：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">books</span></span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line">    <span class="keyword">char</span> title[<span class="number">100</span>];</span><br><span class="line">    <span class="keyword">char</span> author[<span class="number">100</span>];</span><br><span class="line">    <span class="keyword">char</span> subject[<span class="number">100</span>];</span><br><span class="line">    <span class="keyword">int</span> book_id;</span><br><span class="line">&#125; book1;</span><br></pre></td></tr></table></figure>
+
+<p>在一般情况下，<strong>tag、member-list、variable-list</strong> 这 3 部分至少要出现 2 个。</p>
+<h3 id="结构体变量的初始化"><a href="#结构体变量的初始化" class="headerlink" title="结构体变量的初始化"></a>结构体变量的初始化</h3><p>和其它类型变量一样，对结构体变量可以在定义时指定初始值。</p>
+<p>例如：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">books</span></span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line">    <span class="keyword">char</span> title[<span class="number">100</span>];</span><br><span class="line">    <span class="keyword">char</span> author[<span class="number">100</span>];</span><br><span class="line">    <span class="keyword">char</span> subject[<span class="number">100</span>];</span><br><span class="line">    <span class="keyword">int</span> book_id;</span><br><span class="line">&#125; book1=&#123;<span class="string">&quot;a book on c&quot;</span>,<span class="string">&quot;mark0519&quot;</span>,<span class="string">&quot;programming&quot;</span>,<span class="number">13456</span>&#125;;</span><br></pre></td></tr></table></figure>
+
+<p>或者</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">books</span></span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line">    <span class="keyword">char</span> title[<span class="number">100</span>];</span><br><span class="line">    <span class="keyword">char</span> author[<span class="number">100</span>];</span><br><span class="line">    <span class="keyword">char</span> subject[<span class="number">100</span>];</span><br><span class="line">    <span class="keyword">int</span> book_id;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">books</span> <span class="title">book1</span>=</span>&#123;<span class="string">&quot;a book on c&quot;</span>,<span class="string">&quot;mark0519&quot;</span>,<span class="string">&quot;programming&quot;</span>,<span class="number">13456</span>&#125;;</span><br></pre></td></tr></table></figure>
+
+<p>再或者</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">books</span></span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line">    <span class="keyword">char</span> title[<span class="number">100</span>];</span><br><span class="line">    <span class="keyword">char</span> author[<span class="number">100</span>];</span><br><span class="line">    <span class="keyword">char</span> subject[<span class="number">100</span>];</span><br><span class="line">    <span class="keyword">int</span> book_id;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">books</span> <span class="title">book1</span>;</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">strcpy</span>(book1.title,<span class="string">&quot;a book on c&quot;</span>);         <span class="comment">//book1.title中的“.”为“成员访问运算符”，用于访问结构的成员</span></span><br><span class="line"><span class="built_in">strcpy</span>(book1.author,<span class="string">&quot;mark0519&quot;</span>);</span><br><span class="line"><span class="built_in">strcpy</span>(book1.subject,<span class="string">&quot;programming&quot;</span>);</span><br><span class="line">book1.book_id=<span class="number">123456</span>;</span><br></pre></td></tr></table></figure>
+
+<h3 id="访问结构成员"><a href="#访问结构成员" class="headerlink" title="访问结构成员"></a>访问结构成员</h3><p>上面的最后一个例子中的 book1.title 中的 “.” 为 “成员访问运算符” ，用于访问结构的成员。</p>
+<p>下面的例子用于理解该运算符：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;string.h&gt;</span></span></span><br><span class="line"> </span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">Books</span></span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line">   <span class="keyword">char</span>  title[<span class="number">50</span>];</span><br><span class="line">   <span class="keyword">char</span>  author[<span class="number">50</span>];</span><br><span class="line">   <span class="keyword">char</span>  subject[<span class="number">100</span>];</span><br><span class="line">   <span class="keyword">int</span>   book_id;</span><br><span class="line">&#125;;</span><br><span class="line"> </span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">   <span class="class"><span class="keyword">struct</span> <span class="title">Books</span> <span class="title">Book1</span>;</span>        <span class="comment">/* 声明 Book1，类型为 Books */</span></span><br><span class="line">   <span class="class"><span class="keyword">struct</span> <span class="title">Books</span> <span class="title">Book2</span>;</span>        <span class="comment">/* 声明 Book2，类型为 Books */</span></span><br><span class="line"> </span><br><span class="line">   <span class="comment">/* Book1 详述 */</span></span><br><span class="line">   <span class="built_in">strcpy</span>( Book1.title, <span class="string">&quot;C Programming&quot;</span>);</span><br><span class="line">   <span class="built_in">strcpy</span>( Book1.author, <span class="string">&quot;Nuha Ali&quot;</span>); </span><br><span class="line">   <span class="built_in">strcpy</span>( Book1.subject, <span class="string">&quot;C Programming Tutorial&quot;</span>);</span><br><span class="line">   Book1.book_id = <span class="number">6495407</span>;</span><br><span class="line"> </span><br><span class="line">   <span class="comment">/* Book2 详述 */</span></span><br><span class="line">   <span class="built_in">strcpy</span>( Book2.title, <span class="string">&quot;Telecom Billing&quot;</span>);</span><br><span class="line">   <span class="built_in">strcpy</span>( Book2.author, <span class="string">&quot;Zara Ali&quot;</span>);</span><br><span class="line">   <span class="built_in">strcpy</span>( Book2.subject, <span class="string">&quot;Telecom Billing Tutorial&quot;</span>);</span><br><span class="line">   Book2.book_id = <span class="number">6495700</span>;</span><br><span class="line"> </span><br><span class="line">   <span class="comment">/* 输出 Book1 信息 */</span></span><br><span class="line">   <span class="built_in">printf</span>( <span class="string">&quot;Book 1 title : %s\n&quot;</span>, Book1.title);</span><br><span class="line">   <span class="built_in">printf</span>( <span class="string">&quot;Book 1 author : %s\n&quot;</span>, Book1.author);</span><br><span class="line">   <span class="built_in">printf</span>( <span class="string">&quot;Book 1 subject : %s\n&quot;</span>, Book1.subject);</span><br><span class="line">   <span class="built_in">printf</span>( <span class="string">&quot;Book 1 book_id : %d\n&quot;</span>, Book1.book_id);</span><br><span class="line"> </span><br><span class="line">   <span class="comment">/* 输出 Book2 信息 */</span></span><br><span class="line">   <span class="built_in">printf</span>( <span class="string">&quot;Book 2 title : %s\n&quot;</span>, Book2.title);</span><br><span class="line">   <span class="built_in">printf</span>( <span class="string">&quot;Book 2 author : %s\n&quot;</span>, Book2.author);</span><br><span class="line">   <span class="built_in">printf</span>( <span class="string">&quot;Book 2 subject : %s\n&quot;</span>, Book2.subject);</span><br><span class="line">   <span class="built_in">printf</span>( <span class="string">&quot;Book 2 book_id : %d\n&quot;</span>, Book2.book_id);</span><br><span class="line"> </span><br><span class="line">   <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>输出结果为：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">Book <span class="number">1</span> title : C Programming</span><br><span class="line">Book <span class="number">1</span> author : Nuha Ali</span><br><span class="line">Book <span class="number">1</span> subject : C Programming Tutorial</span><br><span class="line">Book <span class="number">1</span> book_id : <span class="number">6495407</span></span><br><span class="line">Book <span class="number">2</span> title : Telecom Billing</span><br><span class="line">Book <span class="number">2</span> author : Zara Ali</span><br><span class="line">Book <span class="number">2</span> subject : Telecom Billing Tutorial</span><br><span class="line">Book <span class="number">2</span> book_id : <span class="number">6495700</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="结构作为函数参数"><a href="#结构作为函数参数" class="headerlink" title="结构作为函数参数"></a>结构作为函数参数</h3><p>可以把结构作为函数参数，传参方式与其他类型的变量或指针类似。可以使用上面实例中的方式来访问结构变量：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;string.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">printfbook</span><span class="params">(struct books book)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">books</span></span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line">    <span class="keyword">char</span> title[<span class="number">100</span>];</span><br><span class="line">    <span class="keyword">char</span> author[<span class="number">100</span>];</span><br><span class="line">    <span class="keyword">char</span> subject[<span class="number">100</span>];</span><br><span class="line">    <span class="keyword">int</span> book_id;</span><br><span class="line">&#125; book1=&#123;<span class="string">&quot;learn c&quot;</span>,<span class="string">&quot;mark_&quot;</span>,<span class="string">&quot;programming&quot;</span>,<span class="number">654321</span>&#125;;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">books</span> <span class="title">book2</span>;</span>  </span><br><span class="line">    <span class="built_in">strcpy</span>(book2.title,<span class="string">&quot;a book on c&quot;</span>);         </span><br><span class="line">	<span class="built_in">strcpy</span>(book2.author,<span class="string">&quot;mark0519&quot;</span>);</span><br><span class="line">	<span class="built_in">strcpy</span>(book2.subject,<span class="string">&quot;programming&quot;</span>);</span><br><span class="line">	book2.book_id=<span class="number">123456</span>;</span><br><span class="line">    </span><br><span class="line">    printfbook(book1);</span><br><span class="line">    printfbook(book2);</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">printfbook</span><span class="params">(struct books book)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;\ntitle=%s\n&quot;</span>,book.title);</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;author=%s\n&quot;</span>,book.author);</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;subject=%s\n&quot;</span>,book.subject);</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;book_id=%d\n&quot;</span>,book.book_id);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>运行结果为</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">title=learn c</span><br><span class="line">author=mark_</span><br><span class="line">subject=programming</span><br><span class="line">book_id=<span class="number">654321</span></span><br><span class="line"></span><br><span class="line">title=a book on c</span><br><span class="line">author=mark0519</span><br><span class="line">subject=programming</span><br><span class="line">book_id=<span class="number">123456</span></span><br><span class="line">    </span><br></pre></td></tr></table></figure>
+
+<h3 id="指针和位域"><a href="#指针和位域" class="headerlink" title="指针和位域"></a>指针和位域</h3><p>我还没整明白。。。</p>
+<p>先空着。。。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://mark0519.github.io/2020/10/30/c-learn-struct/" data-id="ckh1y7nc00001vgkk67m403gf" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/c/" rel="tag">c</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2020/11/03/C%E8%AF%AD%E8%A8%80%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%E2%80%94%E2%80%94C%E5%85%B1%E5%90%8C%E4%BD%93/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          C语言学习笔记——C共同体
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2020/10/30/find-share-folder-in-kali/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">find_share_folder_in_kali</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">标签</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/c/" rel="tag">c</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kali/" rel="tag">kali</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/other/" rel="tag">other</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">标签云</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/c/" style="font-size: 20px;">c</a> <a href="/tags/kali/" style="font-size: 10px;">kali</a> <a href="/tags/other/" style="font-size: 10px;">other</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">归档</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/11/">十一月 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/10/">十月 2020</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">最新文章</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2020/11/03/hello-world/">Hello World</a>
+          </li>
+        
+          <li>
+            <a href="/2020/11/03/C%E8%AF%AD%E8%A8%80%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%E2%80%94%E2%80%94c%E4%BD%8D%E5%9F%9F/">C语言学习笔记——c位域</a>
+          </li>
+        
+          <li>
+            <a href="/2020/11/03/C%E8%AF%AD%E8%A8%80%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%E2%80%94%E2%80%94C%E5%85%B1%E5%90%8C%E4%BD%93/">C语言学习笔记——C共同体</a>
+          </li>
+        
+          <li>
+            <a href="/2020/10/30/c-learn-struct/">C语言学习笔记——C结构体</a>
+          </li>
+        
+          <li>
+            <a href="/2020/10/30/find-share-folder-in-kali/">find_share_folder_in_kali</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy; 2020 mark0519<br>
+      Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+
+
+  
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+
+  
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+  </div>
+</body>
+</html>
