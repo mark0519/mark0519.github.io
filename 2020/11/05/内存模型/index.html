@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.2.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.1/css/all.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css">
+
+<script class="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"mark0519.github.io","root":"/","scheme":"Pisces","version":"8.0.2","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}};
+  </script>
+
+  <meta name="description" content="汇编学习笔记——前置2.0.1简介汇编语言是二进制指令的文本形式，与指令是一一对应的关系。比如，加法指令00000011写成汇编语言就是 ADD。只要还原成二进制，汇编语言就可以被 CPU 直接执行，所以它是最底层的低级语言。 然而我现在是一个对计算机从底层到顶层都不清楚的小白~，这里将会记录我学习汇编的一路经(kan)历(ke)？所以让我从一大推前置知识开始吧QAQ">
+<meta property="og:type" content="article">
+<meta property="og:title" content="汇编学习笔记——前置2.0.1">
+<meta property="og:url" content="https://mark0519.github.io/2020/11/05/%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B/index.html">
+<meta property="og:site_name" content="mark0519的博客">
+<meta property="og:description" content="汇编学习笔记——前置2.0.1简介汇编语言是二进制指令的文本形式，与指令是一一对应的关系。比如，加法指令00000011写成汇编语言就是 ADD。只要还原成二进制，汇编语言就可以被 CPU 直接执行，所以它是最底层的低级语言。 然而我现在是一个对计算机从底层到顶层都不清楚的小白~，这里将会记录我学习汇编的一路经(kan)历(ke)？所以让我从一大推前置知识开始吧QAQ">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://images.weserv.nl/?url=https://i0.hdslb.com/bfs/article/51345e78ca48661e12aec5a11c15e81fa8e466bb.png">
+<meta property="og:image" content="https://images.weserv.nl/?url=https://i0.hdslb.com/bfs/article/6a6a3a4379cd184e7a0dddea4d6042d6104af6e1.png">
+<meta property="og:image" content="https://images.weserv.nl/?url=https://i0.hdslb.com/bfs/article/63f6bb103b7f782f7333e5b7774c5c0006ee733c.png">
+<meta property="og:image" content="https://images.weserv.nl/?url=https://i0.hdslb.com/bfs/article/2065d5f2319c7d318016d35bfa36c1f9c43f01ab.png">
+<meta property="article:published_time" content="2020-11-05T11:49:08.000Z">
+<meta property="article:modified_time" content="2020-11-05T13:55:14.714Z">
+<meta property="article:author" content="mark0519">
+<meta property="article:tag" content="c">
+<meta property="article:tag" content="汇编">
+<meta property="article:tag" content="寄存器">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://images.weserv.nl/?url=https://i0.hdslb.com/bfs/article/51345e78ca48661e12aec5a11c15e81fa8e466bb.png">
+
+
+<link rel="canonical" href="https://mark0519.github.io/2020/11/05/%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B/">
+
+
+<script class="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>汇编学习笔记——前置2.0.1 | mark0519的博客</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  body { margin-top: 2rem; }
+
+  .use-motion .menu-item,
+  .use-motion .sidebar,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header {
+    visibility: visible;
+  }
+
+  .use-motion .header,
+  .use-motion .site-brand-container .toggle,
+  .use-motion .footer { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle,
+  .use-motion .custom-logo-image {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line {
+    transform: scaleX(1);
+  }
+
+  .search-pop-overlay, .sidebar-nav { display: none; }
+  .sidebar-panel { display: block; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">mark0519的博客</h1>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <section class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%B1%87%E7%BC%96%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%E2%80%94%E2%80%94%E5%89%8D%E7%BD%AE2-0-1"><span class="nav-number">1.</span> <span class="nav-text">汇编学习笔记——前置2.0.1</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%AE%80%E4%BB%8B"><span class="nav-number">1.1.</span> <span class="nav-text">简介</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%80%BB%E8%A7%88"><span class="nav-number">1.2.</span> <span class="nav-text">总览</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AF%84%E5%AD%98%E5%99%A8-amp-%E5%AD%98%E5%82%A8%E5%99%A8"><span class="nav-number">1.3.</span> <span class="nav-text">寄存器&amp;存储器</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AF%84%E5%AD%98%E5%99%A8-amp-%E5%AD%98%E5%82%A8%E5%99%A8%E7%9A%84%E5%B7%A5%E4%BD%9C%E8%BF%87%E7%A8%8B"><span class="nav-number">1.3.1.</span> <span class="nav-text">寄存器&amp;存储器的工作过程</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%AF%84%E5%AD%98%E5%99%A8%E7%9A%84%E5%B7%A5%E4%BD%9C%E8%BF%87%E7%A8%8B"><span class="nav-number">1.3.1.1.</span> <span class="nav-text">寄存器的工作过程</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%86%85%E5%AD%98%E7%9A%84%E5%B7%A5%E4%BD%9C%E8%BF%87%E7%A8%8B"><span class="nav-number">1.3.1.2.</span> <span class="nav-text">内存的工作过程</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AF%84%E5%AD%98%E5%99%A8%E6%94%AF%E6%8C%81%E6%95%B0%E9%87%8F"><span class="nav-number">1.3.2.</span> <span class="nav-text">寄存器支持数量</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B"><span class="nav-number">1.4.</span> <span class="nav-text">内存模型</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%86%85%E5%AD%98%E6%80%BB%E8%A7%88"><span class="nav-number">1.4.1.</span> <span class="nav-text">内存总览</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%A0%86-Heap%EF%BC%89-amp-amp-%E6%A0%88-Stack"><span class="nav-number">1.4.2.</span> <span class="nav-text">堆(Heap）&amp;&amp;栈(Stack)</span></a></li></ol></li></ol></li></ol></div>
+        </section>
+        <!--/noindex-->
+
+        <section class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">mark0519</p>
+  <div class="site-description" itemprop="description">我是mark0519，第一次玩博客的小萌新~</div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives">
+          <span class="site-state-item-count">7</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">5</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/mark0519" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;mark0519" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:sunjiajun@bupt.edu.cn" title="E-Mail → mailto:sunjiajun@bupt.edu.cn" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+  </div>
+
+
+
+        </section>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+      
+
+      
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://mark0519.github.io/2020/11/05/%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="mark0519">
+      <meta itemprop="description" content="我是mark0519，第一次玩博客的小萌新~">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="mark0519的博客">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          汇编学习笔记——前置2.0.1
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2020-11-05 19:49:08 / 修改时间：21:55:14" itemprop="dateCreated datePublished" datetime="2020-11-05T19:49:08+08:00">2020-11-05</time>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <h1 id="汇编学习笔记——前置2-0-1"><a href="#汇编学习笔记——前置2-0-1" class="headerlink" title="汇编学习笔记——前置2.0.1"></a>汇编学习笔记——前置2.0.1</h1><h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><p><strong>汇编语言是二进制指令的文本形式</strong>，与指令是一一对应的关系。比如，加法指令<code>00000011</code>写成汇编语言就是 ADD。只要还原成二进制，汇编语言就可以被 CPU 直接执行，所以它是最底层的低级语言。</p>
+<p>然而我现在是一个对计算机从底层到顶层都不清楚的小白~，这里将会记录我学习汇编的一路经(kan)历(ke)？所以让我从一大推前置知识开始吧QAQ</p>
+<a id="more"></a>
+
+<h2 id="总览"><a href="#总览" class="headerlink" title="总览"></a>总览</h2><p><img src="https://images.weserv.nl/?url=https://i0.hdslb.com/bfs/article/51345e78ca48661e12aec5a11c15e81fa8e466bb.png" alt="计算机硬件"></p>
+<h2 id="寄存器-amp-存储器"><a href="#寄存器-amp-存储器" class="headerlink" title="寄存器&amp;存储器"></a>寄存器&amp;存储器</h2><p>CPU （中央处理器）本身只负责运算，不负责储存数据。数据一般都储存在内存之中，CPU 要用的时候就去内存读写数据。但是cpu的运算速度远高于内存的读写速度，为了避免被拖慢，cpu自带<strong>一级缓存和二级缓存</strong>（早期一级缓集成在cpu中，而二级缓存焊在主板上，现在基本都集成在cpu中）。cpu自带的缓存可以看出读写较快的内存（但造价高，所以容量小），高速缓存是内存的部分拷贝。</p>
+<p>但是，缓存的读写还不够快，而且数据在缓存中的地址是不固定的，cpu的每次读写都要寻址也会拖慢速度，因此，除了缓存之外，CPU 还自带了<strong>寄存器（register）</strong>，用来储存最常用的数据。</p>
+<p>因为寄存器不依靠地址区分数据，而依靠名称。每一个寄存器都有自己的名称，我们告诉 CPU 去具体的哪一个寄存器拿数据，所以这样的速度是最快的。有人比喻寄存器是 CPU 的零级缓存。即CPU 优先读写寄存器，再由寄存器跟内存交换数据。</p>
+<p>数据访问过程 ： <strong>CPU &lt;— &gt; 寄存器&lt;— &gt; 缓存&lt;— &gt;内存</strong></p>
+<p>访问速度金字塔：</p>
+<p><img src="https://images.weserv.nl/?url=https://i0.hdslb.com/bfs/article/6a6a3a4379cd184e7a0dddea4d6042d6104af6e1.png"></p>
+<h3 id="寄存器-amp-存储器的工作过程"><a href="#寄存器-amp-存储器的工作过程" class="headerlink" title="寄存器&amp;存储器的工作过程"></a>寄存器&amp;存储器的工作过程</h3><h4 id="寄存器的工作过程"><a href="#寄存器的工作过程" class="headerlink" title="寄存器的工作过程"></a>寄存器的工作过程</h4><p>（1）找到相关的位；</p>
+<p>（2）读取这些位。</p>
+<h4 id="内存的工作过程"><a href="#内存的工作过程" class="headerlink" title="内存的工作过程"></a>内存的工作过程</h4><p>（1）找到数据的指针。（指针可能存放在寄存器内，所以这一步就已经包括寄存器的全部工作了。）</p>
+<p>（2）将指针送往内存管理单元（MMU），由MMU将虚拟的内存地址翻译成实际的物理地址。</p>
+<p>（3）将物理地址送往内存控制器（memory controller），由内存控制器找出该地址在哪一根内存插槽（bank）上。</p>
+<p>（4）确定数据在哪一个内存块（chunk）上，从该块读取数据。</p>
+<p>（5）数据先送回内存控制器，再送回CPU，然后开始使用。</p>
+<p>内存的工作流程比寄存器多出许多步。每一步都会产生延迟，累积起来就使得内存比寄存器慢得多。</p>
+<h3 id="寄存器支持数量"><a href="#寄存器支持数量" class="headerlink" title="寄存器支持数量"></a>寄存器支持数量</h3><p><img src="https://images.weserv.nl/?url=https://i0.hdslb.com/bfs/article/63f6bb103b7f782f7333e5b7774c5c0006ee733c.png" alt="来自维基百科"></p>
+<h2 id="内存模型"><a href="#内存模型" class="headerlink" title="内存模型"></a>内存模型</h2><p>寄存器只能存放很少量的数据，大多数时候，CPU 要指挥寄存器，直接跟内存交换数据。所以，除了寄存器，还必须了解内存怎么储存数据。</p>
+<p>程序运行的时候，操作系统会给它分配一段内存，用来储存程序和运行产生的数据。这段内存有起始地址和结束地址，比如从<code>0x1000</code>到<code>0x8000</code>，起始地址是较小的那个地址，结束地址是较大的那个地址。</p>
+<p>习惯上，将高位地址表示在上面，地位地址表示在下面。</p>
+<h3 id="内存总览"><a href="#内存总览" class="headerlink" title="内存总览"></a>内存总览</h3><p>C语言映像中内存的空间布局情况：在《C专 家编程》中或者《Unix环境高级编程》中有关于内存空间布局情况的说明，大致如下表：</p>
+<table>
+<thead>
+<tr>
+<th><strong>———————–   （最高内存地址）</strong></th>
+<th>0xffffffff</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>栈底</strong></td>
+<td>0x……..</td>
+</tr>
+<tr>
+<td><strong>栈</strong>  （stack）</td>
+<td>0x……..</td>
+</tr>
+<tr>
+<td><strong>栈顶</strong></td>
+<td>0x……..</td>
+</tr>
+<tr>
+<td><strong>———————–</strong></td>
+<td>0x……..</td>
+</tr>
+<tr>
+<td><strong>NULL (空)</strong></td>
+<td>0x……..</td>
+</tr>
+<tr>
+<td><strong>———————–</strong></td>
+<td>0x……..</td>
+</tr>
+<tr>
+<td><strong>堆</strong>  （heap）</td>
+<td>0x……..</td>
+</tr>
+<tr>
+<td><strong>———————–</strong>    <strong>——</strong></td>
+<td>0x……..</td>
+</tr>
+<tr>
+<td><strong>未初始化的数据</strong>       <strong>↑</strong></td>
+<td>0x……..</td>
+</tr>
+<tr>
+<td><strong>———————–</strong> （统称数据段或bbs段) （data segment）</td>
+<td>0x……..</td>
+</tr>
+<tr>
+<td><strong>初始化的数据</strong>          <strong>↓</strong></td>
+<td>0x……..</td>
+</tr>
+<tr>
+<td><strong>———————–</strong>   <strong>——</strong></td>
+<td>0x……..</td>
+</tr>
+<tr>
+<td><strong>正文段(代码段)</strong>    （code segment/text segment）</td>
+<td>0x……..</td>
+</tr>
+<tr>
+<td><strong>———————–    (最低内存地址)</strong></td>
+<td><strong>0x00000000</strong></td>
+</tr>
+</tbody></table>
+<p>典型C内存空间分布图：</p>
+<p><img src="https://images.weserv.nl/?url=https://i0.hdslb.com/bfs/article/2065d5f2319c7d318016d35bfa36c1f9c43f01ab.png" alt="APUE中的一个典型C内存空间分布图"></p>
+<p>其他东西好复杂，，我们先研究堆和栈。。。</p>
+<h3 id="堆-Heap）-amp-amp-栈-Stack"><a href="#堆-Heap）-amp-amp-栈-Stack" class="headerlink" title="堆(Heap）&amp;&amp;栈(Stack)"></a>堆(Heap）&amp;&amp;栈(Stack)</h3>
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          
+
+<div class="post-copyright">
+<ul>
+  <li class="post-copyright-author">
+      <strong>本文作者： </strong>mark0519
+  </li>
+  <li class="post-copyright-link">
+      <strong>本文链接：</strong>
+      <a href="https://mark0519.github.io/2020/11/05/%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B/" title="汇编学习笔记——前置2.0.1">https://mark0519.github.io/2020/11/05/内存模型/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+          <div class="post-tags">
+              <a href="/tags/c/" rel="tag"># c</a>
+              <a href="/tags/%E6%B1%87%E7%BC%96/" rel="tag"># 汇编</a>
+              <a href="/tags/%E5%AF%84%E5%AD%98%E5%99%A8/" rel="tag"># 寄存器</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2020/11/03/C%E8%AF%AD%E8%A8%80%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%E2%80%94%E2%80%94c%E4%BD%8D%E5%9F%9F/" rel="prev" title="C语言学习笔记——c位域">
+                  <i class="fa fa-chevron-left"></i> C语言学习笔记——c位域
+                </a>
+            </div>
+            <div class="post-nav-item">
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+      
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      const activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      const commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+      
+
+      
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">mark0519</span>
+</div> <!--
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/pisces/" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> 强力驱动
+  </div> -->
+
+    </div>
+  </footer>
+
+  
+  <script src="//cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js"></script>
+<script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
