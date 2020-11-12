@@ -24,21 +24,21 @@
     var CONFIG = {"hostname":"mark0519.github.io","root":"/","scheme":"Pisces","version":"8.0.2","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}};
   </script>
 
-  <meta name="description" content="您好，我是mark0519，这里是我的个人学习博客，这里会记录我平时学习的一些笔记个一些个人的收藏，学习笔记并不权威也并不专业，如果我的文章有幸被你能看到，对其中的一些问题若您有不同看法，或者您发现了一些明显的错误，欢迎您及时斧正。tps：联系方式见邮箱">
+  <meta name="description" content="C语言文件读写C语言学习笔记1.7使用c语言可以创建，打开，读写文本文件或二进制文件。一个文件，无论它是文本文件还是二进制文件，都是代表了一系列的字节。  语言不仅提供了访问顶层的函数，也提供了底层（OS）调用来处理存储设备上的文件。">
 <meta property="og:type" content="article">
-<meta property="og:title" content="您好，欢迎来到我的个人博客。">
-<meta property="og:url" content="https://mark0519.github.io/2020/10/25/look_here/index.html">
+<meta property="og:title" content="mark0519的博客">
+<meta property="og:url" content="https://mark0519.github.io/2020/11/12/C%E8%AF%AD%E8%A8%80%E6%96%87%E4%BB%B6%E8%AF%BB%E5%86%99/index.html">
 <meta property="og:site_name" content="mark0519的博客">
-<meta property="og:description" content="您好，我是mark0519，这里是我的个人学习博客，这里会记录我平时学习的一些笔记个一些个人的收藏，学习笔记并不权威也并不专业，如果我的文章有幸被你能看到，对其中的一些问题若您有不同看法，或者您发现了一些明显的错误，欢迎您及时斧正。tps：联系方式见邮箱">
+<meta property="og:description" content="C语言文件读写C语言学习笔记1.7使用c语言可以创建，打开，读写文本文件或二进制文件。一个文件，无论它是文本文件还是二进制文件，都是代表了一系列的字节。  语言不仅提供了访问顶层的函数，也提供了底层（OS）调用来处理存储设备上的文件。">
 <meta property="og:locale" content="zh_CN">
-<meta property="article:published_time" content="2020-10-25T07:08:44.000Z">
-<meta property="article:modified_time" content="2020-11-03T14:47:33.859Z">
+<meta property="article:published_time" content="2020-11-12T06:10:46.000Z">
+<meta property="article:modified_time" content="2020-11-12T06:37:18.574Z">
 <meta property="article:author" content="mark0519">
-<meta property="article:tag" content="other">
+<meta property="article:tag" content="c">
 <meta name="twitter:card" content="summary">
 
 
-<link rel="canonical" href="https://mark0519.github.io/2020/10/25/look_here/">
+<link rel="canonical" href="https://mark0519.github.io/2020/11/12/C%E8%AF%AD%E8%A8%80%E6%96%87%E4%BB%B6%E8%AF%BB%E5%86%99/">
 
 
 <script class="page-configurations">
@@ -51,7 +51,7 @@
   };
 </script>
 
-  <title>您好，欢迎来到我的个人博客。 | mark0519的博客</title>
+  <title> | mark0519的博客</title>
   
 
 
@@ -179,7 +179,7 @@
       <div class="sidebar-panel-container">
         <!--noindex-->
         <section class="post-toc-wrap sidebar-panel">
-            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%82%A8%E5%A5%BD%EF%BC%8C%E6%88%91%E6%98%AFmark0519%EF%BC%8C%E8%BF%99%E9%87%8C%E6%98%AF%E6%88%91%E7%9A%84%E4%B8%AA%E4%BA%BA%E5%AD%A6%E4%B9%A0%E5%8D%9A%E5%AE%A2%EF%BC%8C%E8%BF%99%E9%87%8C%E4%BC%9A%E8%AE%B0%E5%BD%95%E6%88%91%E5%B9%B3%E6%97%B6%E5%AD%A6%E4%B9%A0%E7%9A%84%E4%B8%80%E4%BA%9B%E7%AC%94%E8%AE%B0%E4%B8%AA%E4%B8%80%E4%BA%9B%E4%B8%AA%E4%BA%BA%E7%9A%84%E6%94%B6%E8%97%8F%EF%BC%8C%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%E5%B9%B6%E4%B8%8D%E6%9D%83%E5%A8%81%E4%B9%9F%E5%B9%B6%E4%B8%8D%E4%B8%93%E4%B8%9A%EF%BC%8C%E5%A6%82%E6%9E%9C%E6%88%91%E7%9A%84%E6%96%87%E7%AB%A0%E6%9C%89%E5%B9%B8%E8%A2%AB%E4%BD%A0%E8%83%BD%E7%9C%8B%E5%88%B0%EF%BC%8C%E5%AF%B9%E5%85%B6%E4%B8%AD%E7%9A%84%E4%B8%80%E4%BA%9B%E9%97%AE%E9%A2%98%E8%8B%A5%E6%82%A8%E6%9C%89%E4%B8%8D%E5%90%8C%E7%9C%8B%E6%B3%95%EF%BC%8C%E6%88%96%E8%80%85%E6%82%A8%E5%8F%91%E7%8E%B0%E4%BA%86%E4%B8%80%E4%BA%9B%E6%98%8E%E6%98%BE%E7%9A%84%E9%94%99%E8%AF%AF%EF%BC%8C%E6%AC%A2%E8%BF%8E%E6%82%A8%E5%8F%8A%E6%97%B6%E6%96%A7%E6%AD%A3%E3%80%82"><span class="nav-number">1.</span> <span class="nav-text">您好，我是mark0519，这里是我的个人学习博客，这里会记录我平时学习的一些笔记个一些个人的收藏，学习笔记并不权威也并不专业，如果我的文章有幸被你能看到，对其中的一些问题若您有不同看法，或者您发现了一些明显的错误，欢迎您及时斧正。</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#tps%EF%BC%9A%E8%81%94%E7%B3%BB%E6%96%B9%E5%BC%8F%E8%A7%81%E9%82%AE%E7%AE%B1"><span class="nav-number">1.0.1.</span> <span class="nav-text">tps：联系方式见邮箱</span></a></li></ol></li></ol></li></ol></div>
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#C%E8%AF%AD%E8%A8%80%E6%96%87%E4%BB%B6%E8%AF%BB%E5%86%99"><span class="nav-number">1.</span> <span class="nav-text">C语言文件读写</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#C%E8%AF%AD%E8%A8%80%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B01-7"><span class="nav-number">1.1.</span> <span class="nav-text">C语言学习笔记1.7</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%89%93%E5%BC%80%E6%96%87%E4%BB%B6"><span class="nav-number">1.1.1.</span> <span class="nav-text">打开文件</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%85%B3%E9%97%AD%E6%96%87%E4%BB%B6"><span class="nav-number">1.1.2.</span> <span class="nav-text">关闭文件</span></a></li></ol></li></ol></li></ol></div>
         </section>
         <!--/noindex-->
 
@@ -248,7 +248,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://mark0519.github.io/2020/10/25/look_here/">
+    <link itemprop="mainEntityOfPage" href="https://mark0519.github.io/2020/11/12/C%E8%AF%AD%E8%A8%80%E6%96%87%E4%BB%B6%E8%AF%BB%E5%86%99/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
@@ -261,7 +261,7 @@
     </span>
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
-          您好，欢迎来到我的个人博客。
+          
         </h1>
 
         <div class="post-meta-container">
@@ -271,16 +271,10 @@
         <i class="far fa-calendar"></i>
       </span>
       <span class="post-meta-item-text">发表于</span>
+      
 
-      <time title="创建时间：2020-10-25 15:08:44" itemprop="dateCreated datePublished" datetime="2020-10-25T15:08:44+08:00">2020-10-25</time>
+      <time title="创建时间：2020-11-12 14:10:46 / 修改时间：14:37:18" itemprop="dateCreated datePublished" datetime="2020-11-12T14:10:46+08:00">2020-11-12</time>
     </span>
-      <span class="post-meta-item">
-        <span class="post-meta-item-icon">
-          <i class="far fa-calendar-check"></i>
-        </span>
-        <span class="post-meta-item-text">更新于</span>
-        <time title="修改时间：2020-11-03 22:47:33" itemprop="dateModified" datetime="2020-11-03T22:47:33+08:00">2020-11-03</time>
-      </span>
 
   
 </div>
@@ -292,7 +286,84 @@
     
     
     <div class="post-body" itemprop="articleBody">
-        <h2 id="您好，我是mark0519，这里是我的个人学习博客，这里会记录我平时学习的一些笔记个一些个人的收藏，学习笔记并不权威也并不专业，如果我的文章有幸被你能看到，对其中的一些问题若您有不同看法，或者您发现了一些明显的错误，欢迎您及时斧正。"><a href="#您好，我是mark0519，这里是我的个人学习博客，这里会记录我平时学习的一些笔记个一些个人的收藏，学习笔记并不权威也并不专业，如果我的文章有幸被你能看到，对其中的一些问题若您有不同看法，或者您发现了一些明显的错误，欢迎您及时斧正。" class="headerlink" title="您好，我是mark0519，这里是我的个人学习博客，这里会记录我平时学习的一些笔记个一些个人的收藏，学习笔记并不权威也并不专业，如果我的文章有幸被你能看到，对其中的一些问题若您有不同看法，或者您发现了一些明显的错误，欢迎您及时斧正。"></a>您好，我是mark0519，这里是我的个人学习博客，这里会记录我平时学习的一些笔记个一些个人的收藏，学习笔记并不权威也并不专业，如果我的文章有幸被你能看到，对其中的一些问题若您有不同看法，或者您发现了一些明显的错误，欢迎您及时斧正。</h2><h4 id="tps：联系方式见邮箱"><a href="#tps：联系方式见邮箱" class="headerlink" title="tps：联系方式见邮箱"></a>tps：联系方式见邮箱</h4>
+        <h1 id="C语言文件读写"><a href="#C语言文件读写" class="headerlink" title="C语言文件读写"></a>C语言文件读写</h1><h2 id="C语言学习笔记1-7"><a href="#C语言学习笔记1-7" class="headerlink" title="C语言学习笔记1.7"></a>C语言学习笔记1.7</h2><p>使用c语言可以创建，打开，读写文本文件或二进制文件。一个文件，无论它是文本文件还是二进制文件，都是代表了一系列的字节。</p>
+<p> 语言不仅提供了访问顶层的函数，也提供了底层（OS）调用来处理存储设备上的文件。</p>
+<a id="more"></a>
+
+<h3 id="打开文件"><a href="#打开文件" class="headerlink" title="打开文件"></a>打开文件</h3><p>可以使用 <strong>fopen( )</strong> 函数来创建一个新的文件或者打开一个已有的文件，这个调用会初始化类型 <strong>FILE</strong> 的一个对象，类型 <strong>FILE</strong> 包含了所有用来控制流的必要的信息。下面是这个函数调用的原型：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">FILE *<span class="title">fopen</span><span class="params">( <span class="keyword">const</span> <span class="keyword">char</span> * filename, <span class="keyword">const</span> <span class="keyword">char</span> * mode )</span></span>;</span><br></pre></td></tr></table></figure>
+
+<p>在这里，<strong>filename</strong> 是字符串，用来命名文件，访问模式 <strong>mode</strong> 的值可以是下列值中的一个：</p>
+<p><strong>访问模式</strong></p>
+<table>
+<thead>
+<tr>
+<th>模式</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>r</td>
+<td>打开一个<strong>已有的</strong>文本文件，<strong>只允许</strong>读取文件，文件必须存在，否则打开失败。</td>
+</tr>
+<tr>
+<td>w</td>
+<td>打开一个文本文件，若不存在则创建一个新文件，程序会从<strong>文件开头</strong>开始写入，若已存在内容，则清空文件内容，重新写入</td>
+</tr>
+<tr>
+<td>a</td>
+<td>打开一个文本文件，若不存在则创建一个新文件，程序以<strong>追加形式的继续写入</strong>。</td>
+</tr>
+<tr>
+<td>r+</td>
+<td>打开一个<strong>已有的</strong>文本文件，<strong>读写</strong>文件内容，文件必须存在，否则打开失败。</td>
+</tr>
+<tr>
+<td>w+</td>
+<td>以<strong>写入/更新</strong>方式打开文件，相当于<code>w</code>和<code>r+</code>叠加的效果。既可以读取也可以写入，也就是随意更新文件。如果文件不存在，那么创建一个新文件；如果文件存在，那么清空文件内容（相当于删除原文件，再创建一个新文件）。</td>
+</tr>
+<tr>
+<td>a+</td>
+<td>以<strong>追加/更新</strong>方式打开文件，相当于<code>a</code>和<code>r+</code>叠加的效果。既可以读取也可以写入，也就是随意更新文件。如果文件不存在，那么创建一个新文件；如果文件存在，那么将写入的数据追加到文件的末尾（文件原有的内容保留）。</td>
+</tr>
+</tbody></table>
+<p><strong>读写权限</strong></p>
+<table>
+<thead>
+<tr>
+<th>权限</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>t</td>
+<td>文本文件，不写默认为“t”</td>
+</tr>
+<tr>
+<td>b</td>
+<td>二进制文件</td>
+</tr>
+</tbody></table>
+<p>调用 fopen() 函数时必须指明读写权限，但是可以不指明读写方式（此时默认为<code>&quot;t&quot;</code>）。</p>
+<p>读写权限和读写方式可以组合使用，但是必须将读写方式放在读写权限的中间或者尾部（<strong>换句话说，不能将读写方式放在读写权限的开头</strong>）。例如：</p>
+<ul>
+<li>将读写方式放在读写权限的末尾：”rb”、”wt”、”ab”、”r+b”、”w+t”、”a+t”</li>
+<li>将读写方式放在读写权限的中间：”rb+”、”wt+”、”ab+”</li>
+</ul>
+<p>整体来说，文件打开方式由 r、w、a、t、b、+ 六个字符拼成，各字符的含义是：</p>
+<ul>
+<li>r(read)：读</li>
+<li>w(write)：写</li>
+<li>a(append)：追加</li>
+<li>t(text)：文本文件</li>
+<li>b(binary)：二进制文件</li>
+<li>+：读和写</li>
+</ul>
+<h3 id="关闭文件"><a href="#关闭文件" class="headerlink" title="关闭文件"></a>关闭文件</h3><p>为了关闭文件，请使用 fclose( ) 函数。函数的原型如下：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">fclose</span><span class="params">( FILE *fp )</span></span>;</span><br></pre></td></tr></table></figure>
+
+<p>如果成功关闭文件，<strong>fclose( )</strong> 函数返回零，如果关闭文件时发生错误，函数返回 <strong>EOF</strong>。</p>
+
     </div>
 
     
@@ -309,7 +380,7 @@
   </li>
   <li class="post-copyright-link">
       <strong>本文链接：</strong>
-      <a href="https://mark0519.github.io/2020/10/25/look_here/" title="您好，欢迎来到我的个人博客。">https://mark0519.github.io/2020/10/25/look_here/</a>
+      <a href="https://mark0519.github.io/2020/11/12/C%E8%AF%AD%E8%A8%80%E6%96%87%E4%BB%B6%E8%AF%BB%E5%86%99/" title="">https://mark0519.github.io/2020/11/12/C语言文件读写/</a>
   </li>
   <li class="post-copyright-license">
     <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
@@ -318,18 +389,18 @@
 </div>
 
           <div class="post-tags">
-              <a href="/tags/other/" rel="tag"># other</a>
+              <a href="/tags/c/" rel="tag"># c</a>
           </div>
 
         
 
           <div class="post-nav">
             <div class="post-nav-item">
+                <a href="/2020/11/12/c%E8%AF%AD%E8%A8%80gets-getchar-puts-putchar/" rel="prev" title="c语言gets/getchar&puts/putchar">
+                  <i class="fa fa-chevron-left"></i> c语言gets/getchar&puts/putchar
+                </a>
             </div>
             <div class="post-nav-item">
-                <a href="/2020/10/29/c-learn/" rel="next" title="C语言学习笔记——C字符串">
-                  C语言学习笔记——C字符串 <i class="fa fa-chevron-right"></i>
-                </a>
             </div>
           </div>
     </footer>
