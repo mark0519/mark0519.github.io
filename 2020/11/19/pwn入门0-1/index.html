@@ -24,12 +24,12 @@
     var CONFIG = {"hostname":"mark0519.github.io","root":"/","scheme":"Pisces","version":"8.0.2","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}};
   </script>
 
-  <meta name="description" content="pwn入门0.1题目攻防世界pwn level0 链接：https:&#x2F;&#x2F;adworld.xctf.org.cn&#x2F;task&#x2F;answer?type&#x3D;pwn&amp;number&#x3D;2&amp;grade&#x3D;0&amp;id&#x3D;5053&amp;page&#x3D;1 渣渣自己写的wp查文件是64位的，拖到IDA里面看源码：  查看wulnerable_function()函数  buf数组距离栈帧顶部rsp为0x0">
+  <meta name="description" content="pwn入门0.1题目攻防世界pwn level0">
 <meta property="og:type" content="article">
 <meta property="og:title" content="pwn入门0.1">
 <meta property="og:url" content="https://mark0519.github.io/2020/11/19/pwn%E5%85%A5%E9%97%A80-1/index.html">
 <meta property="og:site_name" content="mark0519的博客">
-<meta property="og:description" content="pwn入门0.1题目攻防世界pwn level0 链接：https:&#x2F;&#x2F;adworld.xctf.org.cn&#x2F;task&#x2F;answer?type&#x3D;pwn&amp;number&#x3D;2&amp;grade&#x3D;0&amp;id&#x3D;5053&amp;page&#x3D;1 渣渣自己写的wp查文件是64位的，拖到IDA里面看源码：  查看wulnerable_function()函数  buf数组距离栈帧顶部rsp为0x0">
+<meta property="og:description" content="pwn入门0.1题目攻防世界pwn level0">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://images.weserv.nl/?url=https://i0.hdslb.com/bfs/article/31dd5ec6910452b7dd0837ebc9400e27be8b5019.png">
 <meta property="og:image" content="https://images.weserv.nl/?url=https://i0.hdslb.com/bfs/article/85992a05ed4f6dff24f11a6c0f2cb0fceccfb527.png">
@@ -39,7 +39,7 @@
 <meta property="og:image" content="https://images.weserv.nl/?url=https://i0.hdslb.com/bfs/article/fed2ecafd622d2c688bc1844d0d9bf9897fdb6c1.png">
 <meta property="og:image" content="https://images.weserv.nl/?url=https://i0.hdslb.com/bfs/article/fb3796bbf5f366700038188105376cac2f96c3e8.png">
 <meta property="article:published_time" content="2020-11-19T04:37:56.000Z">
-<meta property="article:modified_time" content="2020-11-19T05:20:00.969Z">
+<meta property="article:modified_time" content="2020-11-19T05:21:30.490Z">
 <meta property="article:author" content="mark0519">
 <meta property="article:tag" content="pwn">
 <meta property="article:tag" content="python2">
@@ -283,7 +283,7 @@
       <span class="post-meta-item-text">发表于</span>
       
 
-      <time title="创建时间：2020-11-19 12:37:56 / 修改时间：13:20:00" itemprop="dateCreated datePublished" datetime="2020-11-19T12:37:56+08:00">2020-11-19</time>
+      <time title="创建时间：2020-11-19 12:37:56 / 修改时间：13:21:30" itemprop="dateCreated datePublished" datetime="2020-11-19T12:37:56+08:00">2020-11-19</time>
     </span>
 
   
@@ -297,6 +297,8 @@
     
     <div class="post-body" itemprop="articleBody">
         <h1 id="pwn入门0-1"><a href="#pwn入门0-1" class="headerlink" title="pwn入门0.1"></a>pwn入门0.1</h1><h2 id="题目"><a href="#题目" class="headerlink" title="题目"></a>题目</h2><p>攻防世界pwn level0</p>
+<a id="more"></a>
+
 <p>链接：<a target="_blank" rel="noopener" href="https://adworld.xctf.org.cn/task/answer?type=pwn&amp;number=2&amp;grade=0&amp;id=5053&amp;page=1">https://adworld.xctf.org.cn/task/answer?type=pwn&amp;number=2&amp;grade=0&amp;id=5053&amp;page=1</a></p>
 <h2 id="渣渣自己写的wp"><a href="#渣渣自己写的wp" class="headerlink" title="渣渣自己写的wp"></a>渣渣自己写的wp</h2><p>查文件是64位的，拖到IDA里面看源码：</p>
 <p><img src="https://images.weserv.nl/?url=https://i0.hdslb.com/bfs/article/31dd5ec6910452b7dd0837ebc9400e27be8b5019.png"></p>
