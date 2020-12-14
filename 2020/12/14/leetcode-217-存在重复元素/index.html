@@ -33,7 +33,7 @@
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://images.weserv.nl/?url=https://i0.hdslb.com/bfs/article/17b41ee5a92a64261e6062345a444c3a5c2adcf9.png">
 <meta property="article:published_time" content="2020-12-14T06:24:13.000Z">
-<meta property="article:modified_time" content="2020-12-14T08:19:51.657Z">
+<meta property="article:modified_time" content="2020-12-14T08:21:19.972Z">
 <meta property="article:author" content="mark0519">
 <meta property="article:tag" content="c语言">
 <meta property="article:tag" content="leetcode">
@@ -276,7 +276,7 @@
       <span class="post-meta-item-text">发表于</span>
       
 
-      <time title="创建时间：2020-12-14 14:24:13 / 修改时间：16:19:51" itemprop="dateCreated datePublished" datetime="2020-12-14T14:24:13+08:00">2020-12-14</time>
+      <time title="创建时间：2020-12-14 14:24:13 / 修改时间：16:21:19" itemprop="dateCreated datePublished" datetime="2020-12-14T14:24:13+08:00">2020-12-14</time>
     </span>
 
   
@@ -299,7 +299,7 @@
 
 <h2 id="注意"><a href="#注意" class="headerlink" title="注意"></a>注意</h2><p>若只是使用简单的双指针对每两个数字进行对比，则会超时</p>
 <p><strong>错误实例</strong></p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//超时做法</span></span><br><span class="line"><span class="function"><span class="keyword">bool</span> <span class="title">containsDuplicate</span><span class="params">(<span class="keyword">int</span>* nums, <span class="keyword">int</span> numsSize)</span> </span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; numsSize; i++)</span><br><span class="line">	&#123;</span><br><span class="line">		<span class="keyword">for</span> (<span class="keyword">int</span> j = i + <span class="number">1</span>; j &lt; numsSize; j++)</span><br><span class="line">        &#123;	</span><br><span class="line">            <span class="keyword">if</span> (nums[i] == nums[j])</span><br><span class="line">				<span class="keyword">return</span> <span class="number">1</span>;</span><br><span class="line">        &#125;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//超时做法</span></span><br><span class="line"><span class="function"><span class="keyword">bool</span> <span class="title">containsDuplicate</span><span class="params">(<span class="keyword">int</span>* nums, <span class="keyword">int</span> numsSize)</span> </span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; numsSize; i++)</span><br><span class="line">	&#123;</span><br><span class="line">		<span class="keyword">for</span> (<span class="keyword">int</span> j = i + <span class="number">1</span>; j &lt; numsSize; j++)</span><br><span class="line">        &#123;	</span><br><span class="line">            <span class="keyword">if</span> (nums[i] == nums[j])</span><br><span class="line">                <span class="keyword">return</span> <span class="number">1</span>;</span><br><span class="line">		&#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 <h2 id="qsort-函数"><a href="#qsort-函数" class="headerlink" title="qsort()函数"></a>qsort()函数</h2><h3 id="qsort-函数-1"><a href="#qsort-函数-1" class="headerlink" title="qsort()函数"></a>qsort()函数</h3><p>头文件：#include &lt;stdlib.h&gt;</p>
 <p>作用：sprintf()函数用于<strong>对数组进行排序</strong>。</p>
