@@ -485,10 +485,16 @@
         <i class="far fa-calendar"></i>
       </span>
       <span class="post-meta-item-text">发表于</span>
-      
 
-      <time title="创建时间：2021-01-09 15:17:19 / 修改时间：15:57:08" itemprop="dateCreated datePublished" datetime="2021-01-09T15:17:19+08:00">2021-01-09</time>
+      <time title="创建时间：2021-01-09 15:17:19" itemprop="dateCreated datePublished" datetime="2021-01-09T15:17:19+08:00">2021-01-09</time>
     </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">更新于</span>
+        <time title="修改时间：2021-01-21 22:03:14" itemprop="dateModified" datetime="2021-01-21T22:03:14+08:00">2021-01-21</time>
+      </span>
 
   
 </div>
@@ -500,8 +506,7 @@
     
     
     <div class="post-body" itemprop="articleBody">
-          <h1 id="pwn整数溢出"><a href="#pwn整数溢出" class="headerlink" title="pwn整数溢出"></a>pwn整数溢出</h1><p>攻防世界int_overflow</p>
-<p><img src="https://images.weserv.nl/?url=https://i0.hdslb.com/bfs/article/743f07915787a751331bae9ce87e0feb25e6a94a.png"></p>
+          <h1 id="pwn整数溢出"><a href="#pwn整数溢出" class="headerlink" title="pwn整数溢出"></a>pwn整数溢出</h1><h2 id="整数溢出原理"><a href="#整数溢出原理" class="headerlink" title="整数溢出原理"></a>整数溢出原理</h2><h3 id="具体原理"><a href="#具体原理" class="headerlink" title="具体原理"></a>具体原理</h3><p>​    在 C 语言中，整数的基本数据类型分为短整型 (short)，整型 (int)，长整型 (long)，这三个数据类型还分为有符号和无符号，每种数据类型都有各自的大小范围，(因为数据类型的大小范围是编译器决定的，所以之后所述都默认是 64 位下使用 gcc-5.4)，当程序中的数据超过其数据类型的范围，则会造成溢出，整数类型的溢出被称为整数溢出。</p>
           <!--noindex-->
             <div class="post-button">
               <a class="btn" href="/2021/01/09/pwn%E6%95%B4%E6%95%B0%E6%BA%A2%E5%87%BA/#more" rel="contents">

