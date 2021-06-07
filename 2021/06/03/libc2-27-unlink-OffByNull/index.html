@@ -24,19 +24,24 @@
     var CONFIG = {"hostname":"mark0519.github.io","root":"/","scheme":"Pisces","version":"8.0.2","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}};
   </script>
 
-  <meta name="description" content="我是mark0519，第一次玩博客的小萌新~">
-<meta property="og:type" content="website">
-<meta property="og:title" content="mark0519的博客">
-<meta property="og:url" content="https://mark0519.github.io/tags/c/index.html">
+  <meta name="description" content="glibc2.27下的利用null off by one构造unlink[PWN]GKCTF 2020 Domo分析">
+<meta property="og:type" content="article">
+<meta property="og:title" content="libc2.27_unlink_OffByNull">
+<meta property="og:url" content="https://mark0519.github.io/2021/06/03/libc2-27-unlink-OffByNull/index.html">
 <meta property="og:site_name" content="mark0519的博客">
-<meta property="og:description" content="我是mark0519，第一次玩博客的小萌新~">
+<meta property="og:description" content="glibc2.27下的利用null off by one构造unlink[PWN]GKCTF 2020 Domo分析">
 <meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2021-06-03T02:25:47.000Z">
+<meta property="article:modified_time" content="2021-06-03T03:31:35.782Z">
 <meta property="article:author" content="mark0519">
-<meta property="article:tag" content="mark0519,C语言学习笔记">
+<meta property="article:tag" content="pwn">
+<meta property="article:tag" content="python2">
+<meta property="article:tag" content="ctf">
+<meta property="article:tag" content="heap">
 <meta name="twitter:card" content="summary">
 
 
-<link rel="canonical" href="https://mark0519.github.io/tags/c/">
+<link rel="canonical" href="https://mark0519.github.io/2021/06/03/libc2-27-unlink-OffByNull/">
 
 
 <script class="page-configurations">
@@ -44,12 +49,12 @@
   CONFIG.page = {
     sidebar: "",
     isHome : false,
-    isPost : false,
+    isPost : true,
     lang   : 'zh-CN'
   };
 </script>
 
-  <title>标签: c | mark0519的博客</title>
+  <title>libc2.27_unlink_OffByNull | mark0519的博客</title>
   
 
 
@@ -164,7 +169,7 @@
 
   <aside class="sidebar">
 
-    <div class="sidebar-inner sidebar-overview-active">
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
       <ul class="sidebar-nav">
         <li class="sidebar-nav-toc">
           文章目录
@@ -177,6 +182,7 @@
       <div class="sidebar-panel-container">
         <!--noindex-->
         <section class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#glibc2-27%E4%B8%8B%E7%9A%84%E5%88%A9%E7%94%A8null-off-by-one%E6%9E%84%E9%80%A0unlink"><span class="nav-number">1.</span> <span class="nav-text">glibc2.27下的利用null off by one构造unlink</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#PWN-GKCTF-2020-Domo%E5%88%86%E6%9E%90"><span class="nav-number">1.1.</span> <span class="nav-text">[PWN]GKCTF 2020 Domo分析</span></a></li></ol></li></ol></div>
         </section>
         <!--/noindex-->
 
@@ -232,214 +238,109 @@
 </noscript>
 
 
-    <div class="main-inner tag posts-collapse">
+    <div class="main-inner post posts-expand">
       
 
       
 
   
-  
-  
-  <div class="post-block">
-    <div class="post-content">
-      <div class="collection-title">
-        <h2 class="collection-header">c
-          <small>标签</small>
-        </h2>
-      </div>
 
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://mark0519.github.io/2021/06/03/libc2-27-unlink-OffByNull/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="mark0519">
+      <meta itemprop="description" content="我是mark0519，第一次玩博客的小萌新~">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="mark0519的博客">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          libc2.27_unlink_OffByNull
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
       
-    <div class="collection-year">
-      <span class="collection-header">2020</span>
+
+      <time title="创建时间：2021-06-03 10:25:47 / 修改时间：11:31:35" itemprop="dateCreated datePublished" datetime="2021-06-03T10:25:47+08:00">2021-06-03</time>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <h1 id="glibc2-27下的利用null-off-by-one构造unlink"><a href="#glibc2-27下的利用null-off-by-one构造unlink" class="headerlink" title="glibc2.27下的利用null off by one构造unlink"></a>glibc2.27下的利用null off by one构造unlink</h1><h2 id="PWN-GKCTF-2020-Domo分析"><a href="#PWN-GKCTF-2020-Domo分析" class="headerlink" title="[PWN]GKCTF 2020 Domo分析"></a>[PWN]GKCTF 2020 Domo分析</h2>
     </div>
 
-  <article itemscope itemtype="http://schema.org/Article">
-    <header class="post-header">
-      <div class="post-meta-container">
-        <time itemprop="dateCreated"
-              datetime="2020-12-07T15:09:04+08:00"
-              content="2020-12-07">
-          12-07
-        </time>
-      </div>
+    
+    
+    
 
-      <div class="post-title">
-          <a class="post-title-link" href="/2020/12/07/C%E8%AF%AD%E8%A8%80%E5%AD%A6%E4%B9%A0-%E8%B4%AA%E5%90%83%E8%9B%87/" itemprop="url">
-            <span itemprop="name">C语言学习-贪吃蛇</span>
-          </a>
-      </div>
+    <footer class="post-footer">
+          
 
-      
-    </header>
+<div class="post-copyright">
+<ul>
+  <li class="post-copyright-author">
+      <strong>本文作者： </strong>mark0519
+  </li>
+  <li class="post-copyright-link">
+      <strong>本文链接：</strong>
+      <a href="https://mark0519.github.io/2021/06/03/libc2-27-unlink-OffByNull/" title="libc2.27_unlink_OffByNull">https://mark0519.github.io/2021/06/03/libc2-27-unlink-OffByNull/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+          <div class="post-tags">
+              <a href="/tags/pwn/" rel="tag"># pwn</a>
+              <a href="/tags/python2/" rel="tag"># python2</a>
+              <a href="/tags/ctf/" rel="tag"># ctf</a>
+              <a href="/tags/heap/" rel="tag"># heap</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2021/04/12/pwn-LearnHeap/" rel="prev" title="pwn-LearnHeap">
+                  <i class="fa fa-chevron-left"></i> pwn-LearnHeap
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2021/06/07/pwn-text%E6%AE%B5%E5%8F%AF%E6%94%B9/" rel="next" title="pwn-text段可改">
+                  pwn-text段可改 <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
   </article>
+</div>
 
-  <article itemscope itemtype="http://schema.org/Article">
-    <header class="post-header">
-      <div class="post-meta-container">
-        <time itemprop="dateCreated"
-              datetime="2020-11-12T14:10:46+08:00"
-              content="2020-11-12">
-          11-12
-        </time>
-      </div>
 
-      <div class="post-title">
-          <a class="post-title-link" href="/2020/11/12/C%E8%AF%AD%E8%A8%80%E6%96%87%E4%BB%B6%E8%AF%BB%E5%86%99/" itemprop="url">
-            <span itemprop="name">C语言文件读写</span>
-          </a>
-      </div>
 
-      
-    </header>
-  </article>
-
-  <article itemscope itemtype="http://schema.org/Article">
-    <header class="post-header">
-      <div class="post-meta-container">
-        <time itemprop="dateCreated"
-              datetime="2020-11-12T13:50:56+08:00"
-              content="2020-11-12">
-          11-12
-        </time>
-      </div>
-
-      <div class="post-title">
-          <a class="post-title-link" href="/2020/11/12/c%E8%AF%AD%E8%A8%80gets-getchar-puts-putchar/" itemprop="url">
-            <span itemprop="name">c语言gets/getchar&puts/putchar</span>
-          </a>
-      </div>
-
-      
-    </header>
-  </article>
-
-  <article itemscope itemtype="http://schema.org/Article">
-    <header class="post-header">
-      <div class="post-meta-container">
-        <time itemprop="dateCreated"
-              datetime="2020-11-12T13:24:40+08:00"
-              content="2020-11-12">
-          11-12
-        </time>
-      </div>
-
-      <div class="post-title">
-          <a class="post-title-link" href="/2020/11/12/C%E8%AF%AD%E8%A8%80typedef/" itemprop="url">
-            <span itemprop="name">C语言typedef</span>
-          </a>
-      </div>
-
-      
-    </header>
-  </article>
-
-  <article itemscope itemtype="http://schema.org/Article">
-    <header class="post-header">
-      <div class="post-meta-container">
-        <time itemprop="dateCreated"
-              datetime="2020-11-05T19:49:08+08:00"
-              content="2020-11-05">
-          11-05
-        </time>
-      </div>
-
-      <div class="post-title">
-          <a class="post-title-link" href="/2020/11/05/%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B/" itemprop="url">
-            <span itemprop="name">汇编学习笔记——前置2.0.1</span>
-          </a>
-      </div>
-
-      
-    </header>
-  </article>
-
-  <article itemscope itemtype="http://schema.org/Article">
-    <header class="post-header">
-      <div class="post-meta-container">
-        <time itemprop="dateCreated"
-              datetime="2020-11-03T14:51:53+08:00"
-              content="2020-11-03">
-          11-03
-        </time>
-      </div>
-
-      <div class="post-title">
-          <a class="post-title-link" href="/2020/11/03/C%E8%AF%AD%E8%A8%80%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%E2%80%94%E2%80%94c%E4%BD%8D%E5%9F%9F/" itemprop="url">
-            <span itemprop="name">C语言学习笔记——c位域</span>
-          </a>
-      </div>
-
-      
-    </header>
-  </article>
-
-  <article itemscope itemtype="http://schema.org/Article">
-    <header class="post-header">
-      <div class="post-meta-container">
-        <time itemprop="dateCreated"
-              datetime="2020-11-03T10:01:47+08:00"
-              content="2020-11-03">
-          11-03
-        </time>
-      </div>
-
-      <div class="post-title">
-          <a class="post-title-link" href="/2020/11/03/C%E8%AF%AD%E8%A8%80%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%E2%80%94%E2%80%94C%E5%85%B1%E5%90%8C%E4%BD%93/" itemprop="url">
-            <span itemprop="name">C语言学习笔记——C共同体</span>
-          </a>
-      </div>
-
-      
-    </header>
-  </article>
-
-  <article itemscope itemtype="http://schema.org/Article">
-    <header class="post-header">
-      <div class="post-meta-container">
-        <time itemprop="dateCreated"
-              datetime="2020-10-30T19:28:21+08:00"
-              content="2020-10-30">
-          10-30
-        </time>
-      </div>
-
-      <div class="post-title">
-          <a class="post-title-link" href="/2020/10/30/c-learn-struct/" itemprop="url">
-            <span itemprop="name">C语言学习笔记——C结构体</span>
-          </a>
-      </div>
-
-      
-    </header>
-  </article>
-
-  <article itemscope itemtype="http://schema.org/Article">
-    <header class="post-header">
-      <div class="post-meta-container">
-        <time itemprop="dateCreated"
-              datetime="2020-10-29T23:26:03+08:00"
-              content="2020-10-29">
-          10-29
-        </time>
-      </div>
-
-      <div class="post-title">
-          <a class="post-title-link" href="/2020/10/29/c-learn/" itemprop="url">
-            <span itemprop="name">C语言学习笔记——C字符串</span>
-          </a>
-      </div>
-
-      
-    </header>
-  </article>
-
-    </div>
-  </div>
-  
-  
-  
-
-  
 
 
 
