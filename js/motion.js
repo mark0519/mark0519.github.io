@@ -37,7 +37,7 @@ NexT.motion.middleWares = {
       sequence.push({
         targets,
         scaleX  : [0, 1],
-        duration: 500,
+        duration: 250,
         deltaT  : '-=200'
       });
     }
