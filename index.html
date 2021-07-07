@@ -189,7 +189,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
           <a href="/archives">
-          <span class="site-state-item-count">37</span>
+          <span class="site-state-item-count">38</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -291,6 +291,79 @@
     <div class="post-body" itemprop="articleBody">
           <h2 id="Hello-World"><a href="#Hello-World" class="headerlink" title="Hello World!"></a>Hello World!</h2><p>搭个博客防止我偷懒~</p>
 
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://mark0519.github.io/2021/07/07/pwn-House-of-Orange/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="mark0519">
+      <meta itemprop="description" content="我是Mark，第一次玩博客的小萌新~">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="mark的博客">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2021/07/07/pwn-House-of-Orange/" class="post-title-link" itemprop="url">pwn-House_of_Orange</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2021-07-07 21:43:40 / 修改时间：22:33:12" itemprop="dateCreated datePublished" datetime="2021-07-07T21:43:40+08:00">2021-07-07</time>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <h1 id="House-of-Orange"><a href="#House-of-Orange" class="headerlink" title="House of Orange"></a>House of Orange</h1><p>记得在虎符的线下赛中就遇到一题需要使用一个被free状态的堆块 (unsorted bin)，但是构造了好久也没啥好的思路，当时还不知道有种技巧叫 House of Orange，可以在没有free函数的条件下构造出被free状态的堆块。</p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2021/07/07/pwn-House-of-Orange/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
       
     </div>
 
@@ -874,85 +947,6 @@
           <!--noindex-->
             <div class="post-button">
               <a class="btn" href="/2021/03/28/pwn-dasctf-fruitpie/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://mark0519.github.io/2021/03/24/pwn-uaf1/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="mark0519">
-      <meta itemprop="description" content="我是Mark，第一次玩博客的小萌新~">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="mark的博客">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2021/03/24/pwn-uaf1/" class="post-title-link" itemprop="url">pwn-uaf1</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-      
-
-      <time title="创建时间：2021-03-24 21:24:35 / 修改时间：21:37:45" itemprop="dateCreated datePublished" datetime="2021-03-24T21:24:35+08:00">2021-03-24</time>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <h1 id="UAF-HITCON-training-hacknote"><a href="#UAF-HITCON-training-hacknote" class="headerlink" title="UAF - [HITCON-training]hacknote"></a>UAF - [HITCON-training]hacknote</h1><h2 id="UAF（Use-After-Free）"><a href="#UAF（Use-After-Free）" class="headerlink" title="UAF（Use After Free）"></a>UAF（Use After Free）</h2><p>简单的说，Use After Free 就是其字面所表达的意思，当一个内存块被释放之后再次被使用。但是其实这里有以下几种情况</p>
-<ul>
-<li>内存块被释放后，其对应的指针被设置为 NULL ， 然后再次使用，自然程序会崩溃。</li>
-<li>内存块被释放后，其对应的指针没有被设置为 NULL ，然后在它下一次被使用之前，没有代码对这块内存块进行修改，那么<strong>程序很有可能可以正常运转</strong>。</li>
-<li>内存块被释放后，其对应的指针没有被设置为 NULL，但是在它下一次使用之前，有代码对这块内存进行了修改，那么当程序再次使用这块内存时，<strong>就很有可能会出现奇怪的问题</strong>。</li>
-</ul>
-<p>而我们一般所指的 <strong>Use After Free</strong> 漏洞主要是后两种。此外，<strong>我们一般称被释放后没有被设置为 NULL 的内存指针为 dangling pointer。</strong></p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2021/03/24/pwn-uaf1/#more" rel="contents">
                 阅读全文 &raquo;
               </a>
             </div>

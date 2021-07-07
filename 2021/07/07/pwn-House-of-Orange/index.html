@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.2.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.1/css/all.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css">
+
+<script class="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"mark0519.github.io","root":"/","scheme":"Pisces","version":"8.0.2","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":true,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}};
+  </script>
+
+  <meta name="description" content="House of Orange记得在虎符的线下赛中就遇到一题需要使用一个被free状态的堆块 (unsorted bin)，但是构造了好久也没啥好的思路，当时还不知道有种技巧叫 House of Orange，可以在没有free函数的条件下构造出被free状态的堆块。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="pwn-House_of_Orange">
+<meta property="og:url" content="https://mark0519.github.io/2021/07/07/pwn-House-of-Orange/index.html">
+<meta property="og:site_name" content="mark的博客">
+<meta property="og:description" content="House of Orange记得在虎符的线下赛中就遇到一题需要使用一个被free状态的堆块 (unsorted bin)，但是构造了好久也没啥好的思路，当时还不知道有种技巧叫 House of Orange，可以在没有free函数的条件下构造出被free状态的堆块。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://pic.imgdb.cn/item/60e5b9925132923bf8133d98.jpg">
+<meta property="og:image" content="c:/Users/sunjiajun/AppData/Roaming/Typora/typora-user-images/image-20210707222825502.png">
+<meta property="og:image" content="https://pic.imgdb.cn/item/60e5ba735132923bf819aec2.jpg">
+<meta property="article:published_time" content="2021-07-07T13:43:40.000Z">
+<meta property="article:modified_time" content="2021-07-07T14:33:12.534Z">
+<meta property="article:author" content="mark0519">
+<meta property="article:tag" content="pwn">
+<meta property="article:tag" content="python2">
+<meta property="article:tag" content="ctf">
+<meta property="article:tag" content="heap">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://pic.imgdb.cn/item/60e5b9925132923bf8133d98.jpg">
+
+
+<link rel="canonical" href="https://mark0519.github.io/2021/07/07/pwn-House-of-Orange/">
+
+
+<script class="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>pwn-House_of_Orange | mark的博客</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  body { margin-top: 2rem; }
+
+  .use-motion .menu-item,
+  .use-motion .sidebar,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header {
+    visibility: visible;
+  }
+
+  .use-motion .header,
+  .use-motion .site-brand-container .toggle,
+  .use-motion .footer { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle,
+  .use-motion .custom-logo-image {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line {
+    transform: scaleX(1);
+  }
+
+  .search-pop-overlay, .sidebar-nav { display: none; }
+  .sidebar-panel { display: block; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">mark的博客</h1>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <section class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#House-of-Orange"><span class="nav-number">1.</span> <span class="nav-text">House of Orange</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#0x00-%E4%BB%8B%E7%BB%8D"><span class="nav-number">1.1.</span> <span class="nav-text">0x00 介绍</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x01-%E5%8E%9F%E7%90%86"><span class="nav-number">1.2.</span> <span class="nav-text">0x01 原理</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x02-%E4%B8%8D%E8%80%83%E8%99%91%E5%AF%B9%E9%BD%90%E5%88%B0%E5%86%85%E5%AD%98%E9%A1%B5%E6%97%B6%E6%9E%84%E9%80%A0House-of-Orange"><span class="nav-number">1.3.</span> <span class="nav-text">0x02 不考虑对齐到内存页时构造House of Orange</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x03-%E6%AD%A3%E7%A1%AE%E7%9A%84House-of-Orange"><span class="nav-number">1.4.</span> <span class="nav-text">0x03 正确的House of Orange</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%86%85%E5%AD%98%E9%A1%B5%E5%AF%B9%E9%BD%90"><span class="nav-number">1.4.1.</span> <span class="nav-text">内存页对齐</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AF%B9%E9%BD%90%E4%B9%8B%E5%90%8E"><span class="nav-number">1.4.2.</span> <span class="nav-text">对齐之后</span></a></li></ol></li></ol></li></ol></div>
+        </section>
+        <!--/noindex-->
+
+        <section class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">mark0519</p>
+  <div class="site-description" itemprop="description">我是Mark，第一次玩博客的小萌新~</div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives">
+          <span class="site-state-item-count">38</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">14</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/mark0519" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;mark0519" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:sunjiajun@bupt.edu.cn" title="E-Mail → mailto:sunjiajun@bupt.edu.cn" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+  </div>
+
+
+
+        </section>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+      
+
+      
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://mark0519.github.io/2021/07/07/pwn-House-of-Orange/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="mark0519">
+      <meta itemprop="description" content="我是Mark，第一次玩博客的小萌新~">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="mark的博客">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          pwn-House_of_Orange
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2021-07-07 21:43:40 / 修改时间：22:33:12" itemprop="dateCreated datePublished" datetime="2021-07-07T21:43:40+08:00">2021-07-07</time>
+    </span>
+
+  
+    <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="far fa-eye"></i>
+      </span>
+      <span class="post-meta-item-text">阅读次数：</span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <h1 id="House-of-Orange"><a href="#House-of-Orange" class="headerlink" title="House of Orange"></a>House of Orange</h1><p>记得在虎符的线下赛中就遇到一题需要使用一个被free状态的堆块 (unsorted bin)，但是构造了好久也没啥好的思路，当时还不知道有种技巧叫 House of Orange，可以在没有free函数的条件下构造出被free状态的堆块。</p>
+<a id="more"></a>
+
+<h2 id="0x00-介绍"><a href="#0x00-介绍" class="headerlink" title="0x00 介绍"></a>0x00 介绍</h2><p>House of Orange与其他的 House of XX 利用方法不同，这种利用方法来自于 Hitcon CTF 2016 中的一道同名题目。House of Orange 的利用比较特殊，首先需要目标漏洞是堆上的漏洞但是特殊之处在于题目中不存在 free 函数或其他释放堆块的函数。一般想要利用堆漏洞，需要对堆块进行 malloc 和 free 操作，但是在 House of Orange 利用中无法使用 free 函数，因此 House of Orange 核心就是通过漏洞利用获得 free 的效果。</p>
+<h2 id="0x01-原理"><a href="#0x01-原理" class="headerlink" title="0x01 原理"></a>0x01 原理</h2><p>House of Orange 的核心在于在没有 free 函数的情况下得到一个释放的堆块 (unsorted bin)。 这种操作的原理简单来说是当前堆的 top chunk 尺寸不足以满足申请分配的大小的时候，原来的 top chunk 会被释放并被置入 unsorted bin 中，通过这一点可以在没有 free 函数情况下获取到 unsorted bins。</p>
+<p>这个过程的详细情况：</p>
+<p>假设目前的 top chunk 已经不满足 malloc 的分配需求。 首先我们在程序中的<code>malloc</code>调用会执行到 libc.so 的<code>_int_malloc</code>函数中，在<code>_int_malloc</code>函数中，会依次检验 fastbin、small bins、unsorted bin、large bins 是否可以满足分配要求，因为尺寸问题这些都不符合。接下来<code>_int_malloc</code>函数会试图使用 top chunk，在这里 top chunk 也不能满足分配的要求，因此会执行如下分支。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">Otherwise, relay to handle system-dependent cases</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"><span class="keyword">else</span> &#123;</span><br><span class="line">      <span class="keyword">void</span> *p = sysmalloc(nb, av);</span><br><span class="line">      <span class="keyword">if</span> (p != <span class="literal">NULL</span> &amp;&amp; __builtin_expect (perturb_byte, <span class="number">0</span>))</span><br><span class="line">        alloc_perturb (p, bytes);</span><br><span class="line">      <span class="keyword">return</span> p;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>此时 pt_malloc 已经不能满足用户申请堆内存的操作，需要执行 sys_malloc 来向系统申请更多的空间。 但是对于堆来说有 mmap 和 brk 两种分配方式，我们需要让堆以 brk 的形式拓展，之后原有的 top chunk 会被置于 unsorted bin 中。</p>
+<p>综上，我们要实现 brk 拓展 top chunk，但是要实现这个目的需要绕过一些 libc 中的 check。 首先，malloc 的尺寸不能大于<code>mmp_.mmap_threshold</code></p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> ((<span class="keyword">unsigned</span> <span class="keyword">long</span>)(nb) &gt;= (<span class="keyword">unsigned</span> <span class="keyword">long</span>)(mp_.mmap_threshold) &amp;&amp; (mp_.n_mmaps &lt; mp_.n_mmaps_max))</span><br></pre></td></tr></table></figure>
+
+<p>如果所需分配的 chunk 大小大于 mmap 分配阈值，默认为 128K，并且当前进程使用 mmap() 分配的内存块小于设定的最大值，将使用 mmap() 系统调用直接向操作系统申请内存。</p>
+<p>在 sys_malloc 函数中存在对 top chunk size 的 check，如下</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">assert((old_top == initial_top(av) &amp;&amp; old_size == <span class="number">0</span>) ||</span><br><span class="line">     ((<span class="keyword">unsigned</span> <span class="keyword">long</span>) (old_size) &gt;= MINSIZE &amp;&amp;</span><br><span class="line">      prev_inuse(old_top) &amp;&amp;</span><br><span class="line">      ((<span class="keyword">unsigned</span> <span class="keyword">long</span>)old_end &amp; pagemask) == <span class="number">0</span>));</span><br></pre></td></tr></table></figure>
+
+<p>这里检查了 top chunk 的合法性，如果第一次调用本函数，top chunk 可能没有初始化，所以可能 old_size 为 0。 如果 top chunk 已经初始化了，那么 top chunk 的大小必须大于等于 MINSIZE，因为 top chunk 中包含了 fencepost，所以 top chunk 的大小必须要大于 MINSIZE。其次 top chunk 必须标识前一个 chunk 处于 inuse 状态，并且 top chunk 的结束地址必定是页对齐的。此外 top chunk 除去 fencepost 的大小必定要小于所需 chunk 的大小，否则在_int_malloc() 函数中会使用 top chunk 分割出 chunk。</p>
+<p><strong>总结一下伪造的 top chunk size 的要求</strong></p>
+<ol>
+<li>伪造的 size 必须要对齐到内存页</li>
+<li>size 要大于 MINSIZE(0x10)</li>
+<li>size 要小于之后申请的 chunk size + MINSIZE(0x10)</li>
+<li>size 的 prev_inuse 位必须为 1</li>
+</ol>
+<p>之后原有的 top chunk 就会执行<code>_int_free</code>从而顺利进入 unsorted bin 中。</p>
+<h2 id="0x02-不考虑对齐到内存页时构造House-of-Orange"><a href="#0x02-不考虑对齐到内存页时构造House-of-Orange" class="headerlink" title="0x02 不考虑对齐到内存页时构造House of Orange"></a>0x02 不考虑对齐到内存页时构造House of Orange</h2><p>示例程序: 模拟了一个溢出覆盖到 top chunk 的 size 域。我们试图把 size 改小从而实现 brk 扩展，并把原有的 top chunk 放入 unsorted bin 中。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">define</span> fake_size 0x41</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">void</span>)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">void</span> *ptr;</span><br><span class="line"></span><br><span class="line">    ptr=<span class="built_in">malloc</span>(<span class="number">0x10</span>);</span><br><span class="line">    ptr=(<span class="keyword">void</span> *)((<span class="keyword">int</span>)ptr+<span class="number">24</span>);</span><br><span class="line"></span><br><span class="line">    *((<span class="keyword">long</span> <span class="keyword">long</span>*)ptr) = fake_size; <span class="comment">// overwrite top chunk size</span></span><br><span class="line">    <span class="built_in">malloc</span>(<span class="number">0x60</span>);</span><br><span class="line">    <span class="built_in">malloc</span>(<span class="number">0x60</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里我们把 top chunk 的 size 覆盖为 0x41。之后申请大于这个尺寸的堆块，即 0x60。</p>
+<p>但是运行这个程序的时候会报错：</p>
+<p><img src="https://pic.imgdb.cn/item/60e5b9925132923bf8133d98.jpg"></p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">test: malloc.c:2401: sysmalloc: Assertion `(old_top == initial_top (av) &amp;&amp; old_size == 0) || ((unsigned long) (old_size) &gt;= MINSIZE &amp;&amp; prev_inuse (old_top) &amp;&amp; ((unsigned long) old_end &amp; (pagesize - 1)) == 0)&#x27; failed.</span><br><span class="line">Aborted (core dumped)</span><br></pre></td></tr></table></figure>
+
+<p><strong>报错的原因就时没有满足内存页对其的条件</strong></p>
+<h2 id="0x03-正确的House-of-Orange"><a href="#0x03-正确的House-of-Orange" class="headerlink" title="0x03 正确的House of Orange"></a>0x03 正确的House of Orange</h2><h3 id="内存页对齐"><a href="#内存页对齐" class="headerlink" title="内存页对齐"></a>内存页对齐</h3><p>现代操作系统都是以内存页为单位进行内存管理的，<strong>一般内存页的大小是 4kb(0x1000)。</strong>那么伪造的 size 就必须要对齐到这个尺寸。</p>
+<p><img src="C:\Users\sunjiajun\AppData\Roaming\Typora\typora-user-images\image-20210707222825502.png" alt="image-20210707222825502"></p>
+<p>在覆盖之前 top chunk 的 size 大小是 20fe1，通过计算得知 0x602020+0x20fe0=0x623000是对于 0x1000（4kb）对齐的。</p>
+<p>因此我们伪造的 fake_size 可以是 0x0fe1、0x1fe1、0x2fe1、0x3fe1 等对 4kb 对齐的 size。而 0x40 不满足对齐，因此不能实现利用。</p>
+<h3 id="对齐之后"><a href="#对齐之后" class="headerlink" title="对齐之后"></a>对齐之后</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">define</span> fake_size 0x1fe1</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">void</span>)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">void</span> *ptr;</span><br><span class="line"></span><br><span class="line">    ptr=<span class="built_in">malloc</span>(<span class="number">0x10</span>);</span><br><span class="line">    ptr=(<span class="keyword">void</span> *)((<span class="keyword">int</span>)ptr+<span class="number">24</span>);</span><br><span class="line"></span><br><span class="line">    *((<span class="keyword">long</span> <span class="keyword">long</span>*)ptr)=fake_size;</span><br><span class="line"></span><br><span class="line">    <span class="built_in">malloc</span>(<span class="number">0x2000</span>);</span><br><span class="line"></span><br><span class="line">    <span class="built_in">malloc</span>(<span class="number">0x60</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://pic.imgdb.cn/item/60e5ba735132923bf819aec2.jpg"></p>
+<p>对齐之后就不会报错</p>
+<p>进行分配之后我们可以观察到原来的堆经过了 brk 扩展</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">//原有的堆</span><br><span class="line">0x0000000000602000 0x0000000000623000 0x0000000000000000 rw- [heap]</span><br><span class="line"></span><br><span class="line">//经过扩展的堆</span><br><span class="line">0x0000000000602000 0x0000000000646000 0x0000000000000000 rw- [heap]</span><br></pre></td></tr></table></figure>
+
+<p>我们的申请被分配到 0x623010 的位置，同时原有的堆被置入 unsorted bin</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[+] unsorted_bins[0]: fw=0x602020, bk=0x602020</span><br><span class="line"> →   Chunk(addr=0x602030, size=0x1fc0, flags=PREV_INUSE)</span><br></pre></td></tr></table></figure>
+
+<p>因为 unsorted bin 中存在块，所以我们下次的分配会切割这个块</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"> malloc(0x60);</span><br><span class="line"> 0x602030</span><br><span class="line"></span><br><span class="line">[+] unsorted_bins[0]: fw=0x602090, bk=0x602090</span><br><span class="line"> →   Chunk(addr=0x6020a0, size=0x1f50, flags=PREV_INUSE)</span><br></pre></td></tr></table></figure>
+
+<p>可以看到分配的内存是从 unsorted bin 中切割的，内存布局如下</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">0x602030:   0x00007ffff7dd2208  0x00007ffff7dd2208 &lt;&#x3D;&#x3D; 未被清零的unsorted bin链表</span><br><span class="line">0x602040:   0x0000000000602020  0x0000000000602020</span><br><span class="line">0x602050:   0x0000000000000000  0x0000000000000000</span><br><span class="line">0x602060:   0x0000000000000000  0x0000000000000000</span><br><span class="line">0x602070:   0x0000000000000000  0x0000000000000000</span><br><span class="line">0x602080:   0x0000000000000000  0x0000000000000000</span><br><span class="line">0x602090:   0x0000000000000000  0x0000000000001f51 &lt;&#x3D;&#x3D; 切割剩下的新unsorted bin</span><br><span class="line">0x6020a0:   0x00007ffff7dd1b78  0x00007ffff7dd1b78</span><br><span class="line">0x6020b0:   0x0000000000000000  0x0000000000000000</span><br></pre></td></tr></table></figure>
+
+<p>House of Orange的要点就在于此，剩下的利用牵扯到_IO_FILE 的知识，之后有空再总结。</p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          
+
+<div class="post-copyright">
+<ul>
+  <li class="post-copyright-author">
+      <strong>本文作者： </strong>mark0519
+  </li>
+  <li class="post-copyright-link">
+      <strong>本文链接：</strong>
+      <a href="https://mark0519.github.io/2021/07/07/pwn-House-of-Orange/" title="pwn-House_of_Orange">https://mark0519.github.io/2021/07/07/pwn-House-of-Orange/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+          <div class="post-tags">
+              <a href="/tags/pwn/" rel="tag"># pwn</a>
+              <a href="/tags/python2/" rel="tag"># python2</a>
+              <a href="/tags/ctf/" rel="tag"># ctf</a>
+              <a href="/tags/heap/" rel="tag"># heap</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2021/07/05/pwn-qwb-shellcode/" rel="prev" title="pwn-qwb-shellcode">
+                  <i class="fa fa-chevron-left"></i> pwn-qwb-shellcode
+                </a>
+            </div>
+            <div class="post-nav-item">
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+      
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      const activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      const commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+      
+
+      
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">mark0519</span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div> <!--
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/pisces/" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> 强力驱动
+  </div> -->
+
+    </div>
+  </footer>
+
+  
+  <script src="//cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js"></script>
+<script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
