@@ -35,7 +35,7 @@
 <meta property="og:image" content="c:/Users/sunjiajun/AppData/Roaming/Typora/typora-user-images/image-20210707222825502.png">
 <meta property="og:image" content="https://pic.imgdb.cn/item/60e5ba735132923bf819aec2.jpg">
 <meta property="article:published_time" content="2021-07-07T13:43:40.000Z">
-<meta property="article:modified_time" content="2021-07-07T14:33:12.534Z">
+<meta property="article:modified_time" content="2021-07-08T03:37:30.397Z">
 <meta property="article:author" content="mark0519">
 <meta property="article:tag" content="pwn">
 <meta property="article:tag" content="python2">
@@ -278,10 +278,16 @@
         <i class="far fa-calendar"></i>
       </span>
       <span class="post-meta-item-text">发表于</span>
-      
 
-      <time title="创建时间：2021-07-07 21:43:40 / 修改时间：22:33:12" itemprop="dateCreated datePublished" datetime="2021-07-07T21:43:40+08:00">2021-07-07</time>
+      <time title="创建时间：2021-07-07 21:43:40" itemprop="dateCreated datePublished" datetime="2021-07-07T21:43:40+08:00">2021-07-07</time>
     </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">更新于</span>
+        <time title="修改时间：2021-07-08 11:37:30" itemprop="dateModified" datetime="2021-07-08T11:37:30+08:00">2021-07-08</time>
+      </span>
 
   
     <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
@@ -336,7 +342,7 @@
 
 <p><strong>报错的原因就时没有满足内存页对其的条件</strong></p>
 <h2 id="0x03-正确的House-of-Orange"><a href="#0x03-正确的House-of-Orange" class="headerlink" title="0x03 正确的House of Orange"></a>0x03 正确的House of Orange</h2><h3 id="内存页对齐"><a href="#内存页对齐" class="headerlink" title="内存页对齐"></a>内存页对齐</h3><p>现代操作系统都是以内存页为单位进行内存管理的，<strong>一般内存页的大小是 4kb(0x1000)。</strong>那么伪造的 size 就必须要对齐到这个尺寸。</p>
-<p><img src="C:\Users\sunjiajun\AppData\Roaming\Typora\typora-user-images\image-20210707222825502.png" alt="image-20210707222825502"></p>
+<p><img src="C:\Users\sunjiajun\AppData\Roaming\Typora\typora-user-images\image-20210707222825502.png"></p>
 <p>在覆盖之前 top chunk 的 size 大小是 20fe1，通过计算得知 0x602020+0x20fe0=0x623000是对于 0x1000（4kb）对齐的。</p>
 <p>因此我们伪造的 fake_size 可以是 0x0fe1、0x1fe1、0x2fe1、0x3fe1 等对 4kb 对齐的 size。而 0x40 不满足对齐，因此不能实现利用。</p>
 <h3 id="对齐之后"><a href="#对齐之后" class="headerlink" title="对齐之后"></a>对齐之后</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">define</span> fake_size 0x1fe1</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">void</span>)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">void</span> *ptr;</span><br><span class="line"></span><br><span class="line">    ptr=<span class="built_in">malloc</span>(<span class="number">0x10</span>);</span><br><span class="line">    ptr=(<span class="keyword">void</span> *)((<span class="keyword">int</span>)ptr+<span class="number">24</span>);</span><br><span class="line"></span><br><span class="line">    *((<span class="keyword">long</span> <span class="keyword">long</span>*)ptr)=fake_size;</span><br><span class="line"></span><br><span class="line">    <span class="built_in">malloc</span>(<span class="number">0x2000</span>);</span><br><span class="line"></span><br><span class="line">    <span class="built_in">malloc</span>(<span class="number">0x60</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
