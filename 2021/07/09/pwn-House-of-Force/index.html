@@ -31,14 +31,20 @@
 <meta property="og:site_name" content="mark的博客">
 <meta property="og:description" content="House of Force上一篇（House of Orange）是修改top chunk的size来在没有free操作下构造被free的堆块(unsorted bin),同时还有一个技巧叫的House of Force，同样是修改top chunk的size位，使得 top chunk 指向期望的任何位置，这就相当于一次任意地址写。">
 <meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://pic.imgdb.cn/item/60e98df75132923bf8ad5835.jpg">
+<meta property="og:image" content="https://pic.imgdb.cn/item/60e98f575132923bf8b70dd5.jpg">
+<meta property="og:image" content="https://pic.imgdb.cn/item/60e98f705132923bf8b7c0c6.jpg">
+<meta property="og:image" content="https://pic.imgdb.cn/item/60e98ff55132923bf8bb76b1.jpg">
+<meta property="og:image" content="https://pic.imgdb.cn/item/60e99aa45132923bf80f00c7.jpg">
 <meta property="article:published_time" content="2021-07-09T14:54:42.000Z">
-<meta property="article:modified_time" content="2021-07-09T15:13:00.501Z">
+<meta property="article:modified_time" content="2021-07-10T13:10:59.961Z">
 <meta property="article:author" content="mark0519">
 <meta property="article:tag" content="pwn">
 <meta property="article:tag" content="python2">
 <meta property="article:tag" content="ctf">
 <meta property="article:tag" content="house">
 <meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://pic.imgdb.cn/item/60e98df75132923bf8ad5835.jpg">
 
 
 <link rel="canonical" href="https://mark0519.github.io/2021/07/09/pwn-House-of-Force/">
@@ -182,7 +188,7 @@
       <div class="sidebar-panel-container">
         <!--noindex-->
         <section class="post-toc-wrap sidebar-panel">
-            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#House-of-Force"><span class="nav-number">1.</span> <span class="nav-text">House of Force</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#0x00-%E5%8E%9F%E7%90%86"><span class="nav-number">1.1.</span> <span class="nav-text">0x00 原理</span></a></li></ol></li></ol></div>
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#House-of-Force"><span class="nav-number">1.</span> <span class="nav-text">House of Force</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#0x00-%E5%8E%9F%E7%90%86"><span class="nav-number">1.1.</span> <span class="nav-text">0x00 原理</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x01%E7%A4%BA%E4%BE%8B"><span class="nav-number">1.2.</span> <span class="nav-text">0x01示例</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%A4%BA%E4%BE%8B"><span class="nav-number">1.2.1.</span> <span class="nav-text">示例</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%9C%AC%E5%9C%B0%E7%8E%AF%E5%A2%83"><span class="nav-number">1.2.1.1.</span> <span class="nav-text">本地环境</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%A4%BA%E4%BE%8B%E7%A8%8B%E5%BA%8F"><span class="nav-number">1.2.1.2.</span> <span class="nav-text">示例程序</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%A7%A3%E6%9E%90"><span class="nav-number">1.2.1.3.</span> <span class="nav-text">解析</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x02%E6%80%BB%E7%BB%93"><span class="nav-number">1.3.</span> <span class="nav-text">0x02总结</span></a></li></ol></li></ol></div>
         </section>
         <!--/noindex-->
 
@@ -274,10 +280,16 @@
         <i class="far fa-calendar"></i>
       </span>
       <span class="post-meta-item-text">发表于</span>
-      
 
-      <time title="创建时间：2021-07-09 22:54:42 / 修改时间：23:13:00" itemprop="dateCreated datePublished" datetime="2021-07-09T22:54:42+08:00">2021-07-09</time>
+      <time title="创建时间：2021-07-09 22:54:42" itemprop="dateCreated datePublished" datetime="2021-07-09T22:54:42+08:00">2021-07-09</time>
     </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">更新于</span>
+        <time title="修改时间：2021-07-10 21:10:59" itemprop="dateModified" datetime="2021-07-10T21:10:59+08:00">2021-07-10</time>
+      </span>
 
   
     <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
@@ -303,6 +315,7 @@
 <ol>
 <li>能够以溢出等方式控制到 top chunk 的 size 域</li>
 <li>能够自由地控制堆分配尺寸的大小</li>
+<li>libc-2.23</li>
 </ol>
 <p>House Of Force 产生的原因在于 glibc 对 top chunk 的处理。</p>
 <p>进行堆分配时，如果所有空闲的块都无法满足需求，那么就会从 top chunk 中分割出相应的大小作为堆块的空间。</p>
@@ -313,7 +326,7 @@
 <p>然而，如果可以篡改 size 为一个很大值，就可以轻松的通过这个验证，这也就是我们前面说的需要一个能够控制 top chunk size 域的漏洞。</p>
 <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">(<span class="keyword">unsigned</span> <span class="keyword">long</span>) (size) &gt;= (<span class="keyword">unsigned</span> <span class="keyword">long</span>) (nb + MINSIZE)</span><br></pre></td></tr></table></figure>
 
-<p>一般的做法是把 top chunk 的 size 改为 - 1，因为在进行比较时会把 size 转换成无符号数，因此 -1 也就是说 unsigned long 中最大的数，所以无论如何都可以通过验证。</p>
+<p><strong>一般的做法是把 top chunk 的 size 改为 - 1，</strong>因为在进行比较时会把 size 转换成无符号数，因此 -1 也就是说 unsigned long 中最大的数，所以无论如何都可以通过验证。</p>
 <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">remainder      = chunk_at_offset(victim, nb);</span><br><span class="line">av-&gt;top        = remainder;</span><br><span class="line"></span><br><span class="line"><span class="comment">/* Treat space at ptr + offset as a chunk */</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> chunk_at_offset(p, s) ((mchunkptr)(((char *) (p)) + (s)))</span></span><br></pre></td></tr></table></figure>
 
 <p>之后这里会把 top 指针更新，接下来的堆块就会分配到这个位置，用户只要控制了这个指针就相当于实现任意地址写任意值 (write-anything-anywhere)。</p>
@@ -321,6 +334,32 @@
 <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">victim = av-&gt;top;</span><br><span class="line">size   = chunksize(victim);</span><br><span class="line">remainder_size = size - nb;</span><br><span class="line">set_head(remainder, remainder_size | PREV_INUSE);</span><br></pre></td></tr></table></figure>
 
 <p>所以，如果我们想要下次在指定位置分配大小为 x 的 chunk，我们需要确保 remainder_size 不小于 x+ MINSIZE。</p>
+<h2 id="0x01示例"><a href="#0x01示例" class="headerlink" title="0x01示例"></a>0x01示例</h2><h3 id="示例"><a href="#示例" class="headerlink" title="示例"></a>示例</h3><p>wiki上的示例1我本地运行一直有问题，在参考了其他师傅关于HOF的讲解下我自己整理了一个示例</p>
+<h4 id="本地环境"><a href="#本地环境" class="headerlink" title="本地环境"></a>本地环境</h4><p><img src="https://pic.imgdb.cn/item/60e98df75132923bf8ad5835.jpg"></p>
+<h4 id="示例程序"><a href="#示例程序" class="headerlink" title="示例程序"></a>示例程序</h4><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//修改malloc的got表，改成puts函数</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">long</span> *ptr,*ptr2,*p;</span><br><span class="line">    ptr = <span class="built_in">malloc</span>(<span class="number">0x10</span>);</span><br><span class="line">    ptr = (<span class="keyword">long</span> *)(((<span class="keyword">long</span>)ptr)+<span class="number">24</span>);</span><br><span class="line">    *ptr = <span class="number">-1</span>;                 <span class="comment">// &lt;=== 修改top chunk size                </span></span><br><span class="line">    <span class="built_in">malloc</span>(<span class="number">-4120</span>);             <span class="comment">// &lt;=== 增大top chunk指针</span></span><br><span class="line">    p = <span class="built_in">malloc</span>(<span class="number">0x20</span>);</span><br><span class="line">    *((<span class="keyword">long</span>*)p+<span class="number">1</span>) = (<span class="keyword">long</span>)<span class="built_in">puts</span>;</span><br><span class="line">    <span class="built_in">malloc</span>(<span class="number">123456</span>);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="解析"><a href="#解析" class="headerlink" title="解析"></a>解析</h4><p>当运行完<code>*ptr = -1; </code>时，topchunk的位置正确但size位已经变为0xffffffffffffffff</p>
+<p><img src="https://pic.imgdb.cn/item/60e98f575132923bf8b70dd5.jpg"></p>
+<p><img src="https://pic.imgdb.cn/item/60e98f705132923bf8b7c0c6.jpg"></p>
+<p>之后运行<code>malloc(-4120); </code>，这里从汇编可以看出传入的参数为会被视为一个超大的正整数，具体计算如下</p>
+<p>可以看出malloc的got表地址为0x601028，意图修改malloc@got且满足对齐的情况下，应构造出可以修改0x0601020的指针</p>
+<p><img src="https://pic.imgdb.cn/item/60e98ff55132923bf8bb76b1.jpg"></p>
+<p>而top chunk的地址为0x0602020，我们应该使下一个指针指向0x0601020-0x10 = 0x0601010，即</p>
+<p>0x601010 - 0x602020 =  -4112.之后使chunk对齐，补成 -4120，但同时会指向0x601010</p>
+<p><img src="https://pic.imgdb.cn/item/60e99aa45132923bf80f00c7.jpg"></p>
+<p>这里可以看到，我们成功修改了malloc的got表为puts的plt表，但由于新chunk的size位的问题修改了原来put@got的内容，所以程序任不能运行，不过到这里就可以看出成功利用了HOF来达到任意地址写的功能。</p>
+<h2 id="0x02总结"><a href="#0x02总结" class="headerlink" title="0x02总结"></a>0x02总结</h2><p>回顾一下，这个程序是怎么做到劫持运行流程导致修改了 <strong>puts()</strong> 函数的got表的：</p>
+<ul>
+<li>修改了空闲堆块的 <strong>size</strong> 字段，从而避免下一步空间不够</li>
+<li>控制了 <strong>malloc()</strong> 申请的字节数，从而分配了超大空间</li>
+</ul>
+<p>这就是 <strong>House of Force</strong> 的堆溢出利用技术。通常，这种利用方式需要满足两个条件：</p>
+<ul>
+<li>需要存在溢出漏洞，攻击者可以控制空闲堆块的 <strong>size</strong> 字段</li>
+<li>攻击者可以控制 <strong>malloc</strong> 的字节数和 <strong>malloc</strong> 的调用次数</li>
+</ul>
+<p>只要满足这些条件，就可以利用例子中的方法抬高或者压低空闲堆块的地址，从而获得任意地址写的机会。</p>
+<p>当然，不同版本 <strong>GLIBC</strong> 的堆块分配和处理方法都略有差异，真实利用时还需要在对应版本的 <strong>GLIBC</strong> 上仔细分析。</p>
 
     </div>
 
