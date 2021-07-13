@@ -28,7 +28,7 @@
 <meta property="og:type" content="article">
 <meta property="og:title" content="pwn-libc">
 <meta property="og:url" content="https://mark0519.github.io/2021/01/21/pwn-libc/index.html">
-<meta property="og:site_name" content="mark的博客">
+<meta property="og:site_name" content="Mark&#96;s blog">
 <meta property="og:description" content="pwn-libc在众多ROP方法中，重点是要找到system函数的地址来进行ROP，而有的elf源文件中并没有system函数，这是就可以利用libc system 函数属于 libc，而 libc.so 动态链接库中的函数之间相对偏移是固定的。 即使程序有 ASLR 保护，也只是针对于地址中间位进行随机，最低的 12 位并不会发生改变。 所以如果我们知道 libc 中某个函数的地址，那么我们就可">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://images.weserv.nl/?url=https://i0.hdslb.com/bfs/article/4bce71d0afff9fda662855b7058cbff9654bf8a6.png">
@@ -59,7 +59,7 @@
   };
 </script>
 
-  <title>pwn-libc | mark的博客</title>
+  <title>pwn-libc | Mark`s blog</title>
   
 
 
@@ -122,7 +122,7 @@
 
     <a href="/" class="brand" rel="start">
       <i class="logo-line"></i>
-      <h1 class="site-title">mark的博客</h1>
+      <h1 class="site-title">Mark`s blog</h1>
       <i class="logo-line"></i>
     </a>
   </div>
@@ -194,7 +194,7 @@
         <section class="site-overview-wrap sidebar-panel">
           <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
   <p class="site-author-name" itemprop="name">mark0519</p>
-  <div class="site-description" itemprop="description">我是Mark，第一次玩博客的小萌新~</div>
+  <div class="site-description" itemprop="description">大一在读，菜鸡pwn手~</div>
 </div>
 <div class="site-state-wrap site-overview-item animated">
   <nav class="site-state">
@@ -261,11 +261,11 @@
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
       <meta itemprop="name" content="mark0519">
-      <meta itemprop="description" content="我是Mark，第一次玩博客的小萌新~">
+      <meta itemprop="description" content="大一在读，菜鸡pwn手~">
     </span>
 
     <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="mark的博客">
+      <meta itemprop="name" content="Mark`s blog">
     </span>
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">

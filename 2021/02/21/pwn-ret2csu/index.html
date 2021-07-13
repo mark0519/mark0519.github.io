@@ -28,7 +28,7 @@
 <meta property="og:type" content="article">
 <meta property="og:title" content="pwn-ret2csu">
 <meta property="og:url" content="https://mark0519.github.io/2021/02/21/pwn-ret2csu/index.html">
-<meta property="og:site_name" content="mark的博客">
+<meta property="og:site_name" content="Mark&#96;s blog">
 <meta property="og:description" content="ret2csu原理在64位程序中, 函数调用的前六个参数是通过寄存器传参的(rdi, rsi, rdx, rcx, r8, r9), 其余的参数才是通过压栈的形式传参. 但是一般在程序中很少有连续的这么多pop寄存器的gadgets, 这时候就需要利用到libc的初始化函数:__libc_csu_init, 这个函数只要调用了libc就有, 而大部分程序都会调用libc, 所以这个函数在绝大部分程">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2021-02-21T14:29:31.000Z">
@@ -53,7 +53,7 @@
   };
 </script>
 
-  <title>pwn-ret2csu | mark的博客</title>
+  <title>pwn-ret2csu | Mark`s blog</title>
   
 
 
@@ -116,7 +116,7 @@
 
     <a href="/" class="brand" rel="start">
       <i class="logo-line"></i>
-      <h1 class="site-title">mark的博客</h1>
+      <h1 class="site-title">Mark`s blog</h1>
       <i class="logo-line"></i>
     </a>
   </div>
@@ -188,7 +188,7 @@
         <section class="site-overview-wrap sidebar-panel">
           <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
   <p class="site-author-name" itemprop="name">mark0519</p>
-  <div class="site-description" itemprop="description">我是Mark，第一次玩博客的小萌新~</div>
+  <div class="site-description" itemprop="description">大一在读，菜鸡pwn手~</div>
 </div>
 <div class="site-state-wrap site-overview-item animated">
   <nav class="site-state">
@@ -255,11 +255,11 @@
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
       <meta itemprop="name" content="mark0519">
-      <meta itemprop="description" content="我是Mark，第一次玩博客的小萌新~">
+      <meta itemprop="description" content="大一在读，菜鸡pwn手~">
     </span>
 
     <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="mark的博客">
+      <meta itemprop="name" content="Mark`s blog">
     </span>
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
