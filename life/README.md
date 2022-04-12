@@ -1,6 +1,4 @@
-# 一个新的开始
+# 杂谈&碎碎念
 
-> Live long and Pwn
-
-Hey，我是Mark / Mark0519，Pwner，CTFer @buptmerak
+> 南浦春来绿一川，石桥朱塔两依然。
 
