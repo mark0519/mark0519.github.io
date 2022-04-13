@@ -2,4 +2,4 @@
 
 > Live long and Pwn
 
-PWN learner 的网络自留地
+Pwn learner 的互联网自留地
