@@ -7,7 +7,7 @@
 
 * [复现](/reproduce/)
 
-* [Writeups](/writeups/)
+* [其他](/others/)
 
 * [杂谈](/life/)
 
