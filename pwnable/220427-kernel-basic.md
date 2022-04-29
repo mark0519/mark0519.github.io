@@ -399,5 +399,5 @@ $ cat /sys/module/module_name/sections/.bss
 $ pwngdb>add-symbol-file ./module_name.ko 0xffffffffc0002000 -s .data 0xffffffffc0004000 -s .bss 0xffffffffc0004480
 ```
 
-之后就可能正常调试内核了
+之后就可能正常调试内核了。
 
