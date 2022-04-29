@@ -13,3 +13,5 @@
 - **[22/4/27]** [kernel basic](/pwnable/220427-kernel-basic)
 
 - **[22/4/28]** [kernel ROP1](/pwnable/220428-kernel-rop1)
+
+- **[22/4/28]** [kernel ROP2](/pwnable/220429-kernel-rop2)
