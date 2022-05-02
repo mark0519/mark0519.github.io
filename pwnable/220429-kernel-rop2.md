@@ -183,30 +183,3 @@ int main(){
 
 ![](https://pic.imgdb.cn/item/626c089a239250f7c5cd6673.png)
 
-## ret2usr with SMEP-BYPASS
-
-前面提到过，当 kernel 开启 SMEP 保护时，ret2usr 这种攻击手法将会引起 kernel panic，因此若是我们仍然想要进行 ret2usr 攻击，则需要先关闭SMEP保护。
-
-### 0x00 原理
-
-Intel 下系统根据 CR4 控制寄存器的第 20 位标识是否开启SMEP保护（1为开启，0为关闭），**若是能够通过kernel ROP改变CR4寄存器的值便能够关闭SMEP保护**，完成SMEP-bypass，接下来就能够重新进行ret2usr。
-
-![](https://pic.imgdb.cn/item/626c0c99239250f7c5d780fb.png)
-
-例如，当
-
-```
-$CR4 = 0x1407f0 = 000 1 0100 0000 0111 1111 0000
-```
-
-时，smep 保护开启。而 CR4 寄存器是可以通过 mov 指令修改的，因此只需要
-
-```
-mov cr4, 0x1407e0
-# 0x1407e0 = 101 0 0000 0011 1111 00000
-```
-
-即可关闭 smep 保护。
-
-### 0x01 例题
-
