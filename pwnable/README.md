@@ -23,3 +23,6 @@
 ## 刷题
 
 - **[22/5/18]** [HackTheBox 1](/pwnable/2205018-HTB1)
+
+- **[22/5/19]** [HackTheBox 2](/pwnable/2205019-HTB2)
+
