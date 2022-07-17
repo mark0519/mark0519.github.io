@@ -88,6 +88,8 @@ target = ROL(target^(heap_base+0xb30 = ),0x11)
 
 而其中__pointer_chk_guard 的地址泄露可以利用gdb的字符串搜索寻找在anon段上的位置，他和libc的偏移一般固定，如果远程并不固定，也就是倒数第4位和第5位不同，我们可以选择爆破1/256来寻找,
 
+> 也可以gdb查找符号 __pointer_chk_guard_local
+
 主要的寻找原理是LargeBin Attack去覆盖，如果偏移不对则我们想修改的位置会不可写而报错
 
 一般选用爆破出来的最高的地址

