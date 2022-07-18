@@ -6,6 +6,9 @@
 
 - **[22/4/13]** [PWN] [can_you_see_me](/reproduce/220413-canyouseeme)
 
+## AAACTF2022
+
+- **[22/7/17]** [PWN] [Master of DNS](/reproduce/220717-MasterOfDNS)
 
 ## 其他
 
