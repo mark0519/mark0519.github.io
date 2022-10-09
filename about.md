@@ -2,7 +2,7 @@
 
 > About me
 
-Hey，我是 Mark / Mark0519 / M4rk051g，Pwner，CTFer@buptmerak
+ Mark / Mark0519 / M4rk，Pwner@天枢Duble
 
 ## 联系我
 
