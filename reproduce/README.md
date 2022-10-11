@@ -14,6 +14,10 @@
 
 - **[22/9/20]** [PWN] [toolkit](/reproduce/220920-toolkit)
 
+## SEKAI CTF 2022
+
+- **[22/10/11]** [PWN] [setup](/reproduce/221011-setup)
+
 ## 其他
 
 - **[22/7/10]** [PWN] [one](/reproduce/220710-one)
