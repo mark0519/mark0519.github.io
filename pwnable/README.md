@@ -16,6 +16,10 @@
 - **[22/05/01]** [kernel ROP3](/pwnable/220501-kernel-rop3)
 - **[22/05/02]** [kernel ROP4](/pwnable/220502-kernel-rop4)
 
+## QEMU逃逸
+
+- **[22/10/25]** [Qemu basic](/pwnable/221025-qemu-basic)
+
 ## 刷题
 
 - **[22/05/18]** [HackTheBox 1](/pwnable/220518-HTB1)
