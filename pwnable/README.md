@@ -19,6 +19,7 @@
 ## QEMU逃逸
 
 - **[22/10/25]** [Qemu basic](/pwnable/221025-qemu-basic)
+- **[22/11/08]**  [Gva2Gpa](/pwnable/221108-gva2gpa)
 
 ## 刷题
 
