@@ -19,6 +19,7 @@ jobs:
 
       - name: Build RSS
         run: |
+          chmod +x ./rss.sh
           ./rss.sh
 
       - name: Commit Updated
