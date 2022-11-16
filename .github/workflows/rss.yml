@@ -19,7 +19,6 @@ jobs:
 
       - name: Build RSS
         run: |
-          cd docs/
           ./rss.sh
 
       - name: Commit Updated
