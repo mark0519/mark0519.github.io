@@ -20,6 +20,7 @@
 
 - **[22/10/25]** [Qemu basic](/pwnable/221025-qemu-basic)
 - **[22/11/08]**  [Gva2Gpa](/pwnable/221108-gva2gpa)
+- **[22/11/13]**  [Qemu Dma](/pwnable/221113-qemu-dma)
 
 ## 刷题
 
@@ -34,5 +35,6 @@
 
 ## 总结
 
-- **[22/07/03]** [Glibc-2.33UAF利用](/pwnable/2200703-glibc-233UAF)
+- **[22/07/03]** [Glibc-2.33UAF利用](/pwnable/220703-glibc-233UAF)
+- **[22/11/23]** [rtld到ROP](/pwnable/221123-rtld)
 
