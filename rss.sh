@@ -2,7 +2,7 @@
 
 feed="feed.xml"
 website_title="Mark's Blog"
-website_link="https://blog.mark0519.com/#/"
+website_link="https://blog.mark0519.com"
 description="Live long and Pwn"
 
 urlencode() {
