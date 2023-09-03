@@ -1,14 +1,14 @@
 <rss xmlns:atom="http://www.w3.org/2005/Atom" version="2.0">
 <channel>
   <title>Mark's Blog</title>
-  <atom:link href="https://blog.mark0519.com/#//feed.xml" rel="self" type="application/rss+xml" />
-  <link>https://blog.mark0519.com/#/</link>
+  <atom:link href="https://blog.mark0519.com/feed.xml" rel="self" type="application/rss+xml" />
+  <link>https://blog.mark0519.com</link>
   <description>Live long and Pwn</description>
    
   <item>
     <title><![CDATA[Pwnable]]></title>
-    <link>https://blog.mark0519.com/#//#/pwnable/README</link>
-    <guid isPermaLink="false">https://blog.mark0519.com/#//#/pwnable/README</guid>
+    <link>https://blog.mark0519.com/#/pwnable/README</link>
+    <guid isPermaLink="false">https://blog.mark0519.com/#/pwnable/README</guid>
     <description><![CDATA[<h1 id="pwnable">Pwnable</h1>
 <blockquote>
 <p>纸上得来终觉浅，绝知此事要躬行。</p>
@@ -51,8 +51,8 @@
    
   <item>
     <title><![CDATA[从延迟绑定到写一字节ROP]]></title>
-    <link>https://blog.mark0519.com/#//#/pwnable/221123-rtld</link>
-    <guid isPermaLink="false">https://blog.mark0519.com/#//#/pwnable/221123-rtld</guid>
+    <link>https://blog.mark0519.com/#/pwnable/221123-rtld</link>
+    <guid isPermaLink="false">https://blog.mark0519.com/#/pwnable/221123-rtld</guid>
     <description><![CDATA[<h1 id="从延迟绑定到写一字节rop">从延迟绑定到写一字节ROP</h1>
 <p>[TOC]</p>
 <h2 id="x00-前言">0x00 前言</h2>
@@ -711,8 +711,8 @@ GOT[4]: 0x0000555555555040  write@plt</code></pre>
    
   <item>
     <title><![CDATA[QEMU逃逸  --  dma]]></title>
-    <link>https://blog.mark0519.com/#//#/pwnable/221113-qemu-dma</link>
-    <guid isPermaLink="false">https://blog.mark0519.com/#//#/pwnable/221113-qemu-dma</guid>
+    <link>https://blog.mark0519.com/#/pwnable/221113-qemu-dma</link>
+    <guid isPermaLink="false">https://blog.mark0519.com/#/pwnable/221113-qemu-dma</guid>
     <description><![CDATA[<h1 id="qemu逃逸-dma">QEMU逃逸 – dma</h1>
 <blockquote>
 <p><code>DMA(Direct Memory Access)</code>：直接内存访问</p>
@@ -905,8 +905,8 @@ GOT[4]: 0x0000555555555040  write@plt</code></pre>
    
   <item>
     <title><![CDATA[ Glibc-2.33 UAF利用总结]]></title>
-    <link>https://blog.mark0519.com/#//#/pwnable/220703-glibc-233UAF</link>
-    <guid isPermaLink="false">https://blog.mark0519.com/#//#/pwnable/220703-glibc-233UAF</guid>
+    <link>https://blog.mark0519.com/#/pwnable/220703-glibc-233UAF</link>
+    <guid isPermaLink="false">https://blog.mark0519.com/#/pwnable/220703-glibc-233UAF</guid>
     <description><![CDATA[<h1 id="glibc-2.33-uaf利用总结">Glibc-2.33 UAF利用总结</h1>
 <blockquote>
 <p>最近老是能遇到2.33的题。。。</p>
@@ -1413,8 +1413,8 @@ call qword ptr [rax + 0x28];</code></pre>
    
   <item>
     <title><![CDATA[虚拟地址到物理地址]]></title>
-    <link>https://blog.mark0519.com/#//#/pwnable/221108-gva2gpa</link>
-    <guid isPermaLink="false">https://blog.mark0519.com/#//#/pwnable/221108-gva2gpa</guid>
+    <link>https://blog.mark0519.com/#/pwnable/221108-gva2gpa</link>
+    <guid isPermaLink="false">https://blog.mark0519.com/#/pwnable/221108-gva2gpa</guid>
     <description><![CDATA[<h1 id="虚拟地址到物理地址">虚拟地址到物理地址</h1>
 <h1 id="x00-开始之前">0x00 开始之前</h1>
 <p>先前看一个<a href="https://blog.mark0519.com/#/pwnable/221025-qemu-basic?id=_0x02-hws2021-fastcp">qemu逃逸题</a>遇到:</p>
@@ -1632,8 +1632,8 @@ call qword ptr [rax + 0x28];</code></pre>
    
   <item>
     <title><![CDATA[一、QEMU逃逸  --  basic ]]></title>
-    <link>https://blog.mark0519.com/#//#/pwnable/221025-qemu-basic</link>
-    <guid isPermaLink="false">https://blog.mark0519.com/#//#/pwnable/221025-qemu-basic</guid>
+    <link>https://blog.mark0519.com/#/pwnable/221025-qemu-basic</link>
+    <guid isPermaLink="false">https://blog.mark0519.com/#/pwnable/221025-qemu-basic</guid>
     <description><![CDATA[<h1 id="一qemu逃逸-basic">一、QEMU逃逸 – basic</h1>
 <blockquote>
 <p><del>玩不懂kernel的菜鸡来霍霍qemu辣</del></p>
@@ -2354,8 +2354,8 @@ Reason: information about PFNs helps in exploiting Rowhammer vulnerability.</cod
    
   <item>
     <title><![CDATA[Mark's blog]]></title>
-    <link>https://blog.mark0519.com/#//#/README</link>
-    <guid isPermaLink="false">https://blog.mark0519.com/#//#/README</guid>
+    <link>https://blog.mark0519.com/#/README</link>
+    <guid isPermaLink="false">https://blog.mark0519.com/#/README</guid>
     <description><![CDATA[<h1 id="marks-blog">Mark’s blog</h1>
 <blockquote>
 <p>Live long and Pwn</p>
@@ -2371,8 +2371,8 @@ Reason: information about PFNs helps in exploiting Rowhammer vulnerability.</cod
    
   <item>
     <title><![CDATA[CVE-2022-2566 分析和复现]]></title>
-    <link>https://blog.mark0519.com/#//#/221020-CVE_2022_2566</link>
-    <guid isPermaLink="false">https://blog.mark0519.com/#//#/221020-CVE_2022_2566</guid>
+    <link>https://blog.mark0519.com/#/221020-CVE_2022_2566</link>
+    <guid isPermaLink="false">https://blog.mark0519.com/#/221020-CVE_2022_2566</guid>
     <description><![CDATA[<h1 id="cve-2022-2566-分析和复现">CVE-2022-2566 分析和复现</h1>
 <blockquote>
 <p>FFmpeg v5.1 堆越界内存写入</p>
@@ -2543,8 +2543,8 @@ Reason: information about PFNs helps in exploiting Rowhammer vulnerability.</cod
    
   <item>
     <title><![CDATA[赛题复现]]></title>
-    <link>https://blog.mark0519.com/#//#/reproduce/README</link>
-    <guid isPermaLink="false">https://blog.mark0519.com/#//#/reproduce/README</guid>
+    <link>https://blog.mark0519.com/#/reproduce/README</link>
+    <guid isPermaLink="false">https://blog.mark0519.com/#/reproduce/README</guid>
     <description><![CDATA[<h1 id="赛题复现">赛题复现</h1>
 <blockquote>
 <p>青山依旧在，几度夕阳红。</p>
@@ -2575,8 +2575,8 @@ Reason: information about PFNs helps in exploiting Rowhammer vulnerability.</cod
    
   <item>
     <title><![CDATA[setup]]></title>
-    <link>https://blog.mark0519.com/#//#/reproduce/221011-setup</link>
-    <guid isPermaLink="false">https://blog.mark0519.com/#//#/reproduce/221011-setup</guid>
+    <link>https://blog.mark0519.com/#/reproduce/221011-setup</link>
+    <guid isPermaLink="false">https://blog.mark0519.com/#/reproduce/221011-setup</guid>
     <description><![CDATA[<h1 id="setup">setup</h1>
 <blockquote>
 <p>Category: PWN</p>
