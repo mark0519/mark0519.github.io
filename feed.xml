@@ -6,22 +6,403 @@
   <description>Live long and Pwn</description>
    
   <item>
-    <title><![CDATA[其他]]></title>
-    <link>https://blog.mark0519.com/#/others/README</link>
-    <guid isPermaLink="false">https://blog.mark0519.com/#/others/README</guid>
-    <description><![CDATA[<h1 id="其他">其他</h1>
-<blockquote>
-<p>诗酒趁年华。</p>
-</blockquote>
-<h2 id="fuzz-afl">Fuzz-AFL</h2>
+    <title><![CDATA[Re2 - SEH(结构化异常处理)]]></title>
+    <link>https://blog.mark0519.com/#/others/230904-re2-seh</link>
+    <guid isPermaLink="false">https://blog.mark0519.com/#/others/230904-re2-seh</guid>
+    <description><![CDATA[<h1 id="re2---seh结构化异常处理">Re2 - SEH(结构化异常处理)</h1>
+<h2 id="x00-seh介绍">0x00 SEH介绍</h2>
+<p><strong>SEH 结构化异常处理（Structured Exception Handling，SEH）</strong>是Windows操作系统处理程序错误或异常的技术。SEH是Windows操作系统的一种系统机制，与特定的程序设计语言无关。</p>
+<p>SEH不仅可以简化程序错误处理,使程序更加健壮,还被广泛应用于反跟踪以及加解密中，外壳程序里大量地使用了SEH。</p>
+<p>熟悉的<code>_try{} _finally{}</code>和<code>_try{} _except {}</code> 结构,这些并不是编译程序本身所固有的,本质上只不过是对windows内在提供的结构化异常处理的包装,不用这些高级语言编译器所提供的包装 ,照样可以利用系统提供的强大seh处理功能。</p>
+<p>SEH分类：</p>
 <ul>
-<li><p><strong>[22/07/10]</strong> <a href="/others/220710-afl1">AFL入门（一）</a></p></li>
-<li><p><strong>[22/07/13]</strong> <a href="/others/220713-afl2">AFL入门（二）</a></p></li>
-<li><p><strong>[22/07/17]</strong> <a href="/others/220717-afl3">AFL入门（三）</a></p></li>
+<li>Per-Thread类型SEH（也称为<strong>线程异常处理</strong>），用来监视某线程代码是否发生异常。</li>
+<li>Final类型SEH（也称为进程异常处理、筛选器或<strong>顶层异常处理</strong>），用于监视整个进程中所有线程是否发生异常。在整个进程中，该类型异常处理过程只有一个，可通过SetUnhandledExceptionFilter设置。</li>
 </ul>
-<h2 id="reverse">Reverse</h2>
-<p><strong>[23/09/03]</strong> <a href="/others/230903-re1-pe">Re1 - PE结构</a></p>]]></description>
-    <pubDate>Mon, 4 Sep 2023 02:03:53 +0800</pubDate>
+<p>总体来看，发生异常时系统的处理顺序为：</p>
+<ol type="1">
+<li><p>系统首先判断异常是否应发送给目标程序的异常处理例程,如果决定应该发送,并且目标程序正在被调试,则系统 挂起程序并向调试器发送EXCEPTION_DEBUG_EVENT消息.呵呵,这不是正好可以用来探测调试器的存在吗?</p></li>
+<li><p>如果你的程序没有被调试或者调试器未能处理异常,系统就会继续查找你是否安装了线程相关的异常处理例程,如果 你安装了线程相关的异常处理例程,系统就把异常发送给你的程序seh处理例程,交由其处理.</p></li>
+<li><p>每个线程相关的异常处理例程可以处理或者不处理这个异常,如果他不处理并且安装了多个线程相关的异常处理例程, 可交由链起来的其他例程处理.</p></li>
+<li><p>如果这些例程均选择不处理异常,如果程序处于被调试状态,操作系统仍会再次挂起程序通知debugger.</p></li>
+<li><p>如果程序未处于被调试状态或者debugger没有能够处理,并且你调用SetUnhandledExceptionFilter安装了最后异 常处理例程的话,系统转向对它的调用.</p></li>
+<li><p>如果你没有安装最后异常处理例程或者他没有处理这个异常,系统会调用默认的系统处理程序,通常显示一个对话框, 你可以选择关闭或者最后将其附加到调试器上的调试按钮.如果没有调试器能被附加于其上或者调试器也处理不了,系统 就调用ExitProcess终结程序.</p></li>
+<li><p>不过在终结之前,系统仍然对发生异常的线程异常处理句柄来一次展开,这是线程异常处理例程最后清理的机会.</p></li>
+</ol>
+<h2 id="x01-_except_handler">0x01 _except_handler</h2>
+<p>当一个线程出现错误时，操作系统给你一个机会被告知这个错误。说得更明白一些就是，<strong>当一个线程出现错误时，操作系统调用用户定义的一个回调函数</strong>。这个回调函数可以做它想做的一切。例如它可以修复错误，或者它也可以播放一段音乐。无论回调函数做什么，它最后都要返回一个值来告诉系统下一步做什么。（这不是十分准确，但就此刻来说非常接近。）</p>
+<p>异常的回调函数如下(Win32头文件EXCPT.H)</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true"></a>EXCEPTION_DISPOSITION  __cdecl _except_handler( </span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true"></a>    <span class="kw">struct</span> _EXCEPTION_RECORD *ExceptionRecord,</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true"></a>    <span class="dt">void</span> * EstablisherFrame,</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true"></a>    <span class="kw">struct</span> _CONTEXT *ContextRecord,</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true"></a>    <span class="dt">void</span> * DispatcherContext);</span></code></pre></div>
+<h3 id="exceptionrecord">1.1 ExceptionRecord</h3>
+<p>这个函数<code>_except_handler</code>的第一个参数是一个指向<code>EXCEPTION_RECORD</code>结构的指针。这个结构在WINNT.H中定义，如下所示：</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true"></a><span class="kw">typedef</span> <span class="kw">struct</span> _EXCEPTION_RECORD {</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true"></a>   DWORD ExceptionCode;         <span class="co">//异常码</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true"></a>   DWORD ExceptionFlags;        </span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true"></a>   <span class="kw">struct</span> _EXCEPTION_RECORD *ExceptionRecord;</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true"></a>   PVOID ExceptionAddress;      <span class="co">//异常发生的地址</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true"></a>   DWORD NumberParameters;</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true"></a>   DWORD ExceptionInformation[EXCEPTION_MAXIMUM_PARAMETERS];</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true"></a>} EXCEPTION_RECORD;</span></code></pre></div>
+<p>这个结构<code>_EXCEPTION_RECORD</code>的第一个参数 <code>ExcepitonCode</code>成员是赋予异常的代码。通过在WINNT.H中搜索以“STATUS_”开头的<code>＃define</code>定义，可以得到一个异常代码列表。例如所有人都非常熟悉的<code>STATUS_ACCESS_VIOLATION</code>的代码是<code>0xC0000005</code>。一个更全面的异常代码列表可以在 Windows NT DDK的NTSTATUS.H中找到。</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true"></a>C0000005h----读写内存冲突</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true"></a>C0000094h----非法除<span class="dv">0</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true"></a>C00000FDh----堆栈溢出或者说越界</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true"></a><span class="dv">80000001</span><span class="er">h</span>----由Virtual Alloc建立起来的属性页冲突</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true"></a>C0000025h----不可持续异常,程序无法恢复执行,异常处理例程不应处理这个异常</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true"></a>C0000026h----在异常处理过程中系统使用的代码,如果系统从某个例程莫名奇妙的返回,则出现此代码,如果RtlUnwind时没有Exception Record参数也同样会填入这个代码</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true"></a><span class="dv">80000003</span><span class="er">h</span>----调试时因代码中int3中断</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true"></a><span class="dv">80000004</span><span class="er">h</span>----处于被单步调试状态</span></code></pre></div>
+<p>此结构<code>_EXCEPTION_RECORD</code>的第四个参数<code>ExceptionAddress</code>是异常发生的地址。</p>
+<h3 id="establisherframe">1.2 EstablisherFrame</h3>
+<p>此结构的第二个参数<code>EstablisherFrame</code> 是一个指向<code>establisher</code>帧结构的指针。它是SEH中一个至关重要的参数。</p>
+<h3 id="contextrecord">1.3 ContextRecord</h3>
+<p>此结构的第三个参数<code>ContextRecord</code>是一个指向<code>CONTEXT</code>结构的指针。此结构在WINNT.H中定义，它代表某个特定线程的寄存器值。</p>
+<p>下图显示了CONTEXT结构的成员。当用于SEH时，CONTEXT结构表示异常发生时寄存器的值。（这个CONTEXT结构就是GetThreadContext和SetThreadContext这两个API中使用 的那个CONTEXT结构）</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true"></a><span class="kw">typedef</span> <span class="kw">struct</span> _CONTEXT</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true"></a>{</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true"></a>    DWORD ContextFlags;</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true"></a>    DWORD Dr0;</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true"></a>    DWORD Dr1;</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true"></a>    DWORD Dr2;</span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true"></a>    DWORD Dr3;</span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true"></a>    DWORD Dr6;</span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true"></a>    DWORD Dr7;</span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true"></a>    FLOATING_SAVE_AREA FloatSave;</span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true"></a>    DWORD SegGs;</span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true"></a>    DWORD SegFs;</span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true"></a>    DWORD SegEs;</span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true"></a>    DWORD SegDs;</span>
+<span id="cb4-15"><a href="#cb4-15" aria-hidden="true"></a>    DWORD Edi;</span>
+<span id="cb4-16"><a href="#cb4-16" aria-hidden="true"></a>    DWORD Esi;</span>
+<span id="cb4-17"><a href="#cb4-17" aria-hidden="true"></a>    DWORD Ebx;</span>
+<span id="cb4-18"><a href="#cb4-18" aria-hidden="true"></a>    DWORD Edx;</span>
+<span id="cb4-19"><a href="#cb4-19" aria-hidden="true"></a>    DWORD Ecx;</span>
+<span id="cb4-20"><a href="#cb4-20" aria-hidden="true"></a>    DWORD Eax;</span>
+<span id="cb4-21"><a href="#cb4-21" aria-hidden="true"></a>    DWORD Ebp;</span>
+<span id="cb4-22"><a href="#cb4-22" aria-hidden="true"></a>    DWORD Eip;</span>
+<span id="cb4-23"><a href="#cb4-23" aria-hidden="true"></a>    DWORD SegCs;</span>
+<span id="cb4-24"><a href="#cb4-24" aria-hidden="true"></a>    DWORD EFlags;</span>
+<span id="cb4-25"><a href="#cb4-25" aria-hidden="true"></a>    DWORD Esp;</span>
+<span id="cb4-26"><a href="#cb4-26" aria-hidden="true"></a>    DWORD SegSs;</span>
+<span id="cb4-27"><a href="#cb4-27" aria-hidden="true"></a>} CONTEXT;</span></code></pre></div>
+<p>这个回调函数<code>_except_handler</code>带四个参数，其中三个指向其它结构。在这些结构中，一些域比较重要，其它的就不那么重要。<strong>这里的关键是_exept_handler回调函数接收到操作系统传递过来的许多有价值的信息</strong>，例如异常的类型和发生的地址。使用这些信息，异常回调函数就能决定下一步做什么。</p>
+<h2 id="x02-exception_registration">0x02 EXCEPTION_REGISTRATION</h2>
+<p><code>EXCEPTION_REGISTRATION</code>结构的正式定义在<code>EXSUP.INC</code>中</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true"></a>&lt;pre name=<span class="st">&quot;code&quot;</span> class=<span class="st">&quot;cpp&quot;</span>&gt;_EXCEPTION_REGISTRATION struc</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true"></a>    prev                dd       ?</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true"></a>    handler             dd       ?</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true"></a>_EXCEPTION_REGISTRATION ends</span></code></pre></div>
+<p>这个结构在WINNT.H的NT_TIB结构的定义中被称为<code>_EXCEPITON_REGISTARTION_RECORD</code>。</p>
+<p>回到手头的问题上来。当异常发生时，操作系统是如何知道到哪里去调用回调函数的呢？实际上，<code>EXCEPTION_REGISTARTION</code>结构由两个域组成，第一个可以先忽略。第二个域<code>handler</code>，包含一个指向<code>_except_handler</code>回调函数的指针。</p>
+<p><strong>结构化异常处理是基于线程的</strong>-也就是说，每个线程有它自己的异常处理回调函数。</p>
+<p>在Windows NT、Windows 95、Win32s上，存在一个关键的win32数据结构：线程信息块 TIB</p>
+<p><strong>线程信息块（Thread Information/Environment Block，TIB或TEB）</strong>。<strong>TIB的第一个DWORD是一个指向线程的EXCEPTION_REGISTARTION结构的指针。在基于Intel处理器的Win32平台上，FS寄存器总是指向当前的TIB。因此在FS:[0]处你可以找到一个指向EXCEPTION_REGISTARTION结构的指针。</strong></p>
+<p>当异常发生时，系统查找出错线程的TIB，获取一个指向<code>EXCEPTION_REGISTRATION</code>结构的指针。在这个结构中有一个指向<code>_except_handler</code>回调函数的指针。现在操作系统已经知道了足够的信息去调用<code>_except_handler</code>函数</p>
+<p><img src="https://pic.imgdb.cn/item/64f565a2661c6c8e543d18b5.jpg" /></p>
+<h2 id="x03-myseh">0x03 MySEH</h2>
+<div class="sourceCode" id="cb6"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true"></a><span class="co">//==================================================</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true"></a><span class="co">// MYSEH - Matt Pietrek 1997</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true"></a><span class="co">// Microsoft Systems Journal, January 1997</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true"></a><span class="co">// FILE: MYSEH.CPP</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true"></a><span class="co">// 用命令行CL MYSEH.CPP编译</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true"></a><span class="co">//==================================================</span></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true"></a><span class="pp">#define WIN32_LEAN_AND_MEAN</span></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true"></a><span class="pp">#include </span><span class="im">&lt;windows.h&gt;</span></span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true"></a><span class="pp">#include </span><span class="im">&lt;stdio.h&gt;</span></span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true"></a>DWORD scratch;</span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true"></a>EXCEPTION_DISPOSITION</span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true"></a>__cdecl</span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true"></a>_except_handler(<span class="kw">struct</span> _EXCEPTION_RECORD* ExceptionRecord,</span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true"></a>    <span class="dt">void</span>* EstablisherFrame,</span>
+<span id="cb6-15"><a href="#cb6-15" aria-hidden="true"></a>    <span class="kw">struct</span> _CONTEXT* ContextRecord,</span>
+<span id="cb6-16"><a href="#cb6-16" aria-hidden="true"></a>    <span class="dt">void</span>* DispatcherContext)</span>
+<span id="cb6-17"><a href="#cb6-17" aria-hidden="true"></a>{</span>
+<span id="cb6-18"><a href="#cb6-18" aria-hidden="true"></a>    <span class="dt">unsigned</span> i;</span>
+<span id="cb6-19"><a href="#cb6-19" aria-hidden="true"></a>    <span class="co">// 指明是我们让流程转到我们的异常处理程序的</span></span>
+<span id="cb6-20"><a href="#cb6-20" aria-hidden="true"></a>    printf(<span class="st">&quot;Hello from an exception handler</span><span class="sc">\n</span><span class="st">&quot;</span>);</span>
+<span id="cb6-21"><a href="#cb6-21" aria-hidden="true"></a>    <span class="co">// 改变CONTEXT结构中EAX的值，以便它指向可以成功进写操作的位置</span></span>
+<span id="cb6-22"><a href="#cb6-22" aria-hidden="true"></a>    ContextRecord-&gt;Eax = (DWORD)&amp;scratch;</span>
+<span id="cb6-23"><a href="#cb6-23" aria-hidden="true"></a>    <span class="co">// 告诉操作系统重新执行出错的指令</span></span>
+<span id="cb6-24"><a href="#cb6-24" aria-hidden="true"></a>    <span class="cf">return</span> ExceptionContinueExecution;</span>
+<span id="cb6-25"><a href="#cb6-25" aria-hidden="true"></a>}</span>
+<span id="cb6-26"><a href="#cb6-26" aria-hidden="true"></a></span>
+<span id="cb6-27"><a href="#cb6-27" aria-hidden="true"></a></span>
+<span id="cb6-28"><a href="#cb6-28" aria-hidden="true"></a><span class="dt">int</span> main()</span>
+<span id="cb6-29"><a href="#cb6-29" aria-hidden="true"></a>{</span>
+<span id="cb6-30"><a href="#cb6-30" aria-hidden="true"></a>    DWORD handler = (DWORD)_except_handler;</span>
+<span id="cb6-31"><a href="#cb6-31" aria-hidden="true"></a>    __asm</span>
+<span id="cb6-32"><a href="#cb6-32" aria-hidden="true"></a>    {</span>
+<span id="cb6-33"><a href="#cb6-33" aria-hidden="true"></a>        <span class="co">// 创建EXCEPTION_REGISTRATION结构：</span></span>
+<span id="cb6-34"><a href="#cb6-34" aria-hidden="true"></a>        push handler <span class="co">// handler函数的地址</span></span>
+<span id="cb6-35"><a href="#cb6-35" aria-hidden="true"></a>        push FS : [<span class="dv">0</span>] <span class="co">// 前一个handler函数的地址</span></span>
+<span id="cb6-36"><a href="#cb6-36" aria-hidden="true"></a>        mov FS : [<span class="dv">0</span>] , ESP <span class="co">// 安装新的EXECEPTION_REGISTRATION结构</span></span>
+<span id="cb6-37"><a href="#cb6-37" aria-hidden="true"></a>    }</span>
+<span id="cb6-38"><a href="#cb6-38" aria-hidden="true"></a>    __asm</span>
+<span id="cb6-39"><a href="#cb6-39" aria-hidden="true"></a>    {</span>
+<span id="cb6-40"><a href="#cb6-40" aria-hidden="true"></a>        mov eax, <span class="dv">0</span>     <span class="co">// 将EAX清零</span></span>
+<span id="cb6-41"><a href="#cb6-41" aria-hidden="true"></a>        mov[eax], <span class="dv">1</span> <span class="co">// 写EAX指向的内存从而故意引发一个错误</span></span>
+<span id="cb6-42"><a href="#cb6-42" aria-hidden="true"></a>    }</span>
+<span id="cb6-43"><a href="#cb6-43" aria-hidden="true"></a>    printf(<span class="st">&quot;After writing!</span><span class="sc">\n</span><span class="st">&quot;</span>);</span>
+<span id="cb6-44"><a href="#cb6-44" aria-hidden="true"></a>    __asm</span>
+<span id="cb6-45"><a href="#cb6-45" aria-hidden="true"></a>    {</span>
+<span id="cb6-46"><a href="#cb6-46" aria-hidden="true"></a>        <span class="co">// 移去我们的EXECEPTION_REGISTRATION结构</span></span>
+<span id="cb6-47"><a href="#cb6-47" aria-hidden="true"></a>        mov eax, [ESP]    <span class="co">// 获取前一个结构</span></span>
+<span id="cb6-48"><a href="#cb6-48" aria-hidden="true"></a>        mov FS : [<span class="dv">0</span>] , EAX <span class="co">// 安装前一个结构</span></span>
+<span id="cb6-49"><a href="#cb6-49" aria-hidden="true"></a>        add esp, <span class="dv">8</span>       <span class="co">// 将我们的EXECEPTION_REGISTRATION弹出堆栈</span></span>
+<span id="cb6-50"><a href="#cb6-50" aria-hidden="true"></a>    }</span>
+<span id="cb6-51"><a href="#cb6-51" aria-hidden="true"></a>    <span class="cf">return</span> <span class="dv">0</span>;</span>
+<span id="cb6-52"><a href="#cb6-52" aria-hidden="true"></a>}</span></code></pre></div>
+<p>使用<code>Visual Studio 2022 win x86 Debug</code>编译并运行，可以看到成功调用了自己写的异常处理：</p>
+<p><img src="https://pic.imgdb.cn/item/64f56c50661c6c8e543e49a9.jpg" /></p>
+<p>它只有两个函数。main函数使用了三个内联汇编块。</p>
+<p>第一个内联汇编块通过两个PUSH指令（<code>PUSH handler</code>和<code>PUSH FS:[0]</code>）在堆栈上创建了一个<code>EXCEPTION_REGISTRATION</code>结构。<code>PUSH FS:[0]</code>这条指令保存了先前的<code>FS:[0]</code>中的值作为这个结构的一部分，但这在此刻并不重要。重要的是现在堆栈上有一个8字节的 <code>EXCEPTION_REGISTRATION</code>结构。紧接着的下一条指令（<code>MOV FS:[0],ESP</code>）使线程信息块中的第一个DWORD指向了新的<code>EXCEPTION_REGISTRATION</code>结构。</p>
+<p>第二个<code>__asm</code>块通过先把EAX寄存器清零（<code>MOV EAX,0</code>）然后把此寄存器的值作为内存地址让下一条指令（<code>MOV [EAX],1</code>）向此地址写入数据而故意引发一个错误。</p>
+<p>最后的<code>__asm</code>块移除这个简单的异常处理程序：它首先恢复了FS:[0]中先前的内容，然后把 <code>EXCEPTION_REGISTRATION</code>结构弹出堆栈（<code>ADD ESP,8</code>）。</p>
+<p>当<code>MOV [EAX],1</code>这条指令执行时，它引发一个访问违规。系统在FS:[0]处的TIB中查找，然后发现了一个指向 <code>EXCEPTION_REGISTRATION</code>结构的指针。在MYSEH.CPP中，在这个结构中有一个指向<code>_except_handler</code>函数的指针。 系统然后把所需的四个参数（我在前面已经说过）压入堆栈，接着调用<code>_except_handler</code>函数。</p>
+<p>一旦进入<code>_except_handler</code>，这段代码首先通过一个printf语句表明“哈!是我让它转到这里的！”。接着，<code>_except_handler</code>修复了引发错误的问题——即EAX寄存器指向了一个不能写的内存地址（地址0）。修复方法就是改变<code>CONTEXT</code>结构中的EAX的值使它指向一个允许写的 位置。在这个简单的程序中，我专门为此设置了一个DWORD变量（scratch）。<code>_except_handler</code>函数最后的动作是返回 <code>ExceptionContinueExecution</code>这个值，它在EXCPT.H文件中定义。</p>
+<p>当操作系统看到返回值为<code>ExceptionContinueExecution</code>时，它将其理解为你已经修复了问题，而引起错误的那条指令应该被重新执行。由于我的<code>_except_handler</code>函数已经让EAX寄存器指向一个合法的内存，<code>MOV [EAX],1</code>指令再次执行，这次main函数一切正常。</p>
+<h2 id="x04-seh的prev链表">0x04 SEH的prev链表</h2>
+<p>虽然这个异常回调机制很好，但它并不是一个完美的解决方案。对于稍微复杂一些的应用程序来说，仅用一个函数就能处理程序中任何地方都可能发生的异常是相当困难的。一个更实用的方案应该是有多个异常处理例程，每个例程针对程序中的一部分。实际上，操作系统提供的正是这个功能。</p>
+<p>这就要回到之前的<code>EXCEPTION_REGISTRATION</code>结构体，这个结构的第一个成员，称为<code>prev</code>，前面我们暂时把它忽略了。它实际上是一个指向另外一个EXCEPTION_REGISTRATION结构的指针。这第二个EXCEPTION_REGISTRATION结构可以有一个完全不同的处理函数。它的prev域可以指向第三个EXCEPTION_REGISTRATION结构，依次类推。<strong>简单地说，就是有一个EXCEPTION_REGISTRATION结构链表。线程信息块的第一个DWORD（在基于Intel CPU的机器上是FS:[0]）指向这个链表的头部。</strong></p>
+<p>当异常发生时，系统遍历这个链表以查找一个（其异常处理程序）同意处理这个异常的<code>EXCEPTION_REGISTRATION</code>结构。</p>
+<p>在 MYSEH.CPP中，异常处理程序通过返回<code>ExceptionContinueExecution</code>表示它同意处理这个异常。异常回调函数也可以拒绝处理 这个异常。在这种情况下，系统移向链表的下一个<code>EXCEPTION_REGISTRATION</code>结构并询问它的异常回调函数，看它是否同意处理这个异常。下图显示了这个过程。一旦系统找到一个处理这个异常的回调函数，它就停止遍历链表。</p>
+<p><img src="https://pic.imgdb.cn/item/64f57084661c6c8e543f1838.jpg" /></p>
+<p>下面用代码看看实际情况：</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true"></a><span class="co">//=================================================</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true"></a><span class="co">// MYSEH2 - Matt Pietrek 1997</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true"></a><span class="co">// Microsoft Systems Journal, January 1997</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true"></a><span class="co">// FILE: MYSEH2.CPP</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true"></a><span class="co">// 使用命令行CL MYSEH2.CPP编译</span></span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true"></a><span class="co">//=================================================</span></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true"></a><span class="pp">#define WIN32_LEAN_AND_MEAN</span></span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true"></a><span class="pp">#include </span><span class="im">&lt;windows.h&gt;</span></span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true"></a><span class="pp">#include </span><span class="im">&lt;stdio.h&gt;</span></span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true"></a>EXCEPTION_DISPOSITION</span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true"></a>__cdecl _except_handler(</span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true"></a>              <span class="kw">struct</span> _EXCEPTION_RECORD *ExceptionRecord,</span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true"></a>              <span class="dt">void</span> * EstablisherFrame,</span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true"></a>              <span class="kw">struct</span> _CONTEXT *ContextRecord,</span>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true"></a>               <span class="dt">void</span> * DispatcherContext )</span>
+<span id="cb7-16"><a href="#cb7-16" aria-hidden="true"></a>{</span>
+<span id="cb7-17"><a href="#cb7-17" aria-hidden="true"></a>    printf( <span class="st">&quot;Home Grown handler: Exception Code: %08X Exception Flags %X&quot;</span>,</span>
+<span id="cb7-18"><a href="#cb7-18" aria-hidden="true"></a>            ExceptionRecord-&gt;ExceptionCode, ExceptionRecord-&gt;ExceptionFlags );</span>
+<span id="cb7-19"><a href="#cb7-19" aria-hidden="true"></a>    </span>
+<span id="cb7-20"><a href="#cb7-20" aria-hidden="true"></a>    <span class="cf">if</span> ( ExceptionRecord-&gt;ExceptionFlags &amp; <span class="dv">1</span> )</span>
+<span id="cb7-21"><a href="#cb7-21" aria-hidden="true"></a>        printf( <span class="st">&quot; EH_NONCONTINUABLE&quot;</span> );</span>
+<span id="cb7-22"><a href="#cb7-22" aria-hidden="true"></a>    <span class="cf">if</span> ( ExceptionRecord-&gt;ExceptionFlags &amp; <span class="dv">2</span> )</span>
+<span id="cb7-23"><a href="#cb7-23" aria-hidden="true"></a>        printf( <span class="st">&quot; EH_UNWINDING&quot;</span> );</span>
+<span id="cb7-24"><a href="#cb7-24" aria-hidden="true"></a>    <span class="cf">if</span> ( ExceptionRecord-&gt;ExceptionFlags &amp; <span class="dv">4</span> )</span>
+<span id="cb7-25"><a href="#cb7-25" aria-hidden="true"></a>        printf( <span class="st">&quot; EH_EXIT_UNWIND&quot;</span> );</span>
+<span id="cb7-26"><a href="#cb7-26" aria-hidden="true"></a>    <span class="cf">if</span> ( ExceptionRecord-&gt;ExceptionFlags &amp; <span class="dv">8</span> ) <span class="co">// 注意这个标志</span></span>
+<span id="cb7-27"><a href="#cb7-27" aria-hidden="true"></a>        printf( <span class="st">&quot; EH_STACK_INVALID&quot;</span> );</span>
+<span id="cb7-28"><a href="#cb7-28" aria-hidden="true"></a>    <span class="cf">if</span> ( ExceptionRecord-&gt;ExceptionFlags &amp; <span class="bn">0x10</span> )   <span class="co">// 注意这个标志</span></span>
+<span id="cb7-29"><a href="#cb7-29" aria-hidden="true"></a>        printf( <span class="st">&quot; EH_NESTED_CALL&quot;</span> );</span>
+<span id="cb7-30"><a href="#cb7-30" aria-hidden="true"></a>        printf( <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span> );</span>
+<span id="cb7-31"><a href="#cb7-31" aria-hidden="true"></a> </span>
+<span id="cb7-32"><a href="#cb7-32" aria-hidden="true"></a>    <span class="co">// 我们不想处理这个异常，让其它函数处理吧</span></span>
+<span id="cb7-33"><a href="#cb7-33" aria-hidden="true"></a>    <span class="cf">return</span> ExceptionContinueSearch;</span>
+<span id="cb7-34"><a href="#cb7-34" aria-hidden="true"></a>}</span>
+<span id="cb7-35"><a href="#cb7-35" aria-hidden="true"></a> </span>
+<span id="cb7-36"><a href="#cb7-36" aria-hidden="true"></a> </span>
+<span id="cb7-37"><a href="#cb7-37" aria-hidden="true"></a><span class="dt">void</span> HomeGrownFrame( <span class="dt">void</span> )</span>
+<span id="cb7-38"><a href="#cb7-38" aria-hidden="true"></a>{</span>
+<span id="cb7-39"><a href="#cb7-39" aria-hidden="true"></a>    DWORD handler = (DWORD)_except_handler;</span>
+<span id="cb7-40"><a href="#cb7-40" aria-hidden="true"></a>    __asm</span>
+<span id="cb7-41"><a href="#cb7-41" aria-hidden="true"></a>    {</span>
+<span id="cb7-42"><a href="#cb7-42" aria-hidden="true"></a>       <span class="co">// 创建EXCEPTION_REGISTRATION结构：</span></span>
+<span id="cb7-43"><a href="#cb7-43" aria-hidden="true"></a>       push handler       <span class="co">// handler函数的地址</span></span>
+<span id="cb7-44"><a href="#cb7-44" aria-hidden="true"></a>       push FS:[<span class="dv">0</span>]        <span class="co">// 前一个handler函数的地址</span></span>
+<span id="cb7-45"><a href="#cb7-45" aria-hidden="true"></a>       mov FS:[<span class="dv">0</span>],ESP     <span class="co">// 安装新的EXECEPTION_REGISTRATION结构</span></span>
+<span id="cb7-46"><a href="#cb7-46" aria-hidden="true"></a>    }</span>
+<span id="cb7-47"><a href="#cb7-47" aria-hidden="true"></a> </span>
+<span id="cb7-48"><a href="#cb7-48" aria-hidden="true"></a>    *(PDWORD)<span class="dv">0</span> = <span class="dv">0</span>; <span class="co">// 写入地址0，从而引发一个错误</span></span>
+<span id="cb7-49"><a href="#cb7-49" aria-hidden="true"></a>    printf( <span class="st">&quot;I should never get here!</span><span class="sc">\n</span><span class="st">&quot;</span> );</span>
+<span id="cb7-50"><a href="#cb7-50" aria-hidden="true"></a> </span>
+<span id="cb7-51"><a href="#cb7-51" aria-hidden="true"></a>    __asm</span>
+<span id="cb7-52"><a href="#cb7-52" aria-hidden="true"></a>    {</span>
+<span id="cb7-53"><a href="#cb7-53" aria-hidden="true"></a>       <span class="co">// 移去我们的EXECEPTION_REGISTRATION结构</span></span>
+<span id="cb7-54"><a href="#cb7-54" aria-hidden="true"></a>       mov eax,[ESP]     <span class="co">// 获取前一个结构</span></span>
+<span id="cb7-55"><a href="#cb7-55" aria-hidden="true"></a>       mov FS:[<span class="dv">0</span>], EAX <span class="co">// 安装前一个结构</span></span>
+<span id="cb7-56"><a href="#cb7-56" aria-hidden="true"></a>       add esp, <span class="dv">8</span>        <span class="co">// 把我们EXECEPTION_REGISTRATION结构弹出堆栈</span></span>
+<span id="cb7-57"><a href="#cb7-57" aria-hidden="true"></a>    }</span>
+<span id="cb7-58"><a href="#cb7-58" aria-hidden="true"></a>}</span>
+<span id="cb7-59"><a href="#cb7-59" aria-hidden="true"></a> </span>
+<span id="cb7-60"><a href="#cb7-60" aria-hidden="true"></a> </span>
+<span id="cb7-61"><a href="#cb7-61" aria-hidden="true"></a><span class="dt">int</span> main()</span>
+<span id="cb7-62"><a href="#cb7-62" aria-hidden="true"></a>{</span>
+<span id="cb7-63"><a href="#cb7-63" aria-hidden="true"></a>    __try</span>
+<span id="cb7-64"><a href="#cb7-64" aria-hidden="true"></a>    {</span>
+<span id="cb7-65"><a href="#cb7-65" aria-hidden="true"></a>        HomeGrownFrame();</span>
+<span id="cb7-66"><a href="#cb7-66" aria-hidden="true"></a>    }</span>
+<span id="cb7-67"><a href="#cb7-67" aria-hidden="true"></a>    __except( EXCEPTION_EXECUTE_HANDLER )</span>
+<span id="cb7-68"><a href="#cb7-68" aria-hidden="true"></a>    {</span>
+<span id="cb7-69"><a href="#cb7-69" aria-hidden="true"></a>        printf( <span class="st">&quot;Caught the exception in main()</span><span class="sc">\n</span><span class="st">&quot;</span> );</span>
+<span id="cb7-70"><a href="#cb7-70" aria-hidden="true"></a>    }</span>
+<span id="cb7-71"><a href="#cb7-71" aria-hidden="true"></a> </span>
+<span id="cb7-72"><a href="#cb7-72" aria-hidden="true"></a>    <span class="cf">return</span> <span class="dv">0</span>;</span>
+<span id="cb7-73"><a href="#cb7-73" aria-hidden="true"></a>}</span></code></pre></div>
+<p>使用<code>Visual Studio 2022 win x86 Debug</code>编译并运行调试：</p>
+<p><img src="https://pic.imgdb.cn/item/64f572f8661c6c8e543fdf11.jpg" /></p>
+<p>为了使代码尽量简单，我使用了编译器层面的异常处理。main函数只设置了一个 <code>__try/__except</code>块。在<code>__try</code>块内部调用了<code>HomeGrownFrame</code>函数。这个函数与前面的MYSEH程序非常相似。它也是在堆栈上创建一个<code>EXCEPTION_REGISTRATION</code>结构，并且让FS:[0]指向此结构。在建立了新的异常处理程序之后，这个函数通过向一个NULL 指针所指向的内存处写入数据而故意引发一个错误：<code>*(PDWORD)0 = 0;</code></p>
+<p>这个异常处理回调函数，同样被称为<code>_except_handler</code>，却与前面的那个截然不同。它首先打印出<code>ExceptionRecord</code>结构中的异常代码和标志，这个结构的地址是作为一个指针参数被这个函数接收的。打印出异常标志的原因一会儿就清楚了。因为<code>_except_handler</code>函数并没有打算修复出错的代码，因此它返回<code>ExceptionContinueSearch</code>。这导致操作系统继续在<code>EXCEPTION_REGISTRATION</code>结构链表中搜索下一个 <code>EXCEPTION_REGISTRATION</code>结构。接下来安装的异常回调函数是针对main函数中的<code>__try/__except</code>块的。<code>__excep</code>t块简单地打印出<code>“Caught the exception in main()”</code>。此时我们只是简单地忽略这个异常来表明我们已经处理了它。</p>
+<p>这里的关键是执行流程。<strong>当一个异常处理程序拒绝处理某个异常时，它实际上也就拒绝决定流程最终将从何处恢复。只有处理某个异常的异常处理程序才能决定待所有异常处理代码执行完毕之后流程将从何处恢复。</strong></p>
+<p>当使用结构化异常处理时，如果一个函数有一个异常处理程序但它却不处理某个异常，这个函数就有可能非正常退出。例如在MYSEH2中 <code>HomeGrownFrame</code>函数就不处理异常。由于在链表中后面的某个异常处理程序（这里是main函数中的）处理了这个异常，因此出错指令后面的 printf就永远不会执行。</p>
+<h2 id="x05-展开unwinding">0x05 展开（Unwinding）</h2>
+<p>注意到上面的MYSEH2.CPP的运行结果，打印了两次Home Grown handler.</p>
+<pre><code>Home Grown handler: Exception Code: C0000005 Exception Flags 0
+Home Grown handler: Exception Code: C0000027 Exception Flags 2 EH_UNWINDING
+Caught the Exception in main()</code></pre>
+<p>比较一下以“Home Grown Handler”开头的两行，就会看出它们之间有明显的区别。第一次异常标志是0，而第二次是2。实际上，当一个异常处理回调函数拒绝处理某个异常时，它会被再一次调用。但是这次回调并不是立即发生的。这有点复杂。我需要把异常发生时的情形好好梳理一下</p>
+<p><strong>当异常发生时，系统遍历<code>EXCEPTION_REGISTRATION</code>结构链表，直到它找到一个处理这个异常的处理程序。一旦找到，系统就再次遍历这个链表，直到处理这个异常的结点为止。在这第二次遍历中，系统将再次调用每个异常处理函数。关键的区别是，在第二次调用中，异常标志被设置为2。这个值被定义为<code>EH_UNWINDING</code>。</strong>（<code>EH_UNWINDING</code>的定义在Visual C++ 运行时库源代码文件<code>EXCEPT.INC</code>中，但Win32 SDK中并没有与之等价的定义。）</p>
+<p><strong>EH_UNWINDING:</strong> 当一个异常处理回调函数被第二次调用时（带<code>EH_UNWINDING</code>标志），操作系统给这个函数一个最后清理的机会。</p>
+<p>一个绝好的例子是C++类的析构函数。当一个函数的异常处理程序拒绝处理某个异常时，通常执行流程并不会正常地从那个函数退出。现在，想像一个定义了 一个C++类的实例作为局部变量的函数。C++规范规定析构函数必须被调用。这带<code>EH_UNWINDING</code>标志的第二次回调就给这个函数一个机会去做一些类似于调用析构函数和<code>__finally</code>块之类的清理工作。</p>
+<p>在异常已经被处理完毕，并且所有前面的异常帧都已经被展开之后，流程从处理异常的那个回调函数决定的地方开始继续执行。一定要记住，仅仅把指令指针设置到所需的代码处就开始执行是不行的。流程恢复执行处的代码的堆栈指针和栈帧指针（在Intel CPU上是ESP和EBP）也必须被恢复成它们在处理这个异常的函数的栈帧上的值。因此，这个处理异常的回调函数必须负责把堆栈指针和栈帧指针恢复成它们在包含处理这个异常的SEH代码的函数的堆栈上的值。</p>
+<p>通常，展开操作导致堆栈上处理异常的帧以下的堆栈区域上的所有内容都被移除了，就好像我们从来没有调用过这些函数一样。展开的另外一个效果就是<code>EXCEPTION_REGISTRATION</code>结构链表上处理异常的那个结构之前的所有<code>EXCEPTION_REGISTRATION</code>结构都被移除了。这很好理解，因为这些<code>EXCEPTION_REGISTRATION</code>结构通常都被创建在堆栈上。在异常被处理后，堆栈指针和栈帧指针在内存中比那些从 <code>EXCEPTION_REGISTRATION</code>结构链表上移除的<code>EXCEPTION_REGISTRATION</code>结构高。</p>
+<p><img src="https://pic.imgdb.cn/item/64f57689661c6c8e544110f4.jpg" /></p>
+<h2 id="x06-unhandledexceptionfilter">0x06 UnhandledExceptionFilter</h2>
+<p>迄今为止，实际上我们一直在假设操作系统总是能在<code>EXCEPTION_REGISTRATION</code>结构链表中找到一个异常处理程序。实际上，操作系统暗中已经为每个线程都提供了一个默认的异常处理程序。这个默认的异常处理程序总是链表的最后一个结点，并且它总是选择处理异常。</p>
+<p>很明显它需要在线程执行的早期，在任何用户代码开始执行之前,操作系统是在这个时候插入了这个默认的、最后一个异常处理程序。</p>
+<p>如果线程引发了一个异常但是没有异常处理程序来处理它时，程序会调用<code>UnhandledExceptionFilter</code>这个API,重要的是<code>UnhandledExceptionFilter</code>这个API包含了默认的异常处理程序。</p>
+<p>如果<code>UnhandledExceptionFilter</code>返回<code>EXCEPTION_EXECUTE_HANDLER</code>，而<code>__except</code>块所做的只是调用<code>ExitProcess</code>函数去终止当前进程。显而易见， 如果一个进程引发了一个错误而没有异常处理程序去处理它，这个进程就会被系统终止。</p>
+<p>如果引发错误的线程是作为服务来运行的，并且是基于线程的服务，那么<code>__excep</code>t块并不调用<code>ExitProcess</code>，相反，它调用<code>ExitThread</code>。不能仅仅因为一个服务出错就终止整个服务进程。</p>
+<p>所以<code>UnhandledExceptionFilter</code>中的默认异常处理程序都做了什么:</p>
+<p><img src="https://pic.imgdb.cn/item/64f57bfd661c6c8e54424f14.jpg" /></p>
+<p>显然可以注意到，<code>UnhandledExceptionFilter</code>显示了一个对话框告诉你发生了一个错误。这时，你被给予了一个机会或者终止出错进程，或者调试它。</p>
+<h2 id="x07-编译器层面seh">0x07 编译器层面SEH</h2>
+<p>编译器对<code>try/except</code>进行封装实在是非常有必要的.</p>
+<h3 id="基于帧的异常处理">7.1 基于帧的异常处理</h3>
+<p>常见的基于帧的异常处理程序模型：</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true"></a>__try {</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true"></a>    <span class="co">// 这里是被保护的代码</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true"></a>}</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true"></a>__except (过滤器表达式) { </span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true"></a>   <span class="co">// 这里是异常处理程序代码</span></span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true"></a>}</span></code></pre></div>
+<p>简单地说，在一个函数中，一个<code>__try</code>块中的所有代码就通过创建在这个函数的堆栈帧上的一个<code>EXCEPTION_REGISTRATION</code>结构来保护。</p>
+<p>在函数的入口处，这个新的<code>EXCEPTION_REGISTRATION</code>结构被放在异常处理程序链表的头部。在<code>__try</code>块结束后，相应的 <code>EXCEPTION_REGISTRATION</code>结构从这个链表的头部被移除。</p>
+<p>异常处理程序链表的头部被保存在FS:[0]处。因此，调试器中单步跟踪时看到类似下面的指令:</p>
+<pre class="assembly"><code>MOV DWORD PTR FS:[00000000],ESP</code></pre>
+<p>或者</p>
+<pre class="assembly"><code>MOV DWORD PTR FS:[00000000],ECX</code></pre>
+<p>就能非常确定这段代码正在进入或退出一个<code>__try/__except</code>块</p>
+<p>既然一个<code>__try</code>块相当于堆栈上的一个<code>EXCEPTION_REGISTRATION</code>结构，<code>EXCEPTION_REGISTRATION</code>结构中异常处理回调函数相当于<strong>过滤器表达式（filter-expression）</strong>代码。实际上，过滤器表达式就是<code>__except</code>关键字后面的小括号中的代码。就是这个过滤器表达式代码决定了后面的大括号中的代码是否执行。</p>
+<p>事实上，各个<code>EXCEPTION_REGISTRATION</code>结构的handler域都指向了同一个函数。这个函数在Visual C++的运行时库中，它被称为<code>__except_handler3</code>。正是这个<code>__except_handler3</code>调用了过滤器表达式代码。</p>
+<p>以及，并不是每次进入或退出一个<code>__try</code>块时就创建或撤销一个<code>EXCEPTION_REGISTRATION</code>结构。 相反，在使用SEH的任何函数中只创建一个<code>EXCEPTION_REGISTRATION</code>结构。换句话说，你可以在一个函数中使用多个<code>__try/__except</code>块，但是在堆栈上只创建一个<code>EXCEPTION_REGISTRATION</code>结构。同样，你可以在一个函数中嵌套使用<code>__try</code>块，但Visual C++仍旧只是创建一个<code>EXCEPTION_REGISTRATION</code>结构。</p>
+<p>如果整个EXE或DLL只需要单个的异常处理程序（<code>__except_handler3</code>），同时，如果单个的<code>EXCEPTION_REGISTRATION</code> 结构就能处理多个<code>__try</code>块的话，很明显，这里还有更多需要学习的地方。</p>
+<h3 id="扩展的异常处理帧">7.2 扩展的异常处理帧</h3>
+<p>Visual C++的 SEH实现并没有使用原始的EXCEPTION_REGISTRATION结构。它在这个结构的末尾添加了一些附加数据。这些附加数据正是允许单个函数 （__except_handler3）处理所有异常并将执行流程传递到相应的过滤器表达式和__except块的关键。我在Visual C++运行时库源代码中的EXSUP.INC文件中找到了有关Visual C++扩展的EXCEPTION_REGISTRATION结构格式的线索。在这个文件中，你会看到以下定义（已经被注释掉了）：</p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true"></a>;<span class="kw">struct</span> _EXCEPTION_REGISTRATION{</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true"></a>;   <span class="kw">struct</span> _EXCEPTION_REGISTRATION *prev;</span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true"></a>;   <span class="dt">void</span> (*handler)(    PEXCEPTION_RECORD,</span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true"></a>;                   PEXCEPTION_REGISTRATION,</span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true"></a>;                   PCONTEXT,</span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true"></a>;                  PEXCEPTION_RECORD);</span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true"></a>;   <span class="kw">struct</span> scopetable_entry *scopetable;</span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true"></a>;   <span class="dt">int</span> trylevel;</span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true"></a>;   <span class="dt">int</span> _ebp;</span>
+<span id="cb12-10"><a href="#cb12-10" aria-hidden="true"></a>;   PEXCEPTION_POINTERS xpointers;</span>
+<span id="cb12-11"><a href="#cb12-11" aria-hidden="true"></a>;};</span></code></pre></div>
+<p>在前面你已经见过前两个域：<code>prev</code>和<code>handler</code>。它们组成了基本的<code>EXCEPTION_REGISTRATION</code>结构。后面三个域：<code>scopetable</code>（作用域表）、<code>trylevel</code>和<code>_ebp</code>是新增加的。<code>scopetable</code>域指向一个<code>scopetable_entry</code>结构数组，而<code>trylevel</code>域实际上是这个数组的索引。最后一个域<code>_ebp</code>，是<code>EXCEPTION_REGISTRATION</code>结构创建之前栈帧指针（EBP）的值。</p>
+<p><code>_ebp</code>域成为扩展的<code>EXCEPTION_REGISTRATION</code>结构的一部分并非偶然。它是通过<code>PUSH EBP</code>这条指令被包含进这个结构中的，而大多数函数开头都是这条指令（<strong>通常编译器并不为使用FPO优化的函数生成标准的堆栈帧，这样其第一条指令可能不是<code>PUSH EBP</code>。但是如果使用了SEH的话，那么无论你是否使用了FPO优化，编译器一定生成标准的堆栈帧</strong>）。这条指令可以使<code>EXCEPTION_REGISTRATION</code>结构中所有其它的域都可以用一个相对于栈帧指针（EBP）的负偏移来访问。例如<code>trylevel</code>域在[EBP-04]处，<code>scopetable</code>指针在[EBP-08]处，等等。（也就是说，这个结构是从[EBP-10H]处开始 的）</p>
+<p>紧跟着扩展的<code>EXCEPTION_REGISTRATION</code>结构下面，Visual C++压入了另外两个值。紧跟着（即[EBP-14H]处）的一个DWORD，是为一个指向<strong>EXCEPTION_POINTERS</strong>结构（一个标准的Win32 结构）的指针所保留的空间。这个指针就是你调用<strong>GetExceptionInformation</strong>这个API时返回的指针。尽管SDK文档暗示<code>GetExceptionInformation</code>是一个标准的Win32 API，但事实上它是一个编译器内联函数。当调用这个函数时,Visual C++生成以下代码：</p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true"></a>MOV EAX,DWORD PTR [EBP-<span class="dv">14</span>]</span></code></pre></div>
+<p><code>GetExceptionInformation</code>是一个编译器内联函数，与它相关的<code>GetExceptionCode</code>函数也是如此。此函数实际上只是返回<code>GetExceptionInformation</code>返回的数据结构（<code>EXCEPTION_POINTERS</code>）中的一个结构 （<code>EXCEPTION_RECORD</code>）中的一个域（<code>ExceptionCode</code>）的值。</p>
+<p>标准异常堆栈帧：</p>
+<pre><code>EBP-00 _ebp
+EBP-04 trylevel
+EBP-08 scopetable数组指针
+EBP-0C handler函数地址
+EBP-10 指向前一个EXCEPTION_REGISTRATION结构
+EBP-14 GetExceptionInformation
+EBP-18 栈帧中的标准ESP</code></pre>
+<p>在操作系统看来，只存在组成原始<code>EXCEPTION_REGISTRATION</code>结构的两个域：即[EBP-10h]处的<code>prev</code>指针和[EBP-0Ch]处的<code>handler</code>函数指针。栈帧中的其它所有内容是针对于Visual C++的.</p>
+<div class="sourceCode" id="cb15"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true"></a><span class="dt">int</span> __except_handler3(</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true"></a><span class="kw">struct</span> _EXCEPTION_RECORD * pExceptionRecord,</span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true"></a><span class="kw">struct</span> EXCEPTION_REGISTRATION * pRegistrationFrame,</span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true"></a><span class="kw">struct</span> _CONTEXT *pContextRecord,</span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true"></a><span class="dt">void</span> * pDispatcherContext )</span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true"></a>{</span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true"></a>    LONG filterFuncRet;</span>
+<span id="cb15-8"><a href="#cb15-8" aria-hidden="true"></a>    LONG trylevel;</span>
+<span id="cb15-9"><a href="#cb15-9" aria-hidden="true"></a>    EXCEPTION_POINTERS exceptPtrs;</span>
+<span id="cb15-10"><a href="#cb15-10" aria-hidden="true"></a>    PSCOPETABLE pScopeTable;</span>
+<span id="cb15-11"><a href="#cb15-11" aria-hidden="true"></a>    CLD <span class="co">// 将方向标志复位（不测试任何条件！）</span></span>
+<span id="cb15-12"><a href="#cb15-12" aria-hidden="true"></a>    <span class="co">// 如果没有设置EXCEPTION_UNWINDING标志或EXCEPTION_EXIT_UNWIND标志</span></span>
+<span id="cb15-13"><a href="#cb15-13" aria-hidden="true"></a>    <span class="co">// 表明这是第一次调用这个处理程序（也就是说，并非处于异常展开阶段）</span></span>
+<span id="cb15-14"><a href="#cb15-14" aria-hidden="true"></a>    <span class="cf">if</span> ( ! (pExceptionRecord-&gt;ExceptionFlags</span>
+<span id="cb15-15"><a href="#cb15-15" aria-hidden="true"></a>        &amp; (EXCEPTION_UNWINDING | EXCEPTION_EXIT_UNWIND)) )</span>
+<span id="cb15-16"><a href="#cb15-16" aria-hidden="true"></a>    {</span>
+<span id="cb15-17"><a href="#cb15-17" aria-hidden="true"></a>        <span class="co">// 在堆栈上创建一个EXCEPTION_POINTERS结构</span></span>
+<span id="cb15-18"><a href="#cb15-18" aria-hidden="true"></a>        exceptPtrs.ExceptionRecord = pExceptionRecord;</span>
+<span id="cb15-19"><a href="#cb15-19" aria-hidden="true"></a>        exceptPtrs.ContextRecord = pContextRecord;</span>
+<span id="cb15-20"><a href="#cb15-20" aria-hidden="true"></a>        <span class="co">// 把前面定义的EXCEPTION_POINTERS结构的地址放在比</span></span>
+<span id="cb15-21"><a href="#cb15-21" aria-hidden="true"></a>        <span class="co">// establisher栈帧低4个字节的位置上。参考前面我讲</span></span>
+<span id="cb15-22"><a href="#cb15-22" aria-hidden="true"></a>        <span class="co">// 的编译器为GetExceptionInformation生成的汇编代码*(PDWORD)                        ((PBYTE)pRegistrationFrame - 4) = &amp;exceptPtrs;</span></span>
+<span id="cb15-23"><a href="#cb15-23" aria-hidden="true"></a>        <span class="co">// 获取初始的“trylevel”值</span></span>
+<span id="cb15-24"><a href="#cb15-24" aria-hidden="true"></a>        trylevel = pRegistrationFrame-&gt;trylevel;</span>
+<span id="cb15-25"><a href="#cb15-25" aria-hidden="true"></a>        <span class="co">// 获取指向scopetable数组的指针 </span></span>
+<span id="cb15-26"><a href="#cb15-26" aria-hidden="true"></a>        scopeTable = pRegistrationFrame-&gt;scopetable;</span>
+<span id="cb15-27"><a href="#cb15-27" aria-hidden="true"></a>        search_for_handler:</span>
+<span id="cb15-28"><a href="#cb15-28" aria-hidden="true"></a>        <span class="cf">if</span> ( pRegistrationFrame-&gt;trylevel != TRYLEVEL_NONE )</span>
+<span id="cb15-29"><a href="#cb15-29" aria-hidden="true"></a>        {</span>
+<span id="cb15-30"><a href="#cb15-30" aria-hidden="true"></a>            <span class="cf">if</span> ( pRegistrationFrame-&gt;scopetable[trylevel].lpfnFilter )</span>
+<span id="cb15-31"><a href="#cb15-31" aria-hidden="true"></a>            {</span>
+<span id="cb15-32"><a href="#cb15-32" aria-hidden="true"></a>                PUSH EBP <span class="co">// 保存这个栈帧指针</span></span>
+<span id="cb15-33"><a href="#cb15-33" aria-hidden="true"></a>                <span class="co">// ！！！非常重要！！！切换回原来的EBP。正是这个操作才使得</span></span>
+<span id="cb15-34"><a href="#cb15-34" aria-hidden="true"></a>                <span class="co">// 栈帧上的所有局部变量能够在异常发生后仍然保持它的值不变。</span></span>
+<span id="cb15-35"><a href="#cb15-35" aria-hidden="true"></a>                EBP = &amp;pRegistrationFrame-&gt;_ebp;</span>
+<span id="cb15-36"><a href="#cb15-36" aria-hidden="true"></a>                <span class="co">// 调用过滤器函数</span></span>
+<span id="cb15-37"><a href="#cb15-37" aria-hidden="true"></a>                filterFuncRet = scopetable[trylevel].lpfnFilter();</span>
+<span id="cb15-38"><a href="#cb15-38" aria-hidden="true"></a>                POP EBP <span class="co">// 恢复异常处理程序的栈帧指针</span></span>
+<span id="cb15-39"><a href="#cb15-39" aria-hidden="true"></a>                <span class="cf">if</span> ( filterFuncRet != EXCEPTION_CONTINUE_SEARCH )</span>
+<span id="cb15-40"><a href="#cb15-40" aria-hidden="true"></a>                {</span>
+<span id="cb15-41"><a href="#cb15-41" aria-hidden="true"></a>                    <span class="cf">if</span> ( filterFuncRet &lt; <span class="dv">0</span> ) <span class="co">// EXCEPTION_CONTINUE_EXECUTION</span></span>
+<span id="cb15-42"><a href="#cb15-42" aria-hidden="true"></a>                       <span class="cf">return</span> ExceptionContinueExecution;</span>
+<span id="cb15-43"><a href="#cb15-43" aria-hidden="true"></a> </span>
+<span id="cb15-44"><a href="#cb15-44" aria-hidden="true"></a>                    <span class="co">// 如果能够执行到这里，说明返回值为EXCEPTION_EXECUTE_HANDLER</span></span>
+<span id="cb15-45"><a href="#cb15-45" aria-hidden="true"></a>                    scopetable = pRegistrationFrame-&gt;scopetable;</span>
+<span id="cb15-46"><a href="#cb15-46" aria-hidden="true"></a>                    <span class="co">// 让操作系统清理已经注册的栈帧，这会使本函数被递归调用</span></span>
+<span id="cb15-47"><a href="#cb15-47" aria-hidden="true"></a>                    __global_unwind2( pRegistrationFrame );</span>
+<span id="cb15-48"><a href="#cb15-48" aria-hidden="true"></a>                    <span class="co">// 一旦执行到这里，除最后一个栈帧外，所有的栈帧已经</span></span>
+<span id="cb15-49"><a href="#cb15-49" aria-hidden="true"></a>                    <span class="co">// 被清理完毕，流程要从最后一个栈帧继续执行</span></span>
+<span id="cb15-50"><a href="#cb15-50" aria-hidden="true"></a>                    EBP = &amp;pRegistrationFrame-&gt;_ebp;</span>
+<span id="cb15-51"><a href="#cb15-51" aria-hidden="true"></a>                    __local_unwind2( pRegistrationFrame, trylevel );</span>
+<span id="cb15-52"><a href="#cb15-52" aria-hidden="true"></a>                    <span class="co">// NLG = &quot;non-local-goto&quot; (setjmp/longjmp stuff)</span></span>
+<span id="cb15-53"><a href="#cb15-53" aria-hidden="true"></a>                    __NLG_Notify( <span class="dv">1</span> ); <span class="co">// EAX = scopetable-&gt;lpfnHandler</span></span>
+<span id="cb15-54"><a href="#cb15-54" aria-hidden="true"></a>                    <span class="co">// 把当前的trylevel设置成当找到一个异常处理程序时</span></span>
+<span id="cb15-55"><a href="#cb15-55" aria-hidden="true"></a>                    <span class="co">// SCOPETABLE中当前正在被使用的那一个元素的内容</span></span>
+<span id="cb15-56"><a href="#cb15-56" aria-hidden="true"></a>                    pRegistrationFrame-&gt;trylevel = scopetable-&gt;previousTryLevel;</span>
+<span id="cb15-57"><a href="#cb15-57" aria-hidden="true"></a>                    <span class="co">// 调用__except {}块，这个调用并不会返回</span></span>
+<span id="cb15-58"><a href="#cb15-58" aria-hidden="true"></a>                    pRegistrationFrame-&gt;scopetable[trylevel].lpfnHandler();</span>
+<span id="cb15-59"><a href="#cb15-59" aria-hidden="true"></a>                }</span>
+<span id="cb15-60"><a href="#cb15-60" aria-hidden="true"></a>            }</span>
+<span id="cb15-61"><a href="#cb15-61" aria-hidden="true"></a> </span>
+<span id="cb15-62"><a href="#cb15-62" aria-hidden="true"></a>            scopeTable = pRegistrationFrame-&gt;scopetable;</span>
+<span id="cb15-63"><a href="#cb15-63" aria-hidden="true"></a>            trylevel = scopeTable-&gt;previousTryLevel;</span>
+<span id="cb15-64"><a href="#cb15-64" aria-hidden="true"></a>            <span class="cf">goto</span> search_for_handler;</span>
+<span id="cb15-65"><a href="#cb15-65" aria-hidden="true"></a>        }</span>
+<span id="cb15-66"><a href="#cb15-66" aria-hidden="true"></a>        <span class="cf">else</span> <span class="co">// trylevel == TRYLEVEL_NONE</span></span>
+<span id="cb15-67"><a href="#cb15-67" aria-hidden="true"></a>        {</span>
+<span id="cb15-68"><a href="#cb15-68" aria-hidden="true"></a>            <span class="cf">return</span> ExceptionContinueSearch;</span>
+<span id="cb15-69"><a href="#cb15-69" aria-hidden="true"></a>        }</span>
+<span id="cb15-70"><a href="#cb15-70" aria-hidden="true"></a>    }</span>
+<span id="cb15-71"><a href="#cb15-71" aria-hidden="true"></a>    <span class="cf">else</span> <span class="co">// 设置了EXCEPTION_UNWINDING标志或EXCEPTION_EXIT_UNWIND标志</span></span>
+<span id="cb15-72"><a href="#cb15-72" aria-hidden="true"></a>    {</span>
+<span id="cb15-73"><a href="#cb15-73" aria-hidden="true"></a>       PUSH EBP <span class="co">// 保存EBP</span></span>
+<span id="cb15-74"><a href="#cb15-74" aria-hidden="true"></a>       EBP = &amp;pRegistrationFrame-&gt;_ebp; <span class="co">// 为调用__local_unwind2设置EBP</span></span>
+<span id="cb15-75"><a href="#cb15-75" aria-hidden="true"></a>       __local_unwind2( pRegistrationFrame, TRYLEVEL_NONE )</span>
+<span id="cb15-76"><a href="#cb15-76" aria-hidden="true"></a>       POP EBP <span class="co">// 恢复EBP</span></span>
+<span id="cb15-77"><a href="#cb15-77" aria-hidden="true"></a>       <span class="cf">return</span> ExceptionContinueSearch;</span>
+<span id="cb15-78"><a href="#cb15-78" aria-hidden="true"></a>    }</span>
+<span id="cb15-79"><a href="#cb15-79" aria-hidden="true"></a>}</span></code></pre></div>
+<h2 id="x08-总结">0x08 总结</h2>
+<p>结构化异常处理是Win32一个非常好的特性。多亏有了像Visual C++之类的编译器的支持层对它的封装，一般的程序员才能付出比较小的学习代价就能利用SEH所提供的便利。但是在操作系统层面上，事情远比Win32文档说的复杂。</p>
+<p>不幸的是，由于人人都认为系统层面的SEH是一个非常困难的问题，因此至今这方面的资料都不多。总的来说，系统层面的SEH就是围绕着简单的回调在打转。</p>]]></description>
+    <pubDate>Mon, 4 Sep 2023 15:29:23 +0800</pubDate>
   </item>
    
   <item>
@@ -199,7 +580,7 @@
 <p>当PE被载入内存之后，内存中的映像会被修正为：</p>
 <p><img src="https://pic.imgdb.cn/item/64f4c3ea661c6c8e542284a1.jpg" /></p>
 <p>其中由 <code>FristThunk</code> 字段指向的那个数组中的每个双字都被替换成了真正的函数入口地址，之所以在PE文件中使用两份<code>IMAGE_THUNK_DATA</code>数组的拷贝并修改其中的一份，是为了最后还可以留下一份备份数据用来反过来查询地址所对应的导入函数名。</p>
-<h3 id="引出函数节-.edata并入.text">4.5 引出函数节 .edata(并入.text)</h3>
+<h4 id="引出函数节-.edata并入.text">4.5 引出函数节 .edata(并入.text)</h4>
 <p><strong>DLL文件的函数引出机制</strong></p>
 <p>当PE文件执行时 Windows装载器将文件装入内存并将导入表中登记的DLL文件一并装入，再根据DLL文件中函数的导出信息对可执行文件的导入表(IAT)进行修正.</p>
 <p>导出函数的DLL文件中，导出信息被保存在导出表，导出表就是记载着动态链接库的一些导出信息。通过导出表，DLL文件可以向系统提供导出函数的名称、序号和入口地址等信息，以便Windows装载器能够通过这些信息来完成动态链接的整个过程</p>
@@ -222,11 +603,30 @@
 <p>Base一般为1，函数的序号等于Base+引出序号表里的值</p>
 <p><img src="https://pic.imgdb.cn/item/64f4c8d3661c6c8e5422f4d5.jpg" /></p>
 <p>在上图中最左侧 <code>AddressOfNames</code>结构成员指向了一个数组，数组里保存着一组RVA，每个RVA指向一个字符串即导出的函数名，与这个函数名对应的是 <code>AddressOfNameOrdinal</code>中的结构成员，该对应项存诸的下是函数的唯一编号并与<code>AddressOfFunctions</code>结构成员相关联，形成了一个导出链式结构体。</p>
-<h3 id="资源节-.rsrc">4.5 资源节 .rsrc</h3>
+<h4 id="资源节-.rsrc">4.5 资源节 .rsrc</h4>
 <p>这个节放有如图标、对话框等程序要用到的资源</p>
-<h3 id="重定位节-.reloc">4.6 重定位节 .reloc</h3>
+<h4 id="重定位节-.reloc">4.6 重定位节 .reloc</h4>
 <p>用于镜像地址改变后的地址自动修正</p>
 <p>重定位节存放了一个重定位表，若装载器不是把程序装到程序编译时默认的基地址时，就需要这个重定位表来做一些调整</p>]]></description>
+    <pubDate>Mon, 4 Sep 2023 15:29:23 +0800</pubDate>
+  </item>
+   
+  <item>
+    <title><![CDATA[其他]]></title>
+    <link>https://blog.mark0519.com/#/others/README</link>
+    <guid isPermaLink="false">https://blog.mark0519.com/#/others/README</guid>
+    <description><![CDATA[<h1 id="其他">其他</h1>
+<blockquote>
+<p>诗酒趁年华。</p>
+</blockquote>
+<h2 id="fuzz-afl">Fuzz-AFL</h2>
+<ul>
+<li><p><strong>[22/07/10]</strong> <a href="/others/220710-afl1">AFL入门（一）</a></p></li>
+<li><p><strong>[22/07/13]</strong> <a href="/others/220713-afl2">AFL入门（二）</a></p></li>
+<li><p><strong>[22/07/17]</strong> <a href="/others/220717-afl3">AFL入门（三）</a></p></li>
+</ul>
+<h2 id="reverse">Reverse</h2>
+<p><strong>[23/09/03]</strong> <a href="/others/230903-re1-pe">Re1 - PE结构</a></p>]]></description>
     <pubDate>Mon, 4 Sep 2023 02:03:53 +0800</pubDate>
   </item>
    
@@ -2747,23 +3147,6 @@ Reason: information about PFNs helps in exploiting Rowhammer vulnerability.</cod
 <span id="cb14-258"><a href="#cb14-258" aria-hidden="true"></a>    <span class="cf">return</span> <span class="dv">0</span>;</span>
 <span id="cb14-259"><a href="#cb14-259" aria-hidden="true"></a>}</span></code></pre></div>]]></description>
     <pubDate>Tue, 8 Nov 2022 17:20:42 +0800</pubDate>
-  </item>
-   
-  <item>
-    <title><![CDATA[Mark's blog]]></title>
-    <link>https://blog.mark0519.com/#/README</link>
-    <guid isPermaLink="false">https://blog.mark0519.com/#/README</guid>
-    <description><![CDATA[<h1 id="marks-blog">Mark’s blog</h1>
-<blockquote>
-<p>Live long and Pwn</p>
-</blockquote>
-<p>Pwn learner 的互联网自留地</p>
-<h2 id="cve-复现分析">CVE 复现&amp;分析</h2>
-<ul>
-<li><strong>[22/09/29]</strong> <a href="/220929-CVE_2016_5195">CVE-2016-5195</a></li>
-<li><strong>[22/10/20]</strong> <a href="/221020-CVE_2022_2566">CVE-2022-2566</a></li>
-</ul>]]></description>
-    <pubDate>Thu, 20 Oct 2022 16:11:27 +0800</pubDate>
   </item>
   
 </channel>
